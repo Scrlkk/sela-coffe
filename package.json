@@ -1,0 +1,20 @@
+{
+  "name": "sela-app",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Workspace Sela Coffe",
+  "author": "scrlkk",
+  "workspaces": [
+    "frontend",
+    "backend",
+    "shared"
+  ],
+  "scripts": {
+    "dev:frontend": "npm run dev -w frontend",
+    "dev:backend": "npm run dev -w backend",
+    "dev": "concurrently \"npm run dev:backend\" \"npm run dev:frontend\""
+  },
+  "devDependencies": {
+    "concurrently": "^10.0.3"
+  }
+}

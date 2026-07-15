@@ -1,0 +1,48 @@
+version: "3.8"
+
+services:
+  db:
+    image: postgres:15-alpine
+    container_name: sela_db
+    restart: always
+    environment:
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_NAME}
+
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+  backend:
+    image: node:20-alpine
+    container_name: sela_backend
+    working_dir: /app
+    volumes:
+      - .:/app
+      - /app/node_modules
+    ports:
+      - "5000:5000"
+    environment:
+      - NODE_ENV=development
+    command: sh -c "npm install && npm run dev:backend"
+    depends_on:
+      - db
+
+  frontend:
+    image: node:20-alpine
+    container_name: sela_frontend
+    working_dir: /app
+    volumes:
+      - .:/app
+      - /app/node_modules
+    ports:
+      - "5173:5173"
+    # Polling digunakan agar perubahan file di host terdeteksi oleh vite di container
+    command: sh -c "npm install && npm run dev:frontend"
+    depends_on:
+      - backend
+
+volumes:
+  pgdata:
