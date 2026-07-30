@@ -10,9 +10,12 @@
     "shared"
   ],
   "scripts": {
+    "build:shared": "npm run build -w shared",
     "dev:frontend": "npm run dev -w frontend",
     "dev:backend": "npm run dev -w backend",
-    "dev": "concurrently \"npm run dev:backend\" \"npm run dev:frontend\""
+    "dev": "npm run build:shared && concurrently \"npm run dev:backend\" \"npm run dev:frontend\"",
+    "db:push": "npm run db:push -w backend",
+    "prisma:generate": "npm run generate -w backend"
   },
   "devDependencies": {
     "concurrently": "^10.0.3"

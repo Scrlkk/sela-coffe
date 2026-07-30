@@ -40,3 +40,7 @@ docker-compose.override.yml
 
 # Notes Dev
 .notes/
+
+# Serena & Antigravity IDE Local Configs
+.agents/
+.serena/

@@ -3,6 +3,300 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 generator client {
-  provider = "prisma-client-js"
-  output   = "../generated/prisma"
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "linux-musl-openssl-3.0.x"]
 }
+
+enum Role {
+  ADMIN
+  CASHIER
+}
+
+enum StockLogType {
+  in
+  out
+  adjustment
+}
+
+enum PurchaseStatus {
+  draft
+  ordered
+  received
+  cancelled
+}
+
+enum PaymentMethod {
+  cash
+  qris
+}
+
+enum TransactionStatus {
+  paid
+  cancelled
+  refunded
+}
+
+enum CashSessionStatus {
+  opened
+  closed
+}
+
+model User {
+  id            BigInt    @id @default(autoincrement())
+  name          String    @db.VarChar(100)
+  username      String    @unique @db.VarChar(50)
+  password_hash String    @db.VarChar(255)
+  role          Role      @default(CASHIER)
+  phone         String?   @db.VarChar(20)
+  is_active     Boolean   @default(true)
+  created_at    DateTime  @default(now())
+  updated_at    DateTime  @default(now()) @updatedAt
+  deleted_at    DateTime?
+
+  stock_logs    StockLog[]
+  purchases     Purchase[]
+  cash_sessions CashSession[]
+  transactions  Transaction[]
+
+  @@index([username])
+  @@index([is_active])
+  @@index([deleted_at])
+  @@map("users")
+}
+
+model Category {
+  id          BigInt    @id @default(autoincrement())
+  name        String    @db.VarChar(100)
+  slug        String    @unique @db.VarChar(100)
+  description String?   @db.Text
+  image       String?   @db.VarChar(255)
+  is_active   Boolean   @default(true)
+  created_at  DateTime  @default(now())
+  updated_at  DateTime  @default(now()) @updatedAt
+  deleted_at  DateTime?
+
+  products    Product[]
+
+  @@index([slug])
+  @@index([is_active])
+  @@index([deleted_at])
+  @@map("categories")
+}
+
+model Product {
+  id          BigInt    @id @default(autoincrement())
+  category_id BigInt
+  name        String    @db.VarChar(200)
+  sku         String    @unique @db.VarChar(50)
+  description String?   @db.Text
+  cost_price  Decimal   @default(0) @db.Decimal(12, 2)
+  price       Decimal   @default(0) @db.Decimal(12, 2)
+  image       String?   @db.VarChar(255)
+  weight      Decimal?  @db.Decimal(8, 2)
+  unit        String?   @default("pcs") @db.VarChar(20)
+  is_active   Boolean   @default(true)
+  created_at  DateTime  @default(now())
+  updated_at  DateTime  @default(now()) @updatedAt
+  deleted_at  DateTime?
+
+  category          Category          @relation(fields: [category_id], references: [id])
+  stock             Stock?
+  stock_logs        StockLog[]
+  purchase_items    PurchaseItem[]
+  transaction_items TransactionItem[]
+
+  @@index([sku])
+  @@index([name])
+  @@index([is_active])
+  @@index([category_id, is_active])
+  @@index([deleted_at])
+  @@map("products")
+}
+
+model Stock {
+  id         BigInt   @id @default(autoincrement())
+  product_id BigInt   @unique
+  quantity   Int      @default(0)
+  min_stock  Int      @default(5)
+  max_stock  Int      @default(100)
+  created_at DateTime @default(now())
+  updated_at DateTime @default(now()) @updatedAt
+
+  product    Product  @relation(fields: [product_id], references: [id])
+
+  @@index([product_id])
+  @@index([min_stock])
+  @@index([quantity, min_stock])
+  @@map("stock")
+}
+
+model StockLog {
+  id              BigInt       @id @default(autoincrement())
+  product_id      BigInt
+  user_id         BigInt
+  type            StockLogType
+  quantity        Int
+  quantity_before Int
+  quantity_after  Int
+  reference_type  String?      @db.VarChar(50)
+  reference_id    BigInt?
+  note            String?      @db.Text
+  created_at      DateTime     @default(now())
+
+  product         Product      @relation(fields: [product_id], references: [id])
+  user            User         @relation(fields: [user_id], references: [id])
+
+  @@index([product_id])
+  @@index([user_id])
+  @@index([type])
+  @@index([created_at])
+  @@index([reference_type, reference_id])
+  @@index([product_id, created_at])
+  @@map("stock_logs")
+}
+
+model Supplier {
+  id             BigInt    @id @default(autoincrement())
+  name           String    @db.VarChar(100)
+  phone          String?   @db.VarChar(20)
+  email          String?   @db.VarChar(255)
+  address        String?   @db.Text
+  contact_person String?   @db.VarChar(100)
+  is_active      Boolean   @default(true)
+  created_at     DateTime  @default(now())
+  updated_at     DateTime  @default(now()) @updatedAt
+  deleted_at     DateTime?
+
+  purchases      Purchase[]
+
+  @@index([name])
+  @@index([is_active])
+  @@index([deleted_at])
+  @@map("suppliers")
+}
+
+model Purchase {
+  id             BigInt         @id @default(autoincrement())
+  supplier_id    BigInt
+  user_id        BigInt
+  invoice_number String         @unique @db.VarChar(255)
+  purchase_date  DateTime       @default(now())
+  total_amount   Decimal        @default(0) @db.Decimal(12, 2)
+  grand_total    Decimal        @default(0) @db.Decimal(12, 2)
+  status         PurchaseStatus @default(draft)
+  note           String?        @db.Text
+  created_at     DateTime       @default(now())
+  updated_at     DateTime       @default(now()) @updatedAt
+  deleted_at     DateTime?
+
+  supplier       Supplier       @relation(fields: [supplier_id], references: [id])
+  user           User           @relation(fields: [user_id], references: [id])
+  items          PurchaseItem[]
+
+  @@index([invoice_number])
+  @@index([supplier_id])
+  @@index([status])
+  @@index([created_at])
+  @@index([purchase_date])
+  @@index([deleted_at])
+  @@index([status, purchase_date])
+  @@map("purchases")
+}
+
+model PurchaseItem {
+  id          BigInt   @id @default(autoincrement())
+  purchase_id BigInt
+  product_id  BigInt
+  quantity    Int
+  unit_price  Decimal  @db.Decimal(12, 2)
+  subtotal    Decimal  @db.Decimal(12, 2)
+  created_at  DateTime @default(now())
+  updated_at  DateTime @default(now()) @updatedAt
+
+  purchase    Purchase @relation(fields: [purchase_id], references: [id])
+  product     Product  @relation(fields: [product_id], references: [id])
+
+  @@unique([purchase_id, product_id])
+  @@index([purchase_id])
+  @@index([product_id])
+  @@map("purchase_items")
+}
+
+model CashSession {
+  id               BigInt            @id @default(autoincrement())
+  user_id          BigInt
+  opening_balance  Decimal           @default(0) @db.Decimal(12, 2)
+  closing_balance  Decimal?          @db.Decimal(12, 2)
+  expected_balance Decimal?          @db.Decimal(12, 2)
+  difference       Decimal?          @db.Decimal(12, 2)
+  status           CashSessionStatus @default(opened)
+  opened_at        DateTime          @default(now())
+  closed_at        DateTime?
+  note             String?           @db.Text
+  created_at       DateTime          @default(now())
+  updated_at       DateTime          @default(now()) @updatedAt
+
+  user             User              @relation(fields: [user_id], references: [id])
+  transactions     Transaction[]
+
+  @@index([user_id])
+  @@index([status])
+  @@index([user_id, status])
+  @@index([opened_at])
+  @@index([closed_at])
+  @@map("cash_sessions")
+
+}
+
+model Transaction {
+  id               BigInt            @id @default(autoincrement())
+  user_id          BigInt
+  cash_session_id  BigInt?
+  invoice_number   String            @unique @db.VarChar(50)
+  transaction_date DateTime          @default(now())
+  subtotal         Decimal           @default(0) @db.Decimal(12, 2)
+  grand_total      Decimal           @default(0) @db.Decimal(12, 2)
+  paid_amount      Decimal           @default(0) @db.Decimal(12, 2)
+  change_amount    Decimal           @default(0) @db.Decimal(12, 2)
+  payment_method   PaymentMethod     @default(cash)
+  status           TransactionStatus @default(paid)
+  note             String?           @db.Text
+  created_at       DateTime          @default(now())
+  updated_at       DateTime          @default(now()) @updatedAt
+
+  user             User              @relation(fields: [user_id], references: [id])
+  cash_session     CashSession?      @relation(fields: [cash_session_id], references: [id])
+  items            TransactionItem[]
+
+  @@index([invoice_number])
+  @@index([user_id])
+  @@index([cash_session_id])
+  @@index([transaction_date])
+  @@index([status])
+  @@index([user_id, transaction_date])
+  @@index([transaction_date, status])
+  @@map("transactions")
+}
+
+model TransactionItem {
+  id             BigInt      @id @default(autoincrement())
+  transaction_id BigInt
+  product_id     BigInt
+  quantity       Int
+  unit_price     Decimal     @db.Decimal(12, 2)
+  subtotal       Decimal     @db.Decimal(12, 2)
+  note           String?     @db.Text
+  created_at     DateTime    @default(now())
+  updated_at     DateTime    @default(now()) @updatedAt
+
+  transaction    Transaction @relation(fields: [transaction_id], references: [id])
+  product        Product     @relation(fields: [product_id], references: [id])
+
+  @@unique([transaction_id, product_id])
+  @@index([transaction_id])
+  @@index([product_id])
+  @@map("transaction_items")
+}
+
+
+

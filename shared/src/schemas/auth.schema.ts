@@ -1,8 +1,17 @@
 import { z } from "zod";
 
-export const loginSchema = z.object({
-  email: z.string().email("Format email tidak valid"),
-  password: z.string().min(6, "Password minimal 6 karakter"),
-});
+export interface LoginInput {
+  username: string;
+  password: string;
+  rememberMe?: boolean;
+}
 
-export type LoginInput = z.infer<typeof loginSchema>;
+export const loginSchema = z.object({
+  username: z
+    .string()
+    .trim()
+    .toLowerCase()
+    .min(3, "Username minimal 3 karakter"),
+  password: z.string().min(6, "Password minimal 6 karakter"),
+  rememberMe: z.boolean().optional(),
+});

@@ -1,5 +1,4 @@
-version: "3.8"
-
+name: sela-app
 services:
   db:
     image: postgres:15-alpine
@@ -9,40 +8,59 @@ services:
       POSTGRES_USER: ${DB_USER}
       POSTGRES_PASSWORD: ${DB_PASSWORD}
       POSTGRES_DB: ${DB_NAME}
-
+      POSTGRES_INITDB_ARGS: "--locale=C"
     ports:
       - "5432:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
   backend:
-    image: node:20-alpine
+    image: node:22-alpine
     container_name: sela_backend
     working_dir: /app
     volumes:
       - .:/app
-      - /app/node_modules
+      - backend_node_modules:/app/backend/node_modules
+      - root_node_modules:/app/node_modules
+      - shared_node_modules:/app/shared/node_modules
     ports:
-      - "5000:5000"
+      - "3000:3000"
     environment:
       - NODE_ENV=development
-    command: sh -c "npm install && npm run dev:backend"
+      - PORT=3000
+      - JWT_SECRET=${JWT_SECRET:-sela_coffee_pos_secret_key_jwt_super_secure_2026}
+
+    command: sh -c "([ -d /app/node_modules/concurrently ] || npm install) && npm run generate -w backend && npm run db:push -w backend && npm run dev:backend"
     depends_on:
-      - db
+      db:
+        condition: service_healthy
 
   frontend:
-    image: node:20-alpine
+    image: node:22-alpine
     container_name: sela_frontend
     working_dir: /app
     volumes:
       - .:/app
-      - /app/node_modules
+      - frontend_node_modules:/app/frontend/node_modules
+      - root_node_modules:/app/node_modules
+      - shared_node_modules:/app/shared/node_modules
     ports:
       - "5173:5173"
-    # Polling digunakan agar perubahan file di host terdeteksi oleh vite di container
-    command: sh -c "npm install && npm run dev:frontend"
+    environment:
+      - VITE_APP_NAME=${VITE_APP_NAME:-Sela Coffee}
+      - VITE_APP_VERSION=${VITE_APP_VERSION:-v2.1}
+    command: sh -c "until [ -f /app/node_modules/.bin/vite ] || [ -f /app/frontend/node_modules/.bin/vite ]; do echo 'Waiting for node_modules...'; sleep 1; done && npm run dev:frontend"
     depends_on:
       - backend
 
 volumes:
   pgdata:
+  root_node_modules:
+  backend_node_modules:
+  frontend_node_modules:
+  shared_node_modules:

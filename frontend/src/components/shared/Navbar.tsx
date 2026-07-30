@@ -1,0 +1,119 @@
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "@/hooks/useAuth";
+import { useTheme } from "@/hooks/useTheme";
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+} from "@/components/ui/dropdown-menu";
+import {
+  Bell,
+  ChevronDown,
+  User as UserIcon,
+  LogOut,
+  Sun,
+  Moon,
+} from "lucide-react";
+
+export const Navbar = () => {
+  const { user, logout } = useAuth();
+  const { theme, setTheme } = useTheme();
+  const navigate = useNavigate();
+
+  const getInitials = (name?: string) => {
+    if (!name) return "U";
+    const parts = name.split(" ");
+    if (parts.length >= 2) return `${parts[0][0]}${parts[1][0]}`.toUpperCase();
+    return name.substring(0, 2).toUpperCase();
+  };
+
+  return (
+    <header className="h-16 bg-card/70 backdrop-blur-md border-b border-border flex items-center justify-end px-6 sticky top-0 z-20 transition-colors">
+      {/* User Right Section */}
+      <div className="flex items-center gap-4">
+        {/* Notification Bell */}
+        <button className="relative p-2 rounded-full text-foreground/80 hover:bg-secondary transition-colors cursor-pointer">
+          <Bell className="w-5 h-5" />
+          <span className="absolute top-1.5 right-1.5 w-2.5 h-2.5 bg-destructive rounded-full ring-2 ring-background" />
+        </button>
+
+        {/* Profile Dropdown */}
+        <DropdownMenu>
+          <DropdownMenuTrigger>
+            <div className="flex items-center gap-3 hover:opacity-90 transition-opacity">
+              <div className="w-9 h-9 rounded-full bg-secondary text-secondary-foreground font-bold text-xs flex items-center justify-center shadow-sm">
+                {getInitials(user?.name)}
+              </div>
+              <div className="hidden sm:flex flex-col text-left">
+                <span className="text-xs font-bold text-foreground leading-tight">
+                  {user?.name || "User"}
+                </span>
+                <span className="text-[10px] font-medium text-muted-foreground capitalize">
+                  {user?.role?.toLowerCase() || "Cashier"}
+                </span>
+              </div>
+              <ChevronDown className="w-4 h-4 text-muted-foreground" />
+            </div>
+          </DropdownMenuTrigger>
+
+          <DropdownMenuContent align="end" className="w-60">
+            <DropdownMenuLabel>Account Session</DropdownMenuLabel>
+            <div className="px-3 py-1 text-xs text-muted-foreground font-medium truncate">
+              {user?.name}
+            </div>
+
+            <DropdownMenuSeparator />
+
+            <DropdownMenuItem onClick={() => navigate("/profile")}>
+              <UserIcon className="w-4 h-4" />
+              <span>Profile Settings</span>
+            </DropdownMenuItem>
+
+            <DropdownMenuSeparator />
+
+            {/* Theme Mode Toggle Section */}
+            <DropdownMenuLabel>Theme Mode</DropdownMenuLabel>
+            <div className="px-1 py-1 grid grid-cols-2 gap-1">
+              <button
+                onClick={() => setTheme("light")}
+                className={`flex items-center justify-center gap-1.5 px-2.5 py-1.5 rounded-xl text-xs font-medium transition-all cursor-pointer ${
+                  theme === "light"
+                    ? "bg-primary text-primary-foreground font-semibold shadow-xs"
+                    : "text-muted-foreground hover:bg-secondary hover:text-foreground"
+                }`}
+              >
+                <Sun className="w-3.5 h-3.5" />
+                <span>Light</span>
+              </button>
+
+              <button
+                onClick={() => setTheme("dark")}
+                className={`flex items-center justify-center gap-1.5 px-2.5 py-1.5 rounded-xl text-xs font-medium transition-all cursor-pointer ${
+                  theme === "dark"
+                    ? "bg-primary text-primary-foreground font-semibold shadow-xs"
+                    : "text-muted-foreground hover:bg-secondary hover:text-foreground"
+                }`}
+              >
+                <Moon className="w-3.5 h-3.5" />
+                <span>Dark</span>
+              </button>
+            </div>
+
+            <DropdownMenuSeparator />
+
+            <DropdownMenuItem
+              onClick={logout}
+              className="text-destructive hover:bg-destructive/10"
+            >
+              <LogOut className="w-4 h-4" />
+              <span>Log out</span>
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </div>
+    </header>
+  );
+};

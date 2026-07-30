@@ -1,15 +1,26 @@
+import { useState } from "react";
 import { Outlet } from "react-router-dom";
+import { Sidebar } from "@/components/shared/Sidebar";
+import { Navbar } from "@/components/shared/Navbar";
 
 export default function MainLayout() {
-  return (
-    <div className="min-h-screen bg-slate-50 flex flex-col">
-      <header className="bg-white shadow-sm h-16 flex items-center px-6">
-        <h1 className="font-bold text-xl text-slate-800">Sela POS</h1>
-      </header>
+  const [collapsed, setCollapsed] = useState(false);
 
-      <main className="flex-1 p-6">
-        <Outlet />
-      </main>
+  return (
+    <div className="h-screen max-h-screen bg-background text-foreground flex overflow-hidden">
+      <Sidebar
+        collapsed={collapsed}
+        onToggleCollapse={() => setCollapsed(!collapsed)}
+      />
+
+      <div className="flex-1 flex flex-col min-w-0 h-screen overflow-hidden">
+        <Navbar />
+
+        {/* Dynamic Page Content */}
+        <main className="flex-1 p-6 overflow-y-auto no-scrollbar">
+          <Outlet />
+        </main>
+      </div>
     </div>
   );
 }
