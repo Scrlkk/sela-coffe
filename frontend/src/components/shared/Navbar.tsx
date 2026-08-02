@@ -1,4 +1,4 @@
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { useTheme } from "@/hooks/useTheme";
 import {
@@ -16,12 +16,25 @@ import {
   LogOut,
   Sun,
   Moon,
+  Menu,
 } from "lucide-react";
+import { ROUTE_META } from "@/constants/navigation";
+import { cn } from "@/lib/utils";
 
-export const Navbar = () => {
+interface NavbarProps {
+  onToggleMobileSidebar?: () => void;
+}
+
+export const Navbar: React.FC<NavbarProps> = ({ onToggleMobileSidebar }) => {
   const { user, logout } = useAuth();
   const { theme, setTheme } = useTheme();
   const navigate = useNavigate();
+  const location = useLocation();
+
+  const currentMeta = ROUTE_META[location.pathname] || {
+    title: "Sela POS",
+    description: "Coffee Shop POS & Management System",
+  };
 
   const getInitials = (name?: string) => {
     if (!name) return "U";
@@ -31,7 +44,27 @@ export const Navbar = () => {
   };
 
   return (
-    <header className="h-16 bg-card/70 backdrop-blur-md border-b border-border flex items-center justify-end px-6 sticky top-0 z-20 transition-colors">
+    <header className="h-16 bg-card/70 backdrop-blur-md border-b border-border flex items-center justify-between px-4 sm:px-6 sticky top-0 z-20 transition-colors">
+      {/* Left: Mobile Toggle & Page Meta */}
+      <div className="flex items-center gap-3">
+        {onToggleMobileSidebar && (
+          <button
+            onClick={onToggleMobileSidebar}
+            className="md:hidden p-2 text-foreground/80 hover:bg-secondary rounded-lg transition-colors cursor-pointer"
+            title="Toggle Navigation Menu"
+          >
+            <Menu className="w-5 h-5" />
+          </button>
+        )}
+        <div className="flex flex-col text-left">
+          <h1 className="text-sm sm:text-base font-extrabold text-foreground leading-tight tracking-tight">
+            {currentMeta.title}
+          </h1>
+          <p className="text-[11px] sm:text-xs text-muted-foreground hidden sm:block">
+            {currentMeta.description}
+          </p>
+        </div>
+      </div>
       {/* User Right Section */}
       <div className="flex items-center gap-4">
         {/* Notification Bell */}
@@ -79,11 +112,12 @@ export const Navbar = () => {
             <div className="px-1 py-1 grid grid-cols-2 gap-1">
               <button
                 onClick={() => setTheme("light")}
-                className={`flex items-center justify-center gap-1.5 px-2.5 py-1.5 rounded-xl text-xs font-medium transition-all cursor-pointer ${
+                className={cn(
+                  "flex items-center justify-center gap-1.5 px-2.5 py-1.5 rounded-xl text-xs font-medium transition-all cursor-pointer",
                   theme === "light"
                     ? "bg-primary text-primary-foreground font-semibold shadow-xs"
                     : "text-muted-foreground hover:bg-secondary hover:text-foreground"
-                }`}
+                )}
               >
                 <Sun className="w-3.5 h-3.5" />
                 <span>Light</span>
@@ -91,11 +125,12 @@ export const Navbar = () => {
 
               <button
                 onClick={() => setTheme("dark")}
-                className={`flex items-center justify-center gap-1.5 px-2.5 py-1.5 rounded-xl text-xs font-medium transition-all cursor-pointer ${
+                className={cn(
+                  "flex items-center justify-center gap-1.5 px-2.5 py-1.5 rounded-xl text-xs font-medium transition-all cursor-pointer",
                   theme === "dark"
                     ? "bg-primary text-primary-foreground font-semibold shadow-xs"
                     : "text-muted-foreground hover:bg-secondary hover:text-foreground"
-                }`}
+                )}
               >
                 <Moon className="w-3.5 h-3.5" />
                 <span>Dark</span>

@@ -120,13 +120,39 @@
   }
 }
 
-/* Global utility class untuk menyembunyikan scrollbar di semua browser */
 .no-scrollbar {
-  -ms-overflow-style: none; /* IE and Edge */
-  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none;
+  scrollbar-width: none;
 }
 .no-scrollbar::-webkit-scrollbar {
   display: none !important;
   width: 0 !important;
   height: 0 !important;
+}
+
+.recharts-wrapper,
+.recharts-surface,
+.recharts-responsive-container,
+.recharts-sector,
+.recharts-pie,
+.recharts-curve,
+.recharts-layer,
+.recharts-active-shape,
+.recharts-tooltip-cursor {
+  outline: none !important;
+  border: none !important;
+  box-shadow: none !important;
+  -webkit-tap-highlight-color: transparent !important;
+}
+
+.recharts-wrapper:focus,
+.recharts-surface:focus,
+.recharts-responsive-container:focus,
+.recharts-sector:focus,
+.recharts-pie:focus,
+.recharts-wrapper *:focus,
+.recharts-surface *:focus {
+  outline: none !important;
+  border: none !important;
+  box-shadow: none !important;
 }

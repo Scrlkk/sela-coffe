@@ -15,6 +15,7 @@
     "dev:backend": "npm run dev -w backend",
     "dev": "npm run build:shared && concurrently \"npm run dev:backend\" \"npm run dev:frontend\"",
     "db:push": "npm run db:push -w backend",
+    "db:seed": "npm run db:seed -w backend",
     "prisma:generate": "npm run generate -w backend"
   },
   "devDependencies": {

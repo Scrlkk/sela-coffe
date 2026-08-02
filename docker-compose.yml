@@ -35,7 +35,7 @@ services:
       - PORT=3000
       - JWT_SECRET=${JWT_SECRET:-sela_coffee_pos_secret_key_jwt_super_secure_2026}
 
-    command: sh -c "([ -d /app/node_modules/concurrently ] || npm install) && npm run generate -w backend && npm run db:push -w backend && npm run dev:backend"
+    command: sh -c "([ -d /app/node_modules/concurrently ] || npm install) && npm run build:shared && npm run generate -w backend && npm run db:push -w backend && npm run dev:backend"
     depends_on:
       db:
         condition: service_healthy

@@ -1,0 +1,142 @@
+import {
+  LayoutDashboard,
+  ShoppingCart,
+  Package,
+  Tags,
+  Truck,
+  Users,
+  Warehouse,
+  ArrowLeftRight,
+  SlidersHorizontal,
+  FileSpreadsheet,
+  PackageCheck,
+} from "lucide-react";
+
+export interface RouteInfo {
+  title: string;
+  description: string;
+}
+
+export const ROUTE_META: Record<string, RouteInfo> = {
+  "/dashboard": {
+    title: "Dashboard",
+    description: "Overview of your coffee shop performance & statistics today",
+  },
+  "/cashier": {
+    title: "POS Cashier",
+    description: "Manage customer orders, transactions, and payments",
+  },
+  "/products": {
+    title: "Product Management",
+    description: "Manage menu items, prices, and product variants",
+  },
+  "/categories": {
+    title: "Product Categories",
+    description: "Organize coffee shop menu categories",
+  },
+  "/suppliers": {
+    title: "Suppliers",
+    description: "Manage ingredient and inventory suppliers",
+  },
+  "/users": {
+    title: "User Management",
+    description: "Manage user accounts, roles, and access permissions",
+  },
+  "/stock": {
+    title: "Current Stock",
+    description: "Monitor inventory levels and item availability",
+  },
+  "/stock-movement": {
+    title: "Stock Movement",
+    description: "History of stock entries and dispatches",
+  },
+  "/stock-adjustment": {
+    title: "Stock Adjustment",
+    description: "Adjust and correct stock audit quantities",
+  },
+  "/purchases": {
+    title: "Purchase Orders",
+    description: "Manage supplier purchase orders and procurement",
+  },
+  "/purchases/receive": {
+    title: "Goods Receiving",
+    description: "Record received goods from suppliers",
+  },
+  "/transactions": {
+    title: "Transaction History",
+    description: "Sales transactions list and details",
+  },
+  "/cash-sessions": {
+    title: "Cash Sessions",
+    description: "Register open and close cash register sessions",
+  },
+  "/profile": {
+    title: "Profile Settings",
+    description: "Manage your profile information and account security",
+  },
+};
+
+export const menuGroups = [
+  {
+    label: "MAIN",
+    items: [
+      { label: "Dashboard", path: "/dashboard", icon: LayoutDashboard },
+      { label: "Cashier", path: "/cashier", icon: ShoppingCart },
+    ],
+  },
+  {
+    label: "MASTER DATA",
+    items: [
+      { label: "Products", path: "/products", icon: Package },
+      { label: "Categories", path: "/categories", icon: Tags },
+      { label: "Suppliers", path: "/suppliers", icon: Truck },
+      { label: "Users", path: "/users", icon: Users },
+    ],
+  },
+  {
+    label: "INVENTORY",
+    items: [
+      { label: "Current Stock", path: "/stock", icon: Warehouse },
+      {
+        label: "Stock Movement",
+        path: "/stock-movement",
+        icon: ArrowLeftRight,
+      },
+      {
+        label: "Adjustment",
+        path: "/stock-adjustment",
+        icon: SlidersHorizontal,
+      },
+    ],
+  },
+  {
+    label: "PURCHASES",
+    items: [
+      {
+        label: "Purchase Orders",
+        path: "/purchases",
+        icon: FileSpreadsheet,
+      },
+      {
+        label: "Receive Goods",
+        path: "/purchases/receive",
+        icon: PackageCheck,
+      },
+    ],
+  },
+  {
+    label: "SALES",
+    items: [
+      {
+        label: "Transactions",
+        path: "/transactions",
+        icon: ArrowLeftRight,
+      },
+      {
+        label: "Cash Sessions",
+        path: "/cash-sessions",
+        icon: ShoppingCart,
+      },
+    ],
+  },
+];

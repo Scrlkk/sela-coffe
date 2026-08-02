@@ -1,13 +1,19 @@
+/* eslint-disable react-refresh/only-export-components */
+import { lazy, Suspense } from "react";
 import { createBrowserRouter, Navigate } from "react-router-dom";
-import LoginPage from "@/pages/LoginPage";
-import DashboardPage from "@/pages/DashboardPage";
-import NotFoundPage from "@/pages/NotFoundPage";
-import ServerErrorPage from "@/pages/ServerErrorPage";
 import MainLayout from "@/layouts/MainLayout";
+import { DashboardSkeleton } from "@/components/dashboard/DashboardSkeleton";
 import {
   ProtectedRoute,
   PublicRoute,
 } from "@/components/shared/ProtectedRoute";
+
+const LoginPage = lazy(() => import("@/pages/LoginPage"));
+const DashboardPage = lazy(() => import("@/pages/DashboardPage"));
+const NotFoundPage = lazy(() => import("@/pages/NotFoundPage"));
+const ServerErrorPage = lazy(() => import("@/pages/ServerErrorPage"));
+
+const pageFallback = <DashboardSkeleton />;
 
 export const router = createBrowserRouter([
   {
@@ -21,7 +27,11 @@ export const router = createBrowserRouter([
     children: [
       {
         path: "/login",
-        element: <LoginPage />,
+        element: (
+          <Suspense fallback={pageFallback}>
+            <LoginPage />
+          </Suspense>
+        ),
       },
     ],
   },
@@ -34,7 +44,63 @@ export const router = createBrowserRouter([
         children: [
           {
             path: "/dashboard",
-            element: <DashboardPage />,
+            element: (
+              <Suspense fallback={pageFallback}>
+                <DashboardPage />
+              </Suspense>
+            ),
+          },
+          {
+            path: "/cashier",
+            element: <div />,
+          },
+          {
+            path: "/products",
+            element: <div />,
+          },
+          {
+            path: "/categories",
+            element: <div />,
+          },
+          {
+            path: "/suppliers",
+            element: <div />,
+          },
+          {
+            path: "/users",
+            element: <div />,
+          },
+          {
+            path: "/stock",
+            element: <div />,
+          },
+          {
+            path: "/stock-movement",
+            element: <div />,
+          },
+          {
+            path: "/stock-adjustment",
+            element: <div />,
+          },
+          {
+            path: "/purchases",
+            element: <div />,
+          },
+          {
+            path: "/purchases/receive",
+            element: <div />,
+          },
+          {
+            path: "/transactions",
+            element: <div />,
+          },
+          {
+            path: "/cash-sessions",
+            element: <div />,
+          },
+          {
+            path: "/profile",
+            element: <div />,
           },
         ],
       },

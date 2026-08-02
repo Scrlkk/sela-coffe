@@ -1,59 +1,88 @@
 import React from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { Coffee, ChevronLeft, ChevronRight } from "lucide-react";
-import { menuGroups } from "@/utils/navigation";
+import { ChevronLeft, ChevronRight, X } from "lucide-react";
+import { menuGroups } from "@/constants/navigation";
+import { SelaLogo } from "@/components/shared/SelaLogo";
+import { cn } from "@/lib/utils";
 
 interface SidebarProps {
   collapsed: boolean;
   onToggleCollapse: () => void;
+  mobileOpen?: boolean;
+  onCloseMobile?: () => void;
 }
 
 export const Sidebar: React.FC<SidebarProps> = ({
   collapsed,
   onToggleCollapse,
+  mobileOpen = false,
+  onCloseMobile,
 }) => {
   const navigate = useNavigate();
   const location = useLocation();
+
+  const handleItemClick = (path: string) => {
+    navigate(path);
+    if (onCloseMobile) onCloseMobile();
+  };
+
   return (
     <aside
-      className={`h-screen max-h-screen bg-sidebar text-sidebar-foreground transition-all duration-300 flex flex-col z-30 shrink-0 select-none border-r border-sidebar-border ${
-        collapsed ? "w-16" : "w-64"
-      }`}
+      className={cn(
+        "h-screen max-h-screen bg-sidebar text-sidebar-foreground transition-all duration-300 ease-in-out flex flex-col z-50 shrink-0 select-none border-r border-sidebar-border fixed inset-y-0 left-0 md:static",
+        mobileOpen
+          ? "translate-x-0 shadow-2xl"
+          : "-translate-x-full md:translate-x-0",
+        collapsed ? "md:w-16" : "w-64"
+      )}
     >
       {/* Sidebar Header Brand */}
       <div className="h-16 px-3 flex flex-col justify-center">
         <div
-          className={`h-full flex items-center border-b border-sidebar-border/60 ${
-            collapsed ? "justify-center px-1" : "justify-between px-2"
-          }`}
+          className={cn(
+            "h-full flex items-center border-b border-sidebar-border/60",
+            collapsed && !mobileOpen ? "justify-center px-1" : "justify-between px-2"
+          )}
         >
-          {collapsed ? (
+          {collapsed && !mobileOpen ? (
             <button
               onClick={onToggleCollapse}
               title="Expand Sidebar"
-              className="group relative w-10 h-10 rounded-full bg-sidebar-primary hover:bg-sidebar-primary/80 flex items-center justify-center shrink-0 shadow-md transition-all cursor-pointer"
+              className="group relative w-12 h-12 flex items-center justify-center shrink-0 transition-all cursor-pointer"
             >
-              <Coffee className="w-5 h-5 text-sidebar-foreground group-hover:hidden transition-transform" />
+              <SelaLogo className="h-8 w-auto group-hover:hidden shrink-0" />
               <ChevronRight className="w-5 h-5 text-sidebar-foreground hidden group-hover:block transition-transform" />
             </button>
           ) : (
             <>
               <div className="flex items-center gap-3 overflow-hidden">
-                <div className="w-10 h-10 rounded-full bg-sidebar-primary flex items-center justify-center shrink-0 shadow-md">
-                  <Coffee className="w-5 h-5 text-sidebar-foreground" />
-                </div>
+                <SelaLogo className="h-8 w-auto shrink-0" />
                 <span className="font-extrabold text-lg text-sidebar-foreground tracking-tight whitespace-nowrap">
-                  Sela POS
+                  Workspace
                 </span>
               </div>
 
-              <button
-                onClick={onToggleCollapse}
-                title="Collapse Sidebar"
-                className="text-sidebar-foreground/70 hover:text-sidebar-foreground p-1.5 rounded-lg transition-colors cursor-pointer"
-              >
-                <ChevronLeft className="w-4 h-4" />
-              </button>
+              <div className="flex items-center gap-1">
+                {/* Mobile Close Button */}
+                {onCloseMobile && (
+                  <button
+                    onClick={onCloseMobile}
+                    title="Close Sidebar"
+                    className="md:hidden text-sidebar-foreground/70 hover:text-sidebar-foreground p-1.5 rounded-lg transition-colors cursor-pointer"
+                  >
+                    <X className="w-5 h-5" />
+                  </button>
+                )}
+
+                {/* Desktop Collapse Button */}
+                <button
+                  onClick={onToggleCollapse}
+                  title="Collapse Sidebar"
+                  className="hidden md:block text-sidebar-foreground/70 hover:text-sidebar-foreground p-1.5 rounded-lg transition-colors cursor-pointer"
+                >
+                  <ChevronLeft className="w-4 h-4" />
+                </button>
+              </div>
             </>
           )}
         </div>
@@ -61,13 +90,14 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
       {/* Sidebar Navigation Items */}
       <div
-        className={`flex-1 overflow-y-auto no-scrollbar py-4 space-y-6 ${
-          collapsed ? "px-2" : "px-3"
-        }`}
+        className={cn(
+          "flex-1 overflow-y-auto no-scrollbar pt-4 pb-12 space-y-6",
+          collapsed && !mobileOpen ? "px-2" : "px-3"
+        )}
       >
         {menuGroups.map((group, idx) => (
           <div key={idx} className="space-y-1">
-            {!collapsed && (
+            {(!collapsed || mobileOpen) && (
               <h3 className="px-3 text-[10px] font-bold tracking-wider text-sidebar-foreground/60 uppercase mb-2">
                 {group.label}
               </h3>
@@ -79,18 +109,20 @@ export const Sidebar: React.FC<SidebarProps> = ({
               return (
                 <div
                   key={item.path}
-                  onClick={() => navigate(item.path)}
-                  title={collapsed ? item.label : undefined}
-                  className={`flex items-center gap-3 py-2.5 rounded-2xl text-sm font-medium transition-all duration-200 cursor-pointer ${
-                    collapsed ? "justify-center px-0" : "px-3"
-                  } ${
+                  onClick={() => handleItemClick(item.path)}
+                  title={collapsed && !mobileOpen ? item.label : undefined}
+                  className={cn(
+                    "flex items-center gap-3 py-2.5 rounded-2xl text-sm font-medium transition-all duration-200 cursor-pointer",
+                    collapsed && !mobileOpen ? "justify-center px-0" : "px-3",
                     isActive
                       ? "bg-card text-foreground shadow-lg shadow-black/10 font-semibold"
                       : "text-sidebar-foreground/80 hover:bg-sidebar-primary/50 hover:text-sidebar-foreground"
-                  }`}
+                  )}
                 >
                   <Icon className="w-5 h-5 shrink-0" />
-                  {!collapsed && <span className="truncate">{item.label}</span>}
+                  {(!collapsed || mobileOpen) && (
+                    <span className="truncate">{item.label}</span>
+                  )}
                 </div>
               );
             })}

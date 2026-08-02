@@ -2,7 +2,8 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Coffee, ArrowLeft, Home } from "lucide-react";
+import { ArrowLeft, Home } from "lucide-react";
+import { LogoLogin } from "@/components/shared/SelaLogo";
 
 const APP_NAME = import.meta.env.VITE_APP_NAME || "Sela Coffee";
 const APP_VERSION = import.meta.env.VITE_APP_VERSION || "v2.1";
@@ -20,15 +21,16 @@ export default function NotFoundPage() {
   };
 
   return (
-    <main className="min-h-screen w-full bg-background text-foreground flex flex-col justify-between items-center p-4 sm:p-6 md:p-8 relative selection:bg-primary selection:text-primary-foreground">
-      <div className="w-full max-w-md flex flex-col items-center my-auto py-6">
+    <main className="min-h-screen w-full bg-linear-to-br from-background via-background to-primary/10 text-foreground flex flex-col justify-between items-center p-4 sm:p-6 md:p-8 relative overflow-hidden selection:bg-primary selection:text-primary-foreground">
+      <div className="absolute -top-32 -left-32 w-96 h-96 bg-primary/15 rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute -bottom-32 -right-32 w-96 h-96 bg-secondary/15 rounded-full blur-3xl pointer-events-none" />
+
+      <div className="w-full max-w-md flex flex-col items-center my-auto py-6 z-10">
         <div className="flex flex-col items-center mb-8 text-center">
-          {/* App Icon */}
-          <div className="relative">
-            <div className="w-16 h-16 bg-primary rounded-3xl flex items-center justify-center mb-4 shadow-xl shadow-primary/20 ring-4 ring-card transition-transform hover:scale-105 duration-300">
-              <Coffee className="w-8 h-8 text-primary-foreground" />
-            </div>
-            <span className="absolute -top-1 -right-2 bg-secondary text-secondary-foreground font-black text-xs px-2 py-0.5 rounded-full shadow-md font-mono border border-border">
+          {/* App Logo */}
+          <div className="relative mb-4 flex items-center justify-center transition-transform hover:scale-105 duration-300">
+            <LogoLogin className="w-28 h-28 sm:w-32 sm:h-32 drop-shadow-md" />
+            <span className="absolute top-0 right-0 bg-secondary text-secondary-foreground font-black text-xs px-2.5 py-0.5 rounded-full shadow-md font-mono border border-border">
               404
             </span>
           </div>
