@@ -22,8 +22,12 @@ export const customParamIdSchema = (paramName: string) =>
 export const validate =
   (schema: ZodSchema) => (req: Request, _res: Response, next: NextFunction) => {
     try {
-      const isWrapped = (schema as any).shape?.body !== undefined;
-      
+      const shape = (schema as any).shape;
+      const isWrapped =
+        shape?.body !== undefined ||
+        shape?.params !== undefined ||
+        shape?.query !== undefined;
+
       if (isWrapped) {
         const parsed = schema.parse({
           body: req.body,

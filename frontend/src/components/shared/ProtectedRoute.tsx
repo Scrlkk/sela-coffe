@@ -4,7 +4,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { SelaLogo } from "@/components/shared/SelaLogo";
 import { Loader2 } from "lucide-react";
 
-const SessionLoading = () => {
+export const SessionLoading = () => {
   return (
     <div className="fixed inset-0 bg-background text-foreground flex flex-col items-center justify-center z-50 select-none">
       <div className="flex flex-col items-center gap-4 animate-in fade-in zoom-in-95 duration-300">
@@ -48,14 +48,15 @@ export const ProtectedRoute = () => {
 
 export const PublicRoute = () => {
   const { token, loading } = useAuth();
-  const [minLoading, setMinLoading] = useState<boolean>(true);
+  const [minLoading, setMinLoading] = useState<boolean>(Boolean(token));
 
   useEffect(() => {
+    if (!token) return;
     const timer = setTimeout(() => setMinLoading(false), 1000);
     return () => clearTimeout(timer);
-  }, []);
+  }, [token]);
 
-  if (loading || minLoading) return <SessionLoading />;
+  if (loading || (token && minLoading)) return <SessionLoading />;
   if (token) return <Navigate to="/dashboard" replace />;
 
   return <Outlet />;

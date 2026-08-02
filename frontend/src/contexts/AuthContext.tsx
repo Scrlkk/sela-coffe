@@ -9,7 +9,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     localStorage.getItem("token"),
   );
   const [user, setUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState<boolean>(true);
+  const [loading, setLoading] = useState<boolean>(
+    Boolean(localStorage.getItem("token")),
+  );
 
   const login = (newToken: string, newUser: User) => {
     localStorage.setItem("token", newToken);

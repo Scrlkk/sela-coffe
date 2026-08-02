@@ -108,6 +108,7 @@
   --sidebar-border: #4a2610;
   --sidebar-ring: #e5c18c;
 }
+
 @layer base {
   * {
     @apply border-border outline-ring/50;
@@ -118,6 +119,11 @@
   html {
     @apply font-sans;
   }
+}
+
+input::-ms-reveal,
+input::-ms-clear {
+  display: none;
 }
 
 .no-scrollbar {

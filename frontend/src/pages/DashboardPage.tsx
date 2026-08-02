@@ -71,12 +71,12 @@ export default function DashboardPage() {
         <TodaysTransactionsCard
           isLoading={loadingTxn}
           onRefresh={() => triggerCardRefresh(setLoadingTxn)}
-          className="h-full max-h-96"
+          className="h-full lg:col-span-2 max-h-96"
         />
         <RecentActivityCard
           isLoading={loadingAct}
           onRefresh={() => triggerCardRefresh(setLoadingAct)}
-          className="h-full max-h-96"
+          className="h-full lg:col-span-1 max-h-96"
         />
       </div>
     </div>

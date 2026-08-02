@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { UserController } from "../controllers/userController";
 import { validate, numericIdParamSchema } from "../middlewares/validate";
-import { authorize } from "../middlewares/auth";
+import { authenticate, authorize } from "../middlewares/auth";
 import { createUserSchema, updateUserSchema } from "@sela/shared";
 
 const router = Router();
@@ -56,6 +56,13 @@ const router = Router();
 
 router.get("/", authorize("ADMIN"), UserController.index);
 
+router.post(
+  "/",
+  authorize("ADMIN"),
+  validate(createUserSchema),
+  UserController.store,
+);
+
 /**
  * @openapi
  * /users/{id}:
@@ -75,7 +82,7 @@ router.get("/", authorize("ADMIN"), UserController.index);
  *       403:
  *         description: Akses ditolak (Khusus Admin)
  *   put:
- *     summary: Perbarui data user (Khusus Admin)
+ *     summary: Perbarui data user (Self-update atau Khusus Admin)
  *     tags: [Users]
  *     security:
  *       - bearerAuth: []
@@ -92,14 +99,16 @@ router.get("/", authorize("ADMIN"), UserController.index);
  *             type: object
  *             properties:
  *               name: { type: string }
- *               role: { type: string, enum: [ADMIN, CASHIER] }
+ *               username: { type: string }
  *               phone: { type: string }
+ *               password: { type: string }
+ *               role: { type: string, enum: [ADMIN, CASHIER] }
  *               is_active: { type: boolean }
  *     responses:
  *       200:
  *         description: User berhasil diperbarui
  *       403:
- *         description: Akses ditolak (Khusus Admin)
+ *         description: Akses ditolak
  *   delete:
  *     summary: Soft delete user (Khusus Admin)
  *     tags: [Users]
@@ -116,25 +125,22 @@ router.get("/", authorize("ADMIN"), UserController.index);
  *       403:
  *         description: Akses ditolak (Khusus Admin)
  */
+
 router.get(
   "/:id",
   authorize("ADMIN"),
   validate(numericIdParamSchema),
   UserController.show,
 );
-router.post(
-  "/",
-  authorize("ADMIN"),
-  validate(createUserSchema),
-  UserController.store,
-);
+
 router.put(
   "/:id",
-  authorize("ADMIN"),
+  authenticate,
   validate(numericIdParamSchema),
   validate(updateUserSchema),
   UserController.update,
 );
+
 router.delete(
   "/:id",
   authorize("ADMIN"),

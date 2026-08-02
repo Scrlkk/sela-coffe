@@ -5,12 +5,13 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useAuth } from "@/hooks/useAuth";
-import { api } from "@/lib/axios";
-import { AlertCircle } from "lucide-react";
+import { authService } from "@/services/auth";
+import { AlertCircle, Eye, EyeOff } from "lucide-react";
 
 export const LoginForm = () => {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -22,12 +23,11 @@ export const LoginForm = () => {
     setLoading(true);
 
     try {
-      const res = await api.post("/auth/login", {
+      const { token, user } = await authService.login({
         username,
         password,
         rememberMe,
       });
-      const { token, user } = res.data.data;
       login(token, user);
     } catch (err: unknown) {
       if (err && typeof err === "object" && "response" in err) {
@@ -75,17 +75,31 @@ export const LoginForm = () => {
                 Password
               </Label>
             </div>
-            <Input
-              id="password"
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              className={`bg-background/20 border-border rounded-2xl h-12 text-foreground placeholder:text-muted-foreground focus-visible:ring-ring focus-visible:ring-2 focus-visible:border-transparent transition-all shadow-inner ${
-                error ? "border-destructive focus-visible:ring-destructive" : ""
-              }`}
-              placeholder="••••••••"
-            />
+            <div className="relative">
+              <Input
+                id="password"
+                type={showPassword ? "text" : "password"}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                className={`bg-background/20 border-border rounded-2xl h-12 text-foreground placeholder:text-muted-foreground focus-visible:ring-ring focus-visible:ring-2 focus-visible:border-transparent transition-all shadow-inner pr-11 ${
+                  error ? "border-destructive focus-visible:ring-destructive" : ""
+                }`}
+                placeholder="••••••••"
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-3.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors p-1 rounded-lg cursor-pointer select-none"
+                title={showPassword ? "Hide password" : "Show password"}
+              >
+                {showPassword ? (
+                  <EyeOff className="w-4 h-4" />
+                ) : (
+                  <Eye className="w-4 h-4" />
+                )}
+              </button>
+            </div>
           </div>
 
           {/* Remember Me */}

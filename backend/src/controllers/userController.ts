@@ -1,10 +1,12 @@
-import { Request, Response, NextFunction } from "express";
+import { Response, NextFunction } from "express";
 import { UserService } from "../services/userService";
 import { getPaginationParams } from "../utils/pagination";
 import { ApiResponse } from "../utils/apiResponse";
+import { ForbiddenError } from "../utils/errors";
+import { AuthRequest } from "../middlewares/auth";
 
 export class UserController {
-  static async index(req: Request, res: Response, next: NextFunction) {
+  static async index(req: AuthRequest, res: Response, next: NextFunction) {
     try {
       const { page, limit } = getPaginationParams(req.query);
       const search = req.query.search as string | undefined;
@@ -20,7 +22,7 @@ export class UserController {
     }
   }
 
-  static async show(req: Request, res: Response, next: NextFunction) {
+  static async show(req: AuthRequest, res: Response, next: NextFunction) {
     try {
       const id = BigInt(req.params.id as string);
       const user = await UserService.getUserById(id);
@@ -30,7 +32,7 @@ export class UserController {
     }
   }
 
-  static async store(req: Request, res: Response, next: NextFunction) {
+  static async store(req: AuthRequest, res: Response, next: NextFunction) {
     try {
       const user = await UserService.createUser(req.body);
       return ApiResponse.success({
@@ -44,9 +46,16 @@ export class UserController {
     }
   }
 
-  static async update(req: Request, res: Response, next: NextFunction) {
+  static async update(req: AuthRequest, res: Response, next: NextFunction) {
     try {
       const id = BigInt(req.params.id as string);
+
+      if (req.user?.role !== "ADMIN" && req.user?.id !== req.params.id) {
+        throw new ForbiddenError(
+          "Anda tidak memiliki akses untuk memperbarui profil user ini",
+        );
+      }
+
       const user = await UserService.updateUser(id, req.body);
       return ApiResponse.success({
         res,
@@ -58,7 +67,7 @@ export class UserController {
     }
   }
 
-  static async destroy(req: Request, res: Response, next: NextFunction) {
+  static async destroy(req: AuthRequest, res: Response, next: NextFunction) {
     try {
       const id = BigInt(req.params.id as string);
       await UserService.softDeleteUser(id);

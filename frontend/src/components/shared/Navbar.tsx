@@ -1,3 +1,4 @@
+import React from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { useTheme } from "@/hooks/useTheme";
@@ -31,10 +32,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onToggleMobileSidebar }) => {
   const navigate = useNavigate();
   const location = useLocation();
 
-  const currentMeta = ROUTE_META[location.pathname] || {
-    title: "Sela POS",
-    description: "Coffee Shop POS & Management System",
-  };
+  const currentMeta = ROUTE_META[location.pathname];
 
   const getInitials = (name?: string) => {
     if (!name) return "U";
@@ -58,13 +56,16 @@ export const Navbar: React.FC<NavbarProps> = ({ onToggleMobileSidebar }) => {
         )}
         <div className="flex flex-col text-left">
           <h1 className="text-sm sm:text-base font-extrabold text-foreground leading-tight tracking-tight">
-            {currentMeta.title}
+            {currentMeta?.title || "Sela POS"}
           </h1>
-          <p className="text-[11px] sm:text-xs text-muted-foreground hidden sm:block">
-            {currentMeta.description}
-          </p>
+          {currentMeta?.description && (
+            <p className="text-[11px] sm:text-xs text-muted-foreground hidden sm:block">
+              {currentMeta.description}
+            </p>
+          )}
         </div>
       </div>
+
       {/* User Right Section */}
       <div className="flex items-center gap-4">
         {/* Notification Bell */}
@@ -77,11 +78,11 @@ export const Navbar: React.FC<NavbarProps> = ({ onToggleMobileSidebar }) => {
         <DropdownMenu>
           <DropdownMenuTrigger>
             <div className="flex items-center gap-3 hover:opacity-90 transition-opacity">
-              <div className="w-9 h-9 rounded-full bg-secondary text-secondary-foreground font-bold text-xs flex items-center justify-center shadow-sm">
+              <div className="w-9 h-9 rounded-full bg-secondary text-secondary-foreground font-bold text-xs flex items-center justify-center shadow-sm shrink-0">
                 {getInitials(user?.name)}
               </div>
               <div className="hidden sm:flex flex-col text-left">
-                <span className="text-xs font-bold text-foreground leading-tight">
+                <span className="text-xs font-bold text-foreground leading-tight truncate">
                   {user?.name || "User"}
                 </span>
                 <span className="text-[10px] font-medium text-muted-foreground capitalize">
@@ -93,12 +94,19 @@ export const Navbar: React.FC<NavbarProps> = ({ onToggleMobileSidebar }) => {
           </DropdownMenuTrigger>
 
           <DropdownMenuContent align="end" className="w-60">
+            {/* User Session Info */}
             <DropdownMenuLabel>Account Session</DropdownMenuLabel>
-            <div className="px-3 py-1 text-xs text-muted-foreground font-medium truncate">
-              {user?.name}
+            <div className="sm:hidden">
+              <div className="px-2 py-1 flex flex-col text-left bg-secondary/30 rounded-xl my-1 border border-border/50">
+                <span className="text-xs font-bold text-foreground truncate">
+                  {user?.name || "User"}
+                </span>
+                <span className="text-[10px] font-semibold text-muted-foreground capitalize">
+                  {user?.role?.toLowerCase() || "cashier"}
+                </span>
+              </div>
+              <DropdownMenuSeparator />
             </div>
-
-            <DropdownMenuSeparator />
 
             <DropdownMenuItem onClick={() => navigate("/profile")}>
               <UserIcon className="w-4 h-4" />
@@ -116,7 +124,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onToggleMobileSidebar }) => {
                   "flex items-center justify-center gap-1.5 px-2.5 py-1.5 rounded-xl text-xs font-medium transition-all cursor-pointer",
                   theme === "light"
                     ? "bg-primary text-primary-foreground font-semibold shadow-xs"
-                    : "text-muted-foreground hover:bg-secondary hover:text-foreground"
+                    : "text-muted-foreground hover:bg-secondary hover:text-foreground",
                 )}
               >
                 <Sun className="w-3.5 h-3.5" />
@@ -128,8 +136,8 @@ export const Navbar: React.FC<NavbarProps> = ({ onToggleMobileSidebar }) => {
                 className={cn(
                   "flex items-center justify-center gap-1.5 px-2.5 py-1.5 rounded-xl text-xs font-medium transition-all cursor-pointer",
                   theme === "dark"
-                    ? "bg-primary text-primary-foreground font-semibold shadow-xs"
-                    : "text-muted-foreground hover:bg-secondary hover:text-foreground"
+                    ? "bg-primary text-primary-foreground shadow-xs"
+                    : "text-muted-foreground hover:bg-secondary hover:text-foreground",
                 )}
               >
                 <Moon className="w-3.5 h-3.5" />
@@ -152,3 +160,5 @@ export const Navbar: React.FC<NavbarProps> = ({ onToggleMobileSidebar }) => {
     </header>
   );
 };
+
+export default Navbar;
