@@ -1,8 +1,6 @@
 import { LoginForm } from "@/components/shared/LoginForm";
 import { LogoLogin } from "@/components/shared/SelaLogo";
-
-const APP_NAME = import.meta.env.VITE_APP_NAME || "Sela Coffee";
-const APP_VERSION = import.meta.env.VITE_APP_VERSION || "v2.1";
+import { APP_NAME, APP_VERSION } from "@/constants/app";
 
 export default function LoginPage() {
   return (
@@ -12,7 +10,7 @@ export default function LoginPage() {
 
       <div className="w-full max-w-md flex flex-col items-center my-auto py-6 z-10">
         <div className="flex flex-col items-center mb-8 text-center">
-          {/* App Logo  */}
+          {/* App Logo */}
           <div className="mb-4 flex items-center justify-center transition-transform hover:scale-105 duration-300">
             <LogoLogin className="w-20 h-20 drop-shadow-md" />
           </div>

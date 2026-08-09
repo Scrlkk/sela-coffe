@@ -3,10 +3,21 @@ import { Outlet } from "react-router-dom";
 import { Sidebar } from "@/components/shared/Sidebar";
 import { Navbar } from "@/components/shared/Navbar";
 import { cn } from "@/lib/utils";
+import { safeStorage } from "@/utils/storage";
 
 export default function MainLayout() {
-  const [collapsed, setCollapsed] = useState(false);
+  const [collapsed, setCollapsed] = useState<boolean>(() =>
+    safeStorage.getBool("sidebar_collapsed", false),
+  );
   const [mobileOpen, setMobileOpen] = useState(false);
+
+  const handleToggleCollapse = () => {
+    setCollapsed((prev) => {
+      const next = !prev;
+      safeStorage.set("sidebar_collapsed", next);
+      return next;
+    });
+  };
 
   return (
     <div className="h-screen max-h-screen bg-background text-foreground flex overflow-hidden">
@@ -16,13 +27,13 @@ export default function MainLayout() {
           "fixed inset-0 bg-black/60 backdrop-blur-xs z-40 md:hidden transition-opacity duration-300 ease-in-out",
           mobileOpen
             ? "opacity-100 pointer-events-auto"
-            : "opacity-0 pointer-events-none"
+            : "opacity-0 pointer-events-none",
         )}
       />
 
       <Sidebar
         collapsed={collapsed}
-        onToggleCollapse={() => setCollapsed(!collapsed)}
+        onToggleCollapse={handleToggleCollapse}
         mobileOpen={mobileOpen}
         onCloseMobile={() => setMobileOpen(false)}
       />

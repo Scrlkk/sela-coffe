@@ -3,6 +3,9 @@ import { lazy, Suspense } from "react";
 import { createBrowserRouter, Navigate } from "react-router-dom";
 import MainLayout from "@/layouts/MainLayout";
 import { DashboardSkeleton } from "@/components/dashboard/DashboardSkeleton";
+import { CashSessionSkeleton } from "@/components/cash-session/CashSessionSkeleton";
+import { CashierSkeleton } from "@/components/cashier/CashierSkeleton";
+import { ProfileSkeleton } from "@/components/profile/ProfileSkeleton";
 import {
   ProtectedRoute,
   PublicRoute,
@@ -11,6 +14,8 @@ import {
 const LoginPage = lazy(() => import("@/pages/LoginPage"));
 const DashboardPage = lazy(() => import("@/pages/DashboardPage"));
 const ProfilePage = lazy(() => import("@/pages/ProfilePage"));
+const CashSessionPage = lazy(() => import("@/pages/CashSessionPage"));
+const CashierPage = lazy(() => import("@/pages/CashierPage"));
 const NotFoundPage = lazy(() => import("@/pages/NotFoundPage"));
 const ServerErrorPage = lazy(() => import("@/pages/ServerErrorPage"));
 
@@ -49,7 +54,11 @@ export const router = createBrowserRouter([
           },
           {
             path: "/cashier",
-            element: <div />,
+            element: (
+              <Suspense fallback={<CashierSkeleton />}>
+                <CashierPage />
+              </Suspense>
+            ),
           },
           {
             path: "/products",
@@ -93,12 +102,16 @@ export const router = createBrowserRouter([
           },
           {
             path: "/cash-sessions",
-            element: <div />,
+            element: (
+              <Suspense fallback={<CashSessionSkeleton />}>
+                <CashSessionPage />
+              </Suspense>
+            ),
           },
           {
             path: "/profile",
             element: (
-              <Suspense fallback={pageFallback}>
+              <Suspense fallback={<ProfileSkeleton />}>
                 <ProfilePage />
               </Suspense>
             ),

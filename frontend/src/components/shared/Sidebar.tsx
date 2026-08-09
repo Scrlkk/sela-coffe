@@ -33,7 +33,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
         mobileOpen
           ? "translate-x-0 shadow-2xl"
           : "-translate-x-full md:translate-x-0",
-        collapsed ? "md:w-16" : "w-64"
+        collapsed ? "md:w-16" : "w-64",
       )}
     >
       {/* Sidebar Header Brand */}
@@ -41,7 +41,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
         <div
           className={cn(
             "h-full flex items-center border-b border-sidebar-border/60",
-            collapsed && !mobileOpen ? "justify-center px-1" : "justify-between px-2"
+            collapsed && !mobileOpen
+              ? "justify-center px-1"
+              : "justify-between px-2",
           )}
         >
           {collapsed && !mobileOpen ? (
@@ -92,7 +94,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
       <div
         className={cn(
           "flex-1 overflow-y-auto no-scrollbar pt-4 pb-12 space-y-6",
-          collapsed && !mobileOpen ? "px-2" : "px-3"
+          collapsed && !mobileOpen ? "px-2" : "px-3",
         )}
       >
         {menuGroups.map((group, idx) => (
@@ -116,7 +118,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                     collapsed && !mobileOpen ? "justify-center px-0" : "px-3",
                     isActive
                       ? "bg-card text-foreground shadow-lg shadow-black/10 font-semibold"
-                      : "text-sidebar-foreground/80 hover:bg-sidebar-primary/50 hover:text-sidebar-foreground"
+                      : "text-sidebar-foreground/80 hover:bg-sidebar-primary/50 hover:text-sidebar-foreground",
                   )}
                 >
                   <Icon className="w-5 h-5 shrink-0" />

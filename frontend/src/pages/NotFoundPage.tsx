@@ -4,9 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { ArrowLeft, Home } from "lucide-react";
 import { LogoLogin } from "@/components/shared/SelaLogo";
-
-const APP_NAME = import.meta.env.VITE_APP_NAME || "Sela Coffee";
-const APP_VERSION = import.meta.env.VITE_APP_VERSION || "v2.1";
+import { APP_NAME, APP_VERSION } from "@/constants/app";
 
 export default function NotFoundPage() {
   const { token } = useAuth();
@@ -55,7 +53,7 @@ export default function NotFoundPage() {
             </p>
             <Button
               onClick={handleRedirect}
-              className="w-full bg-primary hover:bg-primary/90 text-primary-foreground rounded-2xl h-12 text-sm font-semibold shadow-lg shadow-primary/20 active:scale-[0.98] transition-all duration-200 flex items-center justify-center gap-2"
+              className="w-full bg-primary hover:bg-primary/90 text-primary-foreground rounded-2xl h-12 text-sm font-semibold shadow-lg shadow-primary/20 active:scale-[0.98] transition-all duration-200 flex items-center justify-center gap-2 cursor-pointer"
             >
               {token ? (
                 <>
