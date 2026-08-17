@@ -8,7 +8,6 @@ interface ProductCardProps {
   onAddToCart: (product: ProductItem) => void;
 }
 
-// ponytail: FC wrapper stripped
 export function ProductCard({
   product,
   quantity = 0,

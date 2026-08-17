@@ -12,6 +12,20 @@ import {
 } from "@/components/shared/ProtectedRoute";
 
 const LoginPage = lazy(() => import("@/pages/LoginPage"));
+const ProductPage = lazy(() => import("@/pages/ProductPage"));
+const ProductSkeleton = lazy(
+  () => import("@/components/product/ProductSkeleton"),
+);
+const CategoryPage = lazy(() => import("@/pages/CategoryPage"));
+const CategorySkeleton = lazy(
+  () => import("@/components/category/CategorySkeleton"),
+);
+const SupplierPage = lazy(() => import("@/pages/SupplierPage"));
+const SupplierSkeleton = lazy(
+  () => import("@/components/supplier/SupplierSkeleton"),
+);
+const UserPage = lazy(() => import("@/pages/UserPage"));
+const UserSkeleton = lazy(() => import("@/components/user/UserSkeleton"));
 const DashboardPage = lazy(() => import("@/pages/DashboardPage"));
 const ProfilePage = lazy(() => import("@/pages/ProfilePage"));
 const CashSessionPage = lazy(() => import("@/pages/CashSessionPage"));
@@ -62,19 +76,35 @@ export const router = createBrowserRouter([
           },
           {
             path: "/products",
-            element: <div />,
+            element: (
+              <Suspense fallback={<ProductSkeleton />}>
+                <ProductPage />
+              </Suspense>
+            ),
           },
           {
             path: "/categories",
-            element: <div />,
+            element: (
+              <Suspense fallback={<CategorySkeleton />}>
+                <CategoryPage />
+              </Suspense>
+            ),
           },
           {
             path: "/suppliers",
-            element: <div />,
+            element: (
+              <Suspense fallback={<SupplierSkeleton />}>
+                <SupplierPage />
+              </Suspense>
+            ),
           },
           {
             path: "/users",
-            element: <div />,
+            element: (
+              <Suspense fallback={<UserSkeleton />}>
+                <UserPage />
+              </Suspense>
+            ),
           },
           {
             path: "/stock",

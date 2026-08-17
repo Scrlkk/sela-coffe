@@ -10,8 +10,8 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
+import { NotificationDropdown } from "@/components/shared/NotificationDropdown";
 import {
-  Bell,
   ChevronDown,
   User as UserIcon,
   LogOut,
@@ -67,12 +67,9 @@ export const Navbar: React.FC<NavbarProps> = ({ onToggleMobileSidebar }) => {
       </div>
 
       {/* User Right Section */}
-      <div className="flex items-center gap-4">
-        {/* Notification Bell */}
-        <button className="relative p-2 rounded-full text-foreground/80 hover:bg-secondary transition-colors cursor-pointer">
-          <Bell className="w-5 h-5" />
-          <span className="absolute top-1.5 right-1.5 w-2.5 h-2.5 bg-destructive rounded-full ring-2 ring-background" />
-        </button>
+      <div className="flex items-center gap-2 sm:gap-3">
+        {/* Notification Dropdown */}
+        <NotificationDropdown />
 
         {/* Profile Dropdown */}
         <DropdownMenu>

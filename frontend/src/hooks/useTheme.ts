@@ -1,1 +1,1 @@
-export { useTheme, type Theme, type ThemeContextType } from "@/contexts/theme-context";
+export { useTheme, type Theme, type ThemeContextType, ThemeProvider } from "@/contexts/ThemeContext";

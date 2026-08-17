@@ -1,7 +1,6 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 
-// ponytail: FC wrapper stripped, single named export
 export function CashierSkeleton() {
   return (
     <div className="flex flex-col lg:flex-row gap-5 items-start w-full py-1 animate-in fade-in duration-300">

@@ -70,7 +70,9 @@ export const StatCard: React.FC<StatCardProps> = ({
                 "text-[10px] sm:text-[11px] font-medium px-1.5 py-0.5 rounded-full shrink-0 flex items-center gap-0.5 whitespace-nowrap",
                 badgeVariant === "danger"
                   ? "text-destructive bg-destructive/10"
-                  : "text-emerald-700 dark:text-emerald-400 bg-emerald-500/10",
+                  : badgeVariant === "neutral"
+                    ? "text-muted-foreground bg-muted border border-border/50"
+                    : "text-emerald-700 dark:text-emerald-400 bg-emerald-500/10",
               )}
             >
               {badgeText}

@@ -1,5 +1,5 @@
 import { api } from "@/lib/axios";
-import type { User } from "@/contexts/auth-context";
+import type { User } from "@/contexts/AuthContext";
 
 export interface LoginPayload {
   username: string;

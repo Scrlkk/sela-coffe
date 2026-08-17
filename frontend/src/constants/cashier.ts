@@ -5,6 +5,7 @@ export interface ProductItem {
   price: number;
   image: string;
   stock: number;
+  isDeleted?: boolean;
 }
 
 export interface CartItem {

@@ -27,7 +27,12 @@ const DropdownMenuContext = React.createContext<{
   setOpen: React.Dispatch<React.SetStateAction<boolean>>;
 }>({ open: false, setOpen: () => {} });
 
-export const DropdownMenu: React.FC<DropdownMenuProps> = ({ children }) => {
+interface DropdownMenuProps {
+  children: React.ReactNode;
+  className?: string;
+}
+
+export const DropdownMenu: React.FC<DropdownMenuProps> = ({ children, className }) => {
   const [open, setOpen] = React.useState(false);
   const ref = React.useRef<HTMLDivElement>(null);
 
@@ -43,7 +48,7 @@ export const DropdownMenu: React.FC<DropdownMenuProps> = ({ children }) => {
 
   return (
     <DropdownMenuContext.Provider value={{ open, setOpen }}>
-      <div ref={ref} className="relative inline-block text-left">
+      <div ref={ref} className={cn("relative inline-block text-left", className)}>
         {children}
       </div>
     </DropdownMenuContext.Provider>
@@ -72,7 +77,7 @@ export const DropdownMenuContent: React.FC<DropdownMenuContentProps> = ({
   return (
     <div
       className={cn(
-        "absolute z-50 mt-2 w-56 rounded-2xl bg-card border border-border shadow-2xl p-1.5 animate-in fade-in zoom-in-95 duration-150",
+        "absolute z-50 mt-2 w-56 rounded-2xl bg-popover text-popover-foreground border border-border/80 shadow-xl dark:shadow-2xl p-1.5 animate-in fade-in zoom-in-95 duration-150 backdrop-blur-md",
         align === "end" ? "right-0" : "left-0",
         className
       )}
@@ -95,7 +100,7 @@ export const DropdownMenuItem: React.FC<DropdownMenuItemProps> = ({
         setOpen(false);
       }}
       className={cn(
-        "flex items-center gap-2.5 px-3 py-2 text-xs font-medium rounded-xl text-foreground hover:bg-secondary cursor-pointer transition-colors select-none",
+        "flex items-center gap-2.5 px-3 py-2 text-xs font-medium rounded-xl text-foreground hover:bg-primary/10 hover:text-primary cursor-pointer transition-colors select-none",
         className
       )}
     >

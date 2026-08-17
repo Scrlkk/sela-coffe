@@ -13,7 +13,6 @@ interface CartPanelProps {
   onCheckout: () => void;
 }
 
-// ponytail: FC wrapper stripped, single orderNumber state source
 export function CartPanel({
   cart,
   orderNumber,

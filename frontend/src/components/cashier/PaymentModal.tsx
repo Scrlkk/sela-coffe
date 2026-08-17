@@ -28,7 +28,6 @@ interface PaymentModalProps {
   onNewOrder: () => void;
 }
 
-// ponytail: FC wrapper stripped
 export function PaymentModal({
   isOpen,
   orderNumber,

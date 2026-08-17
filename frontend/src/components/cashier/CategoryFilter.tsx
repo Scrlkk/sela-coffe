@@ -10,7 +10,6 @@ interface CategoryFilterProps {
   onSearchChange: (query: string) => void;
 }
 
-// ponytail: FC wrapper stripped
 export function CategoryFilter({
   selectedCategory,
   onSelectCategory,
