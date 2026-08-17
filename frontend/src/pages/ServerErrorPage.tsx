@@ -25,7 +25,6 @@ export default function ServerErrorPage() {
 
       <div className="w-full max-w-md flex flex-col items-center my-auto py-6 z-10">
         <div className="flex flex-col items-center mb-8 text-center">
-          {/* App Logo */}
           <div className="relative mb-4 flex items-center justify-center transition-transform hover:scale-105 duration-300">
             <LogoLogin className="w-28 h-28 sm:w-32 sm:h-32 drop-shadow-md" />
             <span className="absolute top-0 right-0 bg-destructive text-destructive-foreground font-black text-xs px-2.5 py-0.5 rounded-full shadow-md font-mono">
@@ -33,18 +32,15 @@ export default function ServerErrorPage() {
             </span>
           </div>
 
-          {/* Title */}
           <h1 className="text-3xl font-extrabold text-foreground tracking-tight">
             Kesalahan Server
           </h1>
 
-          {/* Description */}
           <p className="text-sm text-muted-foreground mt-1.5 font-medium max-w-sm">
             Mesin server sedang mengalami kendala teknis sementara.
           </p>
         </div>
 
-        {/* Card Container */}
         <Card className="w-full max-w-md bg-card border-border rounded-3xl shadow-xl p-4 sm:p-6 text-center space-y-4">
           <CardContent className="pt-2 space-y-3">
             <p className="text-sm text-muted-foreground leading-relaxed">

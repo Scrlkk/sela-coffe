@@ -15,6 +15,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { StatCard } from "@/components/dashboard/StatCard";
+import { ViewModeSwitcher } from "@/components/shared/ViewModeSwitcher";
+import { EmptyState } from "@/components/shared/EmptyState";
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -30,8 +32,6 @@ import {
   X,
   Pencil,
   Trash2,
-  LayoutGrid,
-  List,
   Package,
   DollarSign,
   AlertTriangle,
@@ -204,7 +204,6 @@ export const ProductPage: React.FC = () => {
 
   return (
     <div className="flex-1 flex flex-col min-w-0 space-y-4">
-      {/* Top Stat Cards Grid (Matching Dashboard & Cash Session layout) */}
       <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3.5 sm:gap-5">
         <StatCard
           title="Total Products"
@@ -232,139 +231,113 @@ export const ProductPage: React.FC = () => {
         />
       </div>
 
-      {/* Control Bar: Search, Filters, View Modes & Add Button */}
-      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3 bg-card p-3 sm:p-4 rounded-2xl border border-border/80 shadow-xs">
-        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 flex-1 max-w-2xl">
-          {/* Search Bar */}
-          <div className="relative flex-1">
-            <Search className="w-4 h-4 text-muted-foreground absolute left-3 top-1/2 -translate-y-1/2" />
-            <Input
-              type="text"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder={
-                showDeleted
-                  ? "Search archived menu or product name..."
-                  : "Search menu or product name..."
-              }
-              className="pl-9 pr-8 h-9.5 rounded-xl bg-background text-xs font-medium border-border/80"
-            />
-            {searchQuery && (
-              <button
-                onClick={() => setSearchQuery("")}
-                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground cursor-pointer"
-                title="Clear search"
-              >
-                <X className="w-3.5 h-3.5" />
-              </button>
-            )}
-          </div>
-
-          {/* Category Filter Dropdown */}
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <button
-                type="button"
-                className="flex items-center gap-2 h-9.5 px-3 rounded-xl border border-border/80 bg-background dark:bg-input/30 text-foreground text-xs font-medium transition-colors cursor-pointer select-none outline-none hover:border-primary/70 focus-visible:ring-1 focus-visible:ring-primary"
-              >
-                <Filter className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
-                <span className="truncate max-w-28 sm:max-w-40">
-                  {getCategoryLabel(selectedCategory)}
-                </span>
-                <ChevronDown className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
-              </button>
-            </DropdownMenuTrigger>
-
-            <DropdownMenuContent
-              align="start"
-              className="w-52 rounded-xl p-1 bg-card border border-border/80 shadow-md"
+      <div className="flex flex-col gap-2.5 sm:gap-3 bg-card p-3 sm:p-4 rounded-2xl border border-border/80 shadow-xs">
+        <div className="relative w-full">
+          <Search className="w-4 h-4 text-muted-foreground absolute left-3 top-1/2 -translate-y-1/2" />
+          <Input
+            type="text"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder={
+              showDeleted
+                ? "Search archived menu or product name..."
+                : "Search menu or product name..."
+            }
+            className="pl-9 pr-8 h-9.5 rounded-xl bg-background text-xs font-medium border-border/80 w-full"
+          />
+          {searchQuery && (
+            <button
+              onClick={() => setSearchQuery("")}
+              className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground cursor-pointer"
+              title="Clear search"
             >
-              {CATEGORIES.map((cat) => (
-                <DropdownMenuItem
-                  key={cat.id}
-                  onClick={() => setSelectedCategory(cat.id)}
-                  className={cn(
-                    "flex items-center justify-between py-2 px-2.5 text-xs font-medium rounded-lg cursor-pointer transition-colors",
-                    selectedCategory === cat.id
-                      ? "bg-primary/10 text-primary font-bold"
-                      : "text-foreground hover:bg-muted/60",
-                  )}
-                >
-                  <span>{cat.label}</span>
-                  {selectedCategory === cat.id && (
-                    <Check className="w-3.5 h-3.5 text-primary shrink-0" />
-                  )}
-                </DropdownMenuItem>
-              ))}
-            </DropdownMenuContent>
-          </DropdownMenu>
+              <X className="w-3.5 h-3.5" />
+            </button>
+          )}
         </div>
 
-        {/* Right Actions: View Mode, Archive Toggle, Add Product */}
-        <div className="flex items-center justify-between sm:justify-end gap-2 shrink-0">
-          {/* View Mode Switcher (hidden on mobile, defaults to grid) */}
-          <div className="hidden sm:flex items-center bg-muted/60 p-1 rounded-xl border border-border/50 h-9.5">
-            <button
-              onClick={() => handleViewModeChange("grid")}
-              className={cn(
-                "p-1.5 rounded-lg transition-all cursor-pointer",
-                viewMode === "grid"
-                  ? "bg-card text-foreground shadow-xs"
-                  : "text-muted-foreground hover:text-foreground",
-              )}
-              title="Grid View"
-            >
-              <LayoutGrid className="w-4 h-4" />
-            </button>
-            <button
-              onClick={() => handleViewModeChange("table")}
-              className={cn(
-                "p-1.5 rounded-lg transition-all cursor-pointer",
-                viewMode === "table"
-                  ? "bg-card text-foreground shadow-xs"
-                  : "text-muted-foreground hover:text-foreground",
-              )}
-              title="Table View"
-            >
-              <List className="w-4 h-4" />
-            </button>
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 sm:gap-3 w-full">
+          <div className="w-full sm:w-auto">
+            <DropdownMenu className="w-full sm:w-auto">
+              <DropdownMenuTrigger className="w-full sm:w-auto">
+                <button
+                  type="button"
+                  className="flex items-center justify-between gap-2 h-9.5 px-3.5 rounded-xl border border-border/80 bg-background dark:bg-input/30 text-foreground text-xs font-semibold transition-colors cursor-pointer select-none outline-none hover:border-primary/70 focus-visible:ring-1 focus-visible:ring-primary w-full sm:w-60 md:w-64"
+                >
+                  <div className="flex items-center gap-2 min-w-0 truncate">
+                    <Filter className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
+                    <span className="truncate">
+                      {getCategoryLabel(selectedCategory)}
+                    </span>
+                  </div>
+                  <ChevronDown className="w-3.5 h-3.5 text-muted-foreground shrink-0 ml-1" />
+                </button>
+              </DropdownMenuTrigger>
+
+              <DropdownMenuContent
+                align="start"
+                className="w-56 sm:w-64 rounded-xl p-1 bg-card border border-border/80 shadow-md"
+              >
+                {CATEGORIES.map((cat) => (
+                  <DropdownMenuItem
+                    key={cat.id}
+                    onClick={() => setSelectedCategory(cat.id)}
+                    className={cn(
+                      "flex items-center justify-between py-2 px-2.5 text-xs font-medium rounded-lg cursor-pointer transition-colors",
+                      selectedCategory === cat.id
+                        ? "bg-primary/10 text-primary font-bold"
+                        : "text-foreground hover:bg-muted/60",
+                    )}
+                  >
+                    <span>{cat.label}</span>
+                    {selectedCategory === cat.id && (
+                      <Check className="w-3.5 h-3.5 text-primary shrink-0" />
+                    )}
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
 
-          {/* Toggle Trash / Deleted List */}
-          <Button
-            variant="outline"
-            onClick={() => setShowDeleted(!showDeleted)}
-            className={cn(
-              "h-9.5 rounded-xl text-xs font-semibold gap-1.5 px-3 transition-all cursor-pointer shadow-2xs bg-card",
-              showDeleted
-                ? "border-2 border-destructive text-destructive hover:border-destructive hover:bg-card shadow-xs font-bold"
-                : "border border-border/80 text-foreground hover:border-primary/80 hover:bg-card",
-            )}
-          >
-            <Trash2 className="w-3.5 h-3.5" />
-            <span>{showDeleted ? "Active Menu" : "Trash"}</span>
-            {stats.archivedCount > 0 && !showDeleted && (
-              <span className="w-2 h-2 rounded-full bg-destructive animate-pulse" />
-            )}
-          </Button>
+          <div className="flex items-center justify-between sm:justify-end gap-2 w-full sm:w-auto shrink-0">
+            <ViewModeSwitcher
+              value={viewMode}
+              onChange={handleViewModeChange}
+            />
 
-          {/* Add Product Button */}
-          {!showDeleted && (
             <Button
-              onClick={() => {
-                setEditingProduct(null);
-                setIsFormOpen(true);
-              }}
-              className="h-9.5 rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground text-xs font-bold gap-1.5 shadow-xs transition-all active:scale-[0.99] cursor-pointer"
+              variant="outline"
+              onClick={() => setShowDeleted(!showDeleted)}
+              className={cn(
+                "h-9.5 rounded-xl text-xs font-semibold gap-1.5 px-3 transition-all cursor-pointer shadow-2xs bg-card flex-1 sm:flex-initial justify-center",
+                showDeleted
+                  ? "border-2 border-destructive text-destructive hover:border-destructive hover:bg-card shadow-xs font-bold"
+                  : "border border-border/80 text-foreground hover:border-primary/80 hover:bg-card",
+              )}
             >
-              <Plus className="w-4 h-4" />
-              <span>Add Product</span>
+              <Trash2 className="w-3.5 h-3.5" />
+              <span>{showDeleted ? "Active Menu" : "Trash"}</span>
+              {stats.archivedCount > 0 && !showDeleted && (
+                <span className="w-2 h-2 rounded-full bg-destructive animate-pulse" />
+              )}
             </Button>
-          )}
+
+            {!showDeleted && (
+              <Button
+                onClick={() => {
+                  setEditingProduct(null);
+                  setIsFormOpen(true);
+                }}
+                className="h-9.5 rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground text-xs font-bold gap-1.5 px-4 shadow-xs transition-all active:scale-[0.99] cursor-pointer flex-1 sm:flex-initial justify-center"
+              >
+                <Plus className="w-4 h-4" />
+                <span>Add Product</span>
+              </Button>
+            )}
+          </div>
         </div>
       </div>
 
-      {/* Main Content Area */}
       <div
         key={viewMode}
         className={cn(
@@ -372,14 +345,10 @@ export const ProductPage: React.FC = () => {
         )}
       >
         {filteredProducts.length === 0 ? (
-          <div className="h-64 flex flex-col items-center justify-center text-center p-6 bg-card rounded-2xl border border-dashed border-border/60">
-            <p className="text-sm font-bold text-foreground">
-              No products found
-            </p>
-            <p className="text-xs text-muted-foreground mt-1">
-              Try selecting another category or clear your search term
-            </p>
-          </div>
+          <EmptyState
+            title="No products found"
+            description="Try selecting another category or clear your search term"
+          />
         ) : viewMode === "grid" ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3.5 pt-1 pb-6">
             {filteredProducts.map((p) => (
@@ -388,7 +357,6 @@ export const ProductPage: React.FC = () => {
                 className="group relative border border-border/60 shadow-2xs rounded-2xl bg-card text-card-foreground transition-all duration-200 hover:border-primary hover:shadow-md overflow-hidden flex flex-col justify-between select-none"
               >
                 <CardContent className="p-3 sm:p-3.5 flex flex-col justify-between h-full space-y-2">
-                  {/* Header: Product Name & Stock Badge */}
                   <div className="flex items-start justify-between gap-2">
                     <h3 className="text-xs sm:text-sm font-bold text-foreground line-clamp-2 leading-tight">
                       {p.name}
@@ -396,7 +364,6 @@ export const ProductPage: React.FC = () => {
                     {renderStockBadge(p.stock, false)}
                   </div>
 
-                  {/* Footer: Category, Price & Action Buttons */}
                   <div className="flex items-center justify-between pt-2 border-t border-border/40 mt-auto text-xs gap-1">
                     <div className="min-w-0 flex-1">
                       <span className="text-muted-foreground font-medium text-[11px] block truncate capitalize">
@@ -407,7 +374,6 @@ export const ProductPage: React.FC = () => {
                       </span>
                     </div>
 
-                    {/* Direct Action Buttons */}
                     <div className="flex items-center gap-1 shrink-0">
                       {p.isDeleted ? (
                         <Button
@@ -454,7 +420,6 @@ export const ProductPage: React.FC = () => {
         ) : (
           /* TABLE VIEW ON DESKTOP/TABLET, AUTO-GRID ON MOBILE */
           <>
-            {/* Desktop & Tablet Table View */}
             <div className="hidden sm:block">
               <Card className="rounded-2xl border border-border/60 bg-card p-3.5 sm:p-4 shadow-xs text-card-foreground transition-all duration-200 w-full flex-col justify-between overflow-hidden mb-6">
                 <div className="overflow-x-auto no-scrollbar">
@@ -536,7 +501,6 @@ export const ProductPage: React.FC = () => {
               </Card>
             </div>
 
-            {/* Mobile Auto Grid View */}
             <div className="sm:hidden grid grid-cols-1 sm:grid-cols-2 gap-3.5 pt-1 pb-6">
               {filteredProducts.map((p) => (
                 <Card
@@ -608,7 +572,6 @@ export const ProductPage: React.FC = () => {
         )}
       </div>
 
-      {/* Product Form Dialog (Create / Edit) */}
       <ProductDialog
         isOpen={isFormOpen}
         onClose={() => setIsFormOpen(false)}
@@ -616,7 +579,6 @@ export const ProductPage: React.FC = () => {
         initialData={editingProduct}
       />
 
-      {/* Delete Confirmation Dialog */}
       <ConfirmDialog
         isOpen={!!deletingProduct}
         title="Delete Product"
@@ -639,7 +601,6 @@ export const ProductPage: React.FC = () => {
         }}
       />
 
-      {/* Restore Confirmation Dialog */}
       <ConfirmDialog
         isOpen={!!restoringProduct}
         title="Restore Product?"

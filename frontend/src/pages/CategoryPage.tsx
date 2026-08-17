@@ -15,6 +15,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { StatCard } from "@/components/dashboard/StatCard";
+import { ViewModeSwitcher } from "@/components/shared/ViewModeSwitcher";
+import { EmptyState } from "@/components/shared/EmptyState";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import {
@@ -23,8 +25,6 @@ import {
   X,
   Pencil,
   Trash2,
-  LayoutGrid,
-  List,
   FolderTree,
   Package,
   FolderOpen,
@@ -154,8 +154,7 @@ export const CategoryPage: React.FC = () => {
 
   return (
     <div className="flex-1 flex flex-col min-w-0 space-y-4">
-      {/* Top 4 Stat Cards Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3.5 sm:gap-5">
+            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3.5 sm:gap-5">
         <StatCard
           title="Total Categories"
           value={`${stats.total} Active`}
@@ -184,10 +183,8 @@ export const CategoryPage: React.FC = () => {
         />
       </div>
 
-      {/* Control Bar: Search, View Modes, Trash & Add Button */}
-      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3 bg-card p-3 sm:p-4 rounded-2xl border border-border/80 shadow-xs">
-        {/* Search Input */}
-        <div className="relative flex-1 max-w-xl">
+            <div className="flex flex-col gap-2.5 sm:gap-3 bg-card p-3 sm:p-4 rounded-2xl border border-border/80 shadow-xs">
+                <div className="relative w-full">
           <Search className="w-4 h-4 text-muted-foreground absolute left-3 top-1/2 -translate-y-1/2" />
           <Input
             type="text"
@@ -198,7 +195,7 @@ export const CategoryPage: React.FC = () => {
                 ? "Search deleted categories..."
                 : "Search category name or description..."
             }
-            className="pl-9 pr-8 h-9.5 rounded-xl bg-background text-xs font-medium border-border/80"
+            className="pl-9 pr-8 h-9.5 rounded-xl bg-background text-xs font-medium border-border/80 w-full"
           />
           {searchQuery && (
             <button
@@ -211,42 +208,17 @@ export const CategoryPage: React.FC = () => {
           )}
         </div>
 
-        {/* Right Actions: View Mode, Trash Toggle, Add Category */}
-        <div className="flex items-center justify-between sm:justify-end gap-2 shrink-0">
-          {/* View Mode Switcher (hidden on mobile, defaults to grid) */}
-          <div className="hidden sm:flex items-center bg-muted/60 p-1 rounded-xl border border-border/50 h-9.5">
-            <button
-              onClick={() => handleViewModeChange("grid")}
-              className={cn(
-                "p-1.5 rounded-lg transition-all cursor-pointer",
-                viewMode === "grid"
-                  ? "bg-card text-foreground shadow-xs"
-                  : "text-muted-foreground hover:text-foreground",
-              )}
-              title="Grid View"
-            >
-              <LayoutGrid className="w-4 h-4" />
-            </button>
-            <button
-              onClick={() => handleViewModeChange("table")}
-              className={cn(
-                "p-1.5 rounded-lg transition-all cursor-pointer",
-                viewMode === "table"
-                  ? "bg-card text-foreground shadow-xs"
-                  : "text-muted-foreground hover:text-foreground",
-              )}
-              title="Table View"
-            >
-              <List className="w-4 h-4" />
-            </button>
-          </div>
+                <div className="flex items-center justify-between sm:justify-end gap-2 w-full">
+                    <ViewModeSwitcher
+            value={viewMode}
+            onChange={handleViewModeChange}
+          />
 
-          {/* Toggle Trash / Deleted List */}
-          <Button
+                    <Button
             variant="outline"
             onClick={() => setShowDeleted(!showDeleted)}
             className={cn(
-              "h-9.5 rounded-xl text-xs font-semibold gap-1.5 px-3 transition-all cursor-pointer shadow-2xs bg-card",
+              "h-9.5 rounded-xl text-xs font-semibold gap-1.5 px-3 transition-all cursor-pointer shadow-2xs bg-card flex-1 sm:flex-initial justify-center",
               showDeleted
                 ? "border-2 border-destructive text-destructive hover:border-destructive hover:bg-card shadow-xs font-bold"
                 : "border border-border/80 text-foreground hover:border-primary/80 hover:bg-card",
@@ -259,14 +231,13 @@ export const CategoryPage: React.FC = () => {
             )}
           </Button>
 
-          {/* Add Category Button */}
-          {!showDeleted && (
+                    {!showDeleted && (
             <Button
               onClick={() => {
                 setEditingCategory(null);
                 setIsFormOpen(true);
               }}
-              className="h-9.5 rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground text-xs font-bold gap-1.5 shadow-xs transition-all active:scale-[0.99] cursor-pointer"
+              className="h-9.5 rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground text-xs font-bold gap-1.5 px-4 shadow-xs transition-all active:scale-[0.99] cursor-pointer flex-1 sm:flex-initial justify-center"
             >
               <Plus className="w-4 h-4" />
               <span>Add Category</span>
@@ -275,22 +246,17 @@ export const CategoryPage: React.FC = () => {
         </div>
       </div>
 
-      {/* Main Content Area */}
-      <div
+            <div
         key={viewMode}
         className={cn(
           userSwitchedView && "animate-in fade-in-50 zoom-in-98 duration-200",
         )}
       >
         {filteredCategories.length === 0 ? (
-          <div className="h-64 flex flex-col items-center justify-center text-center p-6 bg-card rounded-2xl border border-dashed border-border/60">
-            <p className="text-sm font-bold text-foreground">
-              No categories found
-            </p>
-            <p className="text-xs text-muted-foreground mt-1">
-              Try searching with another keyword or add a new category
-            </p>
-          </div>
+          <EmptyState
+            title="No categories found"
+            description="Try searching with another keyword or add a new category"
+          />
         ) : viewMode === "grid" ? (
           /* GRID VIEW (Option A: Stat-Progress Card) */
           <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3.5 pt-1 pb-6">
@@ -303,8 +269,7 @@ export const CategoryPage: React.FC = () => {
                   className="group relative border border-border/60 shadow-2xs rounded-2xl bg-card text-card-foreground transition-all duration-200 hover:border-primary hover:shadow-md overflow-hidden flex flex-col justify-between select-none"
                 >
                   <CardContent className="p-4 flex flex-col justify-between h-full space-y-3">
-                    {/* Header: Name, Description & Sales Share Stat */}
-                    <div className="flex items-start justify-between gap-3">
+                                        <div className="flex items-start justify-between gap-3">
                       <div className="space-y-1 min-w-0 flex-1">
                         <h3 className="text-sm font-bold text-foreground leading-tight truncate">
                           {c.name}
@@ -323,8 +288,7 @@ export const CategoryPage: React.FC = () => {
                       </div>
                     </div>
 
-                    {/* Progress Bar Visual Contribution */}
-                    <div className="space-y-1">
+                                        <div className="space-y-1">
                       <div className="h-2 w-full bg-secondary/80 rounded-full overflow-hidden p-0.5">
                         <div
                           className="h-full bg-primary rounded-full transition-all duration-500"
@@ -333,8 +297,7 @@ export const CategoryPage: React.FC = () => {
                       </div>
                     </div>
 
-                    {/* Footer: Product Count Badge & Action Buttons */}
-                    <div className="flex items-center justify-between pt-2 border-t border-border/40 mt-auto text-xs">
+                                        <div className="flex items-center justify-between pt-2 border-t border-border/40 mt-auto text-xs">
                       <Badge
                         variant={productCount > 0 ? "secondary" : "outline"}
                         className="rounded-full text-[11px] px-2.5 py-0.5 shrink-0 font-semibold"
@@ -388,8 +351,7 @@ export const CategoryPage: React.FC = () => {
         ) : (
           /* TABLE VIEW ON DESKTOP/TABLET, AUTO-GRID ON MOBILE */
           <>
-            {/* Desktop & Tablet Table View */}
-            <div className="hidden sm:block">
+                        <div className="hidden sm:block">
               <Card className="rounded-2xl border border-border/60 bg-card p-3.5 sm:p-4 shadow-xs text-card-foreground transition-all duration-200 w-full flex-col justify-between overflow-hidden mb-6">
                 <div className="overflow-x-auto no-scrollbar">
                   <table className="w-full text-left text-xs border-collapse">
@@ -486,8 +448,7 @@ export const CategoryPage: React.FC = () => {
               </Card>
             </div>
 
-            {/* Mobile Auto Grid View */}
-            <div className="sm:hidden grid grid-cols-1 gap-3.5 pt-1 pb-6">
+                        <div className="sm:hidden grid grid-cols-1 gap-3.5 pt-1 pb-6">
               {filteredCategories.map((c) => {
                 const productCount = categoryStats.counts[c.id] || 0;
                 const salesShare = categoryStats.percentages[c.id] || 0;
@@ -580,16 +541,14 @@ export const CategoryPage: React.FC = () => {
         )}
       </div>
 
-      {/* Category Form Dialog */}
-      <CategoryDialog
+            <CategoryDialog
         isOpen={isFormOpen}
         onClose={() => setIsFormOpen(false)}
         onSave={handleCreateOrUpdate}
         initialData={editingCategory}
       />
 
-      {/* Delete Confirmation Dialog */}
-      <ConfirmDialog
+            <ConfirmDialog
         isOpen={!!deletingCategory}
         title="Delete Category"
         subtitle="Confirm category deletion"
@@ -613,8 +572,7 @@ export const CategoryPage: React.FC = () => {
         }}
       />
 
-      {/* Restore Confirmation Dialog */}
-      <ConfirmDialog
+            <ConfirmDialog
         isOpen={!!restoringCategory}
         title="Restore Category?"
         subtitle="Confirm category restoration"

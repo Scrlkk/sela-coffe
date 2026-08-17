@@ -5,7 +5,6 @@ import { Skeleton } from "@/components/ui/skeleton";
 export const CashSessionSkeleton: React.FC = () => {
   return (
     <div className="space-y-6 w-full py-1 animate-in fade-in duration-300">
-      {/* Top 4 Stat Cards Skeleton */}
       <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3.5 sm:gap-5 mb-6">
         {Array.from({ length: 4 }).map((_, i) => (
           <Card
@@ -26,9 +25,7 @@ export const CashSessionSkeleton: React.FC = () => {
         ))}
       </div>
 
-      {/* Main Responsive Layout Skeleton */}
       <div className="grid grid-cols-1 xl:grid-cols-12 gap-5 items-stretch">
-        {/* Left Column Register Card Skeleton */}
         <div className="xl:col-span-4 w-full h-full">
           <Card className="border border-border/60 shadow-xs rounded-2xl bg-card p-6 sm:p-8 h-full flex flex-col justify-between">
             <CardContent className="p-0 flex flex-col items-center text-center space-y-4 my-auto">
@@ -44,7 +41,6 @@ export const CashSessionSkeleton: React.FC = () => {
           </Card>
         </div>
 
-        {/* Right Column History Table Skeleton */}
         <div className="xl:col-span-8 w-full h-full">
           <Card className="border border-border/60 shadow-xs rounded-2xl bg-card p-5 h-full flex flex-col justify-between">
             <CardContent className="p-0 space-y-4 flex flex-col h-full">

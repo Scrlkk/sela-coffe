@@ -147,7 +147,6 @@ export const ProfileCard: React.FC = () => {
 
   return (
     <Card className="bg-card border-border shadow-md rounded-3xl overflow-hidden transition-colors w-full p-0">
-      {/* Top Banner Accent - Flush to top corners */}
       <div className="h-24 sm:h-32 bg-linear-to-r from-primary via-primary/95 to-secondary/80 relative overflow-hidden flex items-start justify-end p-3 sm:p-4 select-none rounded-t-3xl">
         <div className="absolute -top-12 -left-12 w-48 h-48 bg-secondary/20 rounded-full blur-2xl pointer-events-none" />
         <div className="absolute -bottom-16 right-12 w-64 h-64 bg-primary/40 rounded-full blur-3xl pointer-events-none" />
@@ -160,9 +159,7 @@ export const ProfileCard: React.FC = () => {
       </div>
 
       <CardContent className="p-4 sm:p-5 pt-0 relative">
-        {/* Top Header Row: Overlapping Avatar Left, Theme Selector Right */}
         <div className="flex items-end justify-between gap-4 -mt-9 sm:-mt-18 mb-3">
-          {/* Avatar Circle Overlapping Upwards into Banner */}
           <div className="relative shrink-0">
             <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-secondary text-secondary-foreground font-black text-xl sm:text-2xl flex items-center justify-center shadow-xl border-4 border-card ring-2 ring-primary/20">
               {getInitials(name || user?.name)}
@@ -173,7 +170,6 @@ export const ProfileCard: React.FC = () => {
             />
           </div>
 
-          {/* Quick Theme Mode Selector */}
           <div className="flex items-center gap-1 bg-secondary/30 p-1 rounded-2xl border border-border/60 shadow-2xs">
             <button
               onClick={() => setTheme("light")}
@@ -205,7 +201,6 @@ export const ProfileCard: React.FC = () => {
           </div>
         </div>
 
-        {/* Profile Identity Section */}
         <div className="mb-4 space-y-0.5">
           <div className="flex flex-wrap items-center gap-2">
             <h2 className="text-lg sm:text-xl font-black text-foreground tracking-tight leading-tight">
@@ -232,9 +227,7 @@ export const ProfileCard: React.FC = () => {
           </p>
         </div>
 
-        {/* Main Form */}
         <form onSubmit={handleSubmit} className="space-y-3.5 sm:space-y-4">
-          {/* Section 1: User Information */}
           <div className="space-y-2.5">
             <h3 className="text-xs font-extrabold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
               <User className="w-3.5 h-3.5 text-primary shrink-0" />
@@ -242,7 +235,6 @@ export const ProfileCard: React.FC = () => {
             </h3>
 
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
-              {/* Name Field */}
               <div className="space-y-1.5">
                 <Label
                   htmlFor="profile-name"
@@ -264,7 +256,6 @@ export const ProfileCard: React.FC = () => {
                 </div>
               </div>
 
-              {/* Username Field */}
               <div className="space-y-1.5">
                 <Label
                   htmlFor="profile-username"
@@ -286,7 +277,6 @@ export const ProfileCard: React.FC = () => {
                 </div>
               </div>
 
-              {/* Phone Field */}
               <div className="space-y-1.5">
                 <Label
                   htmlFor="profile-phone"
@@ -311,7 +301,6 @@ export const ProfileCard: React.FC = () => {
 
           <hr className="border-border/60" />
 
-          {/* Section 2: Security & Password */}
           <div className="space-y-2.5">
             <h3 className="text-xs font-extrabold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
               <Lock className="w-3.5 h-3.5 text-primary shrink-0" />
@@ -319,7 +308,6 @@ export const ProfileCard: React.FC = () => {
             </h3>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-              {/* New Password Field */}
               <div className="space-y-1.5">
                 <Label
                   htmlFor="profile-new-pass"
@@ -357,7 +345,6 @@ export const ProfileCard: React.FC = () => {
                   </button>
                 </div>
 
-                {/* Real-time Length Criteria Feedback */}
                 {newPassword.length > 0 && (
                   <div className="pt-0.5">
                     {newPassword.length < 6 ? (
@@ -380,7 +367,6 @@ export const ProfileCard: React.FC = () => {
                 )}
               </div>
 
-              {/* Confirm Password Field */}
               <div className="space-y-1.5">
                 <Label
                   htmlFor="profile-confirm-pass"
@@ -420,7 +406,6 @@ export const ProfileCard: React.FC = () => {
                   </button>
                 </div>
 
-                {/* Real-time Confirmation Match Feedback */}
                 {confirmPassword.length > 0 && (
                   <div className="pt-0.5">
                     {newPassword === confirmPassword ? (
@@ -440,7 +425,6 @@ export const ProfileCard: React.FC = () => {
             </div>
           </div>
 
-          {/* Submit Action Button */}
           <div className="pt-1 pb-3 flex justify-end">
             <Button
               type="submit"

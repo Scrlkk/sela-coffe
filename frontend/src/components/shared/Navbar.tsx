@@ -43,7 +43,6 @@ export const Navbar: React.FC<NavbarProps> = ({ onToggleMobileSidebar }) => {
 
   return (
     <header className="h-16 bg-card/70 backdrop-blur-md border-b border-border flex items-center justify-between px-4 sm:px-6 sticky top-0 z-20 transition-colors">
-      {/* Left: Mobile Toggle & Page Meta */}
       <div className="flex items-center gap-3">
         {onToggleMobileSidebar && (
           <button
@@ -66,12 +65,8 @@ export const Navbar: React.FC<NavbarProps> = ({ onToggleMobileSidebar }) => {
         </div>
       </div>
 
-      {/* User Right Section */}
       <div className="flex items-center gap-2 sm:gap-3">
-        {/* Notification Dropdown */}
         <NotificationDropdown />
-
-        {/* Profile Dropdown */}
         <DropdownMenu>
           <DropdownMenuTrigger>
             <div className="flex items-center gap-3 hover:opacity-90 transition-opacity">
@@ -91,7 +86,6 @@ export const Navbar: React.FC<NavbarProps> = ({ onToggleMobileSidebar }) => {
           </DropdownMenuTrigger>
 
           <DropdownMenuContent align="end" className="w-60">
-            {/* User Session Info */}
             <DropdownMenuLabel>Account Session</DropdownMenuLabel>
             <div className="sm:hidden">
               <div className="px-2 py-1 flex flex-col text-left bg-secondary/30 rounded-xl my-1 border border-border/50">
@@ -112,7 +106,6 @@ export const Navbar: React.FC<NavbarProps> = ({ onToggleMobileSidebar }) => {
 
             <DropdownMenuSeparator />
 
-            {/* Theme Mode Toggle Section */}
             <DropdownMenuLabel>Theme Mode</DropdownMenuLabel>
             <div className="px-1 py-1 grid grid-cols-2 gap-1">
               <button

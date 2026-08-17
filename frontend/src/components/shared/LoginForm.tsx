@@ -102,7 +102,6 @@ export const LoginForm = () => {
             </div>
           </div>
 
-          {/* Remember Me */}
           <div className="flex items-center justify-between px-1">
             <div className="flex items-center space-x-2.5">
               <Checkbox
@@ -119,7 +118,6 @@ export const LoginForm = () => {
             </div>
           </div>
 
-          {/* Error Message */}
           {error && (
             <p className="text-xs text-destructive font-medium text-center flex items-center justify-center gap-1.5 animate-in fade-in duration-200">
               <AlertCircle className="w-3.5 h-3.5 shrink-0" />

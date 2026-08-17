@@ -32,7 +32,6 @@ export const CashSessionHistory: React.FC<CashSessionHistoryProps> = ({
 }) => {
   return (
     <Card className="rounded-2xl border border-border/60 bg-card p-3.5 sm:p-4 shadow-xs text-card-foreground transition-all duration-200 w-full xl:h-full flex flex-col justify-between overflow-hidden">
-      {/* Header exactly matching RevenueOverviewCard */}
       <CardHeader className="p-0 flex flex-row items-center justify-between space-y-0 pb-2.5 shrink-0">
         <div>
           <CardTitle className="text-sm sm:text-base font-bold tracking-tight text-foreground">
@@ -43,7 +42,6 @@ export const CashSessionHistory: React.FC<CashSessionHistoryProps> = ({
           </p>
         </div>
 
-        {/* Shadcn Period Filter Dropdown & Badge */}
         <div className="flex items-center gap-1.5">
           <PeriodFilterDropdown
             value={period}
@@ -59,7 +57,6 @@ export const CashSessionHistory: React.FC<CashSessionHistoryProps> = ({
       </CardHeader>
 
       <CardContent className="p-0 flex flex-col flex-1 min-h-0 space-y-2 pt-1 overflow-hidden">
-        {/* Desktop View: Scrollable Table */}
         <div className="hidden md:block flex-1 min-h-0 max-h-95 xl:max-h-none overflow-y-auto no-scrollbar pr-0.5">
           <table className="w-full text-left text-xs border-collapse">
             <thead>
@@ -124,14 +121,12 @@ export const CashSessionHistory: React.FC<CashSessionHistoryProps> = ({
           </table>
         </div>
 
-        {/* Mobile View: Compact Responsive Cards List */}
         <div className="block md:hidden space-y-2.5 flex-1 min-h-0 max-h-95 overflow-y-auto no-scrollbar">
           {history.map((item) => (
             <div
               key={item.id}
               className="p-3 rounded-xl bg-muted/30 border border-border/50 space-y-2 text-xs transition-all hover:bg-muted/50"
             >
-              {/* Header: ID + Status */}
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-1.5 font-bold text-foreground">
                   <span>{item.id}</span>
@@ -154,12 +149,9 @@ export const CashSessionHistory: React.FC<CashSessionHistoryProps> = ({
                 )}
               </div>
 
-              {/* Time Range */}
               <p className="text-[11px] text-muted-foreground">
                 {item.openedAt} {item.closedAt ? `→ ${item.closedAt}` : ""}
               </p>
-
-              {/* Amounts Grid */}
               <div className="grid grid-cols-3 gap-2 pt-1.5 border-t border-border/40 text-center">
                 <div className="bg-card p-1.5 rounded-lg border border-border/40">
                   <p className="text-[10px] text-muted-foreground">Float</p>

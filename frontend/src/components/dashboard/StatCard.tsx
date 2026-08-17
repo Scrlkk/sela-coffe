@@ -53,7 +53,6 @@ export const StatCard: React.FC<StatCardProps> = ({
       )}
     >
       <CardContent className="p-0 space-y-2">
-        {/* Top Row: Icon + Title & Badge */}
         <div className="flex items-center justify-between gap-2">
           <div className="flex items-center gap-2 min-w-0">
             <div className="w-7 h-7 rounded-lg bg-primary/10 flex items-center justify-center text-primary shrink-0">
@@ -80,7 +79,6 @@ export const StatCard: React.FC<StatCardProps> = ({
           )}
         </div>
 
-        {/* Bottom Row: Value */}
         <div className="text-base sm:text-lg font-bold tracking-tight text-foreground truncate pt-0.5">
           {value}
         </div>

@@ -138,7 +138,6 @@ export default function CashSessionPage() {
 
   return (
     <div className="w-full flex flex-col space-y-4 xl:h-full xl:min-h-0">
-      {/* Top 4 Stat Cards Grid */}
       <CashSessionStats
         isOpen={isOpen}
         openingFloat={openingFloat}
@@ -146,9 +145,7 @@ export default function CashSessionPage() {
         totalOrdersToday={totalOrdersToday}
       />
 
-      {/* Main Grid: Natural scroll on mobile/tablet, 100% viewport stretch on desktop XL */}
       <div className="grid grid-cols-1 xl:grid-cols-12 gap-5 items-stretch xl:flex-1 xl:min-h-0">
-        {/* Register Action Card (4/12 width on XL) */}
         <div className="xl:col-span-4 w-full xl:h-full xl:min-h-0">
           {!isOpen ? (
             <OpenRegisterCard
@@ -167,7 +164,6 @@ export default function CashSessionPage() {
           )}
         </div>
 
-        {/* Recent Cash Sessions History Table & Filter (8/12 width on XL) */}
         <div className="xl:col-span-8 w-full xl:h-full xl:min-h-0">
           <CashSessionHistory
             history={history}

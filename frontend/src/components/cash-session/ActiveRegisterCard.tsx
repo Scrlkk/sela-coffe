@@ -39,7 +39,6 @@ export const ActiveRegisterCard: React.FC<ActiveRegisterCardProps> = ({
   return (
     <Card className="border border-border/60 shadow-xs rounded-2xl bg-card text-card-foreground w-full h-full flex flex-col justify-between transition-all duration-200">
       <CardContent className="p-5 sm:p-7 flex flex-col items-center text-center justify-between flex-1 h-full">
-        {/* Top Header & Badge */}
         <div className="flex flex-col items-center">
           <div className="w-14 h-14 rounded-full bg-primary/10 text-primary flex items-center justify-center mb-3.5 shadow-2xs">
             <Check className="w-7 h-7 stroke-3" />
@@ -53,7 +52,6 @@ export const ActiveRegisterCard: React.FC<ActiveRegisterCardProps> = ({
           </p>
         </div>
 
-        {/* Mapped Sales Breakdown Container */}
         <div className="w-full bg-muted/40 rounded-xl p-4 mb-5 border border-border/60 text-left space-y-2.5 shadow-2xs">
           {salesBreakdown.map((row) => (
             <div
@@ -77,7 +75,6 @@ export const ActiveRegisterCard: React.FC<ActiveRegisterCardProps> = ({
           </div>
         </div>
 
-        {/* Action Buttons */}
         <div className="w-full space-y-2.5">
           <Button
             onClick={() => navigate("/cashier")}

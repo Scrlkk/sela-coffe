@@ -14,6 +14,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { StatCard } from "@/components/dashboard/StatCard";
+import { ViewModeSwitcher } from "@/components/shared/ViewModeSwitcher";
+import { EmptyState } from "@/components/shared/EmptyState";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import {
@@ -26,8 +28,6 @@ import {
   Shield,
   Phone,
   RotateCcw,
-  LayoutGrid,
-  List,
   UserCheck,
 } from "lucide-react";
 
@@ -37,7 +37,9 @@ export const UserPage: React.FC = () => {
   );
   const [showDeleted, setShowDeleted] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
-  const [roleFilter, setRoleFilter] = useState<"ALL" | "ADMIN" | "CASHIER">("ALL");
+  const [roleFilter, setRoleFilter] = useState<"ALL" | "ADMIN" | "CASHIER">(
+    "ALL",
+  );
 
   const [viewMode, setViewMode] = useState<"grid" | "table">(() => {
     try {
@@ -150,7 +152,6 @@ export const UserPage: React.FC = () => {
 
   return (
     <div className="flex-1 flex flex-col min-w-0 space-y-4">
-      {/* Top 4 Stat Cards Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3.5 sm:gap-5">
         <StatCard
           title="Active Users"
@@ -182,130 +183,101 @@ export const UserPage: React.FC = () => {
         />
       </div>
 
-      {/* Control Bar: Search, Filters, View Modes & Add Button */}
-      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3 bg-card p-3 sm:p-4 rounded-2xl border border-border/80 shadow-xs">
-        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 flex-1 max-w-2xl">
-          {/* Search Input */}
-          <div className="relative flex-1">
-            <Search className="w-4 h-4 text-muted-foreground absolute left-3 top-1/2 -translate-y-1/2" />
-            <Input
-              placeholder={
-                showDeleted
-                  ? "Search deleted users..."
-                  : "Search users by name, username, or phone..."
-              }
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-9 pr-8 h-9.5 rounded-xl bg-background text-xs font-medium border-border/80"
-            />
-            {searchQuery && (
-              <button
-                onClick={() => setSearchQuery("")}
-                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground cursor-pointer"
-              >
-                <X className="w-3.5 h-3.5" />
-              </button>
-            )}
-          </div>
+      <div className="flex flex-col gap-2.5 sm:gap-3 bg-card p-3 sm:p-4 rounded-2xl border border-border/80 shadow-xs">
+        <div className="relative w-full">
+          <Search className="w-4 h-4 text-muted-foreground absolute left-3 top-1/2 -translate-y-1/2" />
+          <Input
+            placeholder={
+              showDeleted
+                ? "Search deleted users..."
+                : "Search users by name, username, or phone..."
+            }
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="pl-9 pr-8 h-9.5 rounded-xl bg-background text-xs font-medium border-border/80 w-full"
+          />
+          {searchQuery && (
+            <button
+              onClick={() => setSearchQuery("")}
+              className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground cursor-pointer"
+            >
+              <X className="w-3.5 h-3.5" />
+            </button>
+          )}
+        </div>
 
-          {/* Role Filter Tabs */}
-          <div className="flex items-center bg-muted/60 p-1 rounded-xl border border-border/50 text-xs h-9.5">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 sm:gap-3 w-full">
+          <div className="flex items-center bg-muted/60 p-1 rounded-xl border border-border/50 text-xs h-9.5 w-full sm:w-auto">
             {(["ALL", "ADMIN", "CASHIER"] as const).map((r) => (
               <button
                 key={r}
                 onClick={() => setRoleFilter(r)}
                 className={cn(
-                  "h-full px-2.5 rounded-lg font-semibold text-[11px] transition-all cursor-pointer flex items-center justify-center",
+                  "h-full px-2.5 rounded-lg font-semibold text-[11px] transition-all cursor-pointer flex items-center justify-center flex-1 sm:flex-initial",
                   roleFilter === r
                     ? "bg-card text-foreground shadow-xs font-bold"
                     : "text-muted-foreground hover:text-foreground",
                 )}
               >
-                {r === "ALL" ? "All Roles" : r === "ADMIN" ? "Admins" : "Cashiers"}
+                {r === "ALL"
+                  ? "All Roles"
+                  : r === "ADMIN"
+                    ? "Admins"
+                    : "Cashiers"}
               </button>
             ))}
           </div>
-        </div>
 
-        {/* Right Actions: View Mode, Trash Toggle, Add User */}
-        <div className="flex items-center justify-between sm:justify-end gap-2 shrink-0">
-          {/* View Mode Switcher (hidden on mobile) */}
-          <div className="hidden sm:flex items-center bg-muted/60 p-1 rounded-xl border border-border/50 h-9.5">
-            <button
-              onClick={() => handleViewModeChange("grid")}
-              className={cn(
-                "p-1.5 rounded-lg transition-all cursor-pointer",
-                viewMode === "grid"
-                  ? "bg-card text-foreground shadow-xs"
-                  : "text-muted-foreground hover:text-foreground",
-              )}
-              title="Grid View"
-            >
-              <LayoutGrid className="w-4 h-4" />
-            </button>
-            <button
-              onClick={() => handleViewModeChange("table")}
-              className={cn(
-                "p-1.5 rounded-lg transition-all cursor-pointer",
-                viewMode === "table"
-                  ? "bg-card text-foreground shadow-xs"
-                  : "text-muted-foreground hover:text-foreground",
-              )}
-              title="Table View"
-            >
-              <List className="w-4 h-4" />
-            </button>
-          </div>
+          <div className="flex items-center justify-between sm:justify-end gap-2 w-full sm:w-auto shrink-0">
+            <ViewModeSwitcher
+              value={viewMode}
+              onChange={handleViewModeChange}
+            />
 
-          {/* Toggle Trash / Deleted List */}
-          <Button
-            variant="outline"
-            onClick={() => setShowDeleted(!showDeleted)}
-            className={cn(
-              "h-9.5 rounded-xl text-xs font-semibold gap-1.5 px-3 transition-all cursor-pointer shadow-2xs bg-card",
-              showDeleted
-                ? "border-2 border-destructive text-destructive hover:border-destructive hover:bg-card shadow-xs font-bold"
-                : "border border-border/80 text-foreground hover:border-primary/80 hover:bg-card",
-            )}
-          >
-            <Trash2 className="w-3.5 h-3.5" />
-            <span>{showDeleted ? "Active Users" : "Trash"}</span>
-            {stats.totalDeleted > 0 && !showDeleted && (
-              <span className="w-2 h-2 rounded-full bg-destructive animate-pulse" />
-            )}
-          </Button>
-
-          {/* Add User Button */}
-          {!showDeleted && (
             <Button
-              onClick={() => {
-                setEditingUser(null);
-                setIsFormOpen(true);
-              }}
-              className="h-9.5 rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground text-xs font-bold gap-1.5 shadow-xs transition-all active:scale-[0.99] cursor-pointer"
+              variant="outline"
+              onClick={() => setShowDeleted(!showDeleted)}
+              className={cn(
+                "h-9.5 rounded-xl text-xs font-semibold gap-1.5 px-3 transition-all cursor-pointer shadow-2xs bg-card flex-1 sm:flex-initial justify-center",
+                showDeleted
+                  ? "border-2 border-destructive text-destructive hover:border-destructive hover:bg-card shadow-xs font-bold"
+                  : "border border-border/80 text-foreground hover:border-primary/80 hover:bg-card",
+              )}
             >
-              <Plus className="w-4 h-4" />
-              <span>Add User</span>
+              <Trash2 className="w-3.5 h-3.5" />
+              <span>{showDeleted ? "Active Users" : "Trash"}</span>
+              {stats.totalDeleted > 0 && !showDeleted && (
+                <span className="w-2 h-2 rounded-full bg-destructive animate-pulse" />
+              )}
             </Button>
-          )}
+
+            {!showDeleted && (
+              <Button
+                onClick={() => {
+                  setEditingUser(null);
+                  setIsFormOpen(true);
+                }}
+                className="h-9.5 rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground text-xs font-bold gap-1.5 px-4 shadow-xs transition-all active:scale-[0.99] cursor-pointer flex-1 sm:flex-initial justify-center"
+              >
+                <Plus className="w-4 h-4" />
+                <span>Add User</span>
+              </Button>
+            )}
+          </div>
         </div>
       </div>
 
-      {/* Main Content: Grid vs Table */}
       {filteredUsers.length === 0 ? (
-        <Card className="border border-dashed border-border p-12 text-center">
-          <div className="mx-auto w-12 h-12 rounded-full bg-muted flex items-center justify-center mb-3">
-            <Users className="w-6 h-6 text-muted-foreground" />
-          </div>
-          <h3 className="font-semibold text-lg">No users found</h3>
-          <p className="text-sm text-muted-foreground mt-1 max-w-sm mx-auto">
-            {searchQuery || roleFilter !== "ALL"
+        <EmptyState
+          title="No users found"
+          description={
+            searchQuery || roleFilter !== "ALL"
               ? "No accounts match your search filters. Try resetting search criteria."
               : showDeleted
                 ? "Deleted user accounts trash is currently empty."
-                : "No users created yet. Click Add User to register your team."}
-          </p>
-        </Card>
+                : "No users created yet. Click Add User to register your team."
+          }
+        />
       ) : viewMode === "grid" ? (
         /* Grid View (Desktop, Tablet & Mobile) */
         <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3.5 sm:gap-4 pt-1 pb-6">
@@ -324,7 +296,9 @@ export const UserPage: React.FC = () => {
                       <h4 className="font-bold text-foreground text-sm leading-snug truncate">
                         {u.name}
                       </h4>
-                      <p className="text-xs text-muted-foreground truncate">@{u.username}</p>
+                      <p className="text-xs text-muted-foreground truncate">
+                        @{u.username}
+                      </p>
                     </div>
                   </div>
                   <Badge
@@ -415,7 +389,6 @@ export const UserPage: React.FC = () => {
       ) : (
         /* Table View on Desktop/Tablet, Auto-Grid on Mobile */
         <>
-          {/* DESKTOP & TABLET VIEW: Supplier-styled Table Card */}
           <div className="hidden sm:block">
             <Card className="rounded-2xl border border-border/60 bg-card p-3.5 sm:p-4 shadow-xs text-card-foreground transition-all duration-200 w-full flex-col justify-between overflow-hidden mb-6">
               <div className="overflow-x-auto no-scrollbar">
@@ -437,7 +410,6 @@ export const UserPage: React.FC = () => {
                         key={u.id}
                         className="hover:bg-muted/40 transition-colors"
                       >
-                        {/* User Name with round initials */}
                         <td className="py-3 px-3 font-bold text-foreground">
                           <div className="flex items-center gap-2.5">
                             <div className="w-8 h-8 rounded-full bg-primary/10 text-primary font-bold text-xs flex items-center justify-center shrink-0 border border-primary/20">
@@ -447,17 +419,14 @@ export const UserPage: React.FC = () => {
                           </div>
                         </td>
 
-                        {/* Username */}
                         <td className="py-3 px-3 text-muted-foreground font-medium">
                           @{u.username}
                         </td>
 
-                        {/* Role: Plain text without badge */}
                         <td className="py-3 px-3 text-foreground font-semibold">
                           {u.role === "ADMIN" ? "Admin" : "Cashier"}
                         </td>
 
-                        {/* Phone / Contact */}
                         <td className="py-3 px-3 text-muted-foreground font-semibold">
                           {u.phone ? (
                             <div className="flex items-center gap-1.5">
@@ -476,7 +445,6 @@ export const UserPage: React.FC = () => {
                           )}
                         </td>
 
-                        {/* Status */}
                         <td className="py-3 px-3">
                           {u.status === "INACTIVE" ? (
                             <span className="text-[11px] font-bold text-destructive">
@@ -489,12 +457,10 @@ export const UserPage: React.FC = () => {
                           )}
                         </td>
 
-                        {/* Created At */}
                         <td className="py-3 px-3 text-muted-foreground font-medium">
                           {formatDate(u.createdAt)}
                         </td>
 
-                        {/* Actions */}
                         <td className="py-3 px-3 text-right">
                           <div className="flex items-center justify-end gap-1">
                             {u.isDeleted ? (
@@ -543,7 +509,6 @@ export const UserPage: React.FC = () => {
             </Card>
           </div>
 
-          {/* Mobile Auto Grid View */}
           <div className="grid grid-cols-1 sm:hidden gap-3.5 pt-1 pb-6">
             {filteredUsers.map((u) => (
               <Card
@@ -560,7 +525,9 @@ export const UserPage: React.FC = () => {
                         <h4 className="font-bold text-foreground text-sm leading-snug truncate">
                           {u.name}
                         </h4>
-                        <p className="text-xs text-muted-foreground truncate">@{u.username}</p>
+                        <p className="text-xs text-muted-foreground truncate">
+                          @{u.username}
+                        </p>
                       </div>
                     </div>
                     <Badge
@@ -649,7 +616,6 @@ export const UserPage: React.FC = () => {
         </>
       )}
 
-      {/* User Form Dialog */}
       <UserDialog
         isOpen={isFormOpen}
         onClose={() => setIsFormOpen(false)}
@@ -663,7 +629,6 @@ export const UserPage: React.FC = () => {
         }}
       />
 
-      {/* Delete Confirmation Dialog */}
       <ConfirmDialog
         isOpen={!!deletingUser}
         title="Move User to Trash?"
@@ -671,7 +636,8 @@ export const UserPage: React.FC = () => {
         description={
           <p>
             Are you sure you want to delete{" "}
-            <strong className="text-foreground">"{deletingUser?.name}"</strong> (@
+            <strong className="text-foreground">"{deletingUser?.name}"</strong>{" "}
+            (@
             {deletingUser?.username})? It can be restored anytime from trash.
           </p>
         }
@@ -681,7 +647,6 @@ export const UserPage: React.FC = () => {
         onConfirm={handleDelete}
       />
 
-      {/* Restore Confirmation Dialog */}
       <ConfirmDialog
         isOpen={!!restoringUser}
         title="Restore User Account?"
@@ -689,8 +654,8 @@ export const UserPage: React.FC = () => {
         description={
           <p>
             User account{" "}
-            <strong className="text-foreground">"{restoringUser?.name}"</strong> will
-            be restored to active team list.
+            <strong className="text-foreground">"{restoringUser?.name}"</strong>{" "}
+            will be restored to active team list.
           </p>
         }
         confirmText="Restore User"

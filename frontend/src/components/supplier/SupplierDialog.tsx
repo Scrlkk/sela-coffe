@@ -89,7 +89,6 @@ export const SupplierDialog: React.FC<SupplierDialogProps> = ({
     >
       <Card className="border-border/60 shadow-xl rounded-2xl sm:rounded-3xl bg-card text-card-foreground max-w-lg w-full overflow-hidden animate-in zoom-in-95 duration-200 my-auto">
         <CardContent className="p-4 sm:p-6 space-y-3 sm:space-y-5">
-          {/* Header */}
           <div className="flex items-center justify-between border-b border-border/60 pb-2.5 sm:pb-4">
             <div className="flex items-center gap-2.5 sm:gap-3">
               <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl sm:rounded-2xl bg-primary/10 text-primary flex items-center justify-center shrink-0">
@@ -120,7 +119,6 @@ export const SupplierDialog: React.FC<SupplierDialogProps> = ({
             </Button>
           </div>
 
-          {/* Form */}
           <form onSubmit={handleSubmit} className="space-y-3 sm:space-y-4">
             <div className="space-y-1">
               <Label
@@ -234,8 +232,6 @@ export const SupplierDialog: React.FC<SupplierDialogProps> = ({
                 className="min-h-10 max-h-30 text-xs sm:text-sm font-semibold leading-relaxed transition-all overflow-y-auto"
               />
             </div>
-
-            {/* Action Buttons */}
             <div className="grid grid-cols-2 gap-2.5 sm:gap-3 pt-2 sm:pt-3 border-t border-border/60">
               <Button
                 type="button"

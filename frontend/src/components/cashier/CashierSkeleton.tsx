@@ -4,9 +4,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 export function CashierSkeleton() {
   return (
     <div className="flex flex-col lg:flex-row gap-5 items-start w-full py-1 animate-in fade-in duration-300">
-      {/* Left Menu Section Skeleton */}
       <div className="flex-1 w-full space-y-4">
-        {/* Search & Category Pills Skeleton */}
         <div className="space-y-3">
           <Skeleton className="h-10 w-full sm:w-80 rounded-xl" />
           <div className="flex items-center gap-2 overflow-hidden pb-1">
@@ -16,7 +14,6 @@ export function CashierSkeleton() {
           </div>
         </div>
 
-        {/* Product Cards Grid Skeleton */}
         <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 gap-3.5">
           {Array.from({ length: 8 }).map((_, i) => (
             <Card
@@ -39,7 +36,6 @@ export function CashierSkeleton() {
         </div>
       </div>
 
-      {/* Right Cart Panel Skeleton */}
       <div className="w-full lg:w-96 xl:w-105 shrink-0">
         <Card className="rounded-2xl border border-border/60 bg-card p-5 h-full flex flex-col justify-between space-y-4">
           <CardContent className="p-0 space-y-4 flex flex-col h-full">
@@ -64,4 +60,3 @@ export function CashierSkeleton() {
     </div>
   );
 }
-

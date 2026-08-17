@@ -10,17 +10,14 @@ export default function LoginPage() {
 
       <div className="w-full max-w-md flex flex-col items-center my-auto py-6 z-10">
         <div className="flex flex-col items-center mb-8 text-center">
-          {/* App Logo */}
           <div className="mb-4 flex items-center justify-center transition-transform hover:scale-105 duration-300">
             <LogoLogin className="w-20 h-20 drop-shadow-md" />
           </div>
 
-          {/* App Name */}
           <h1 className="text-3xl font-extrabold text-foreground tracking-tight">
             {APP_NAME}
           </h1>
 
-          {/* App Description */}
           <p className="text-sm text-muted-foreground mt-1.5 font-medium">
             Log in to your POS & inventory dashboard
           </p>

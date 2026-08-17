@@ -97,9 +97,7 @@ export function PaymentModal({
       <Card className="border-border/60 shadow-xl rounded-3xl bg-card text-card-foreground max-w-md w-full overflow-hidden animate-in zoom-in-95 duration-200">
         <CardContent className="p-6 text-center space-y-4 sm:space-y-5">
           {step === "select-method" && (
-            /* STEP 1: Select Payment Method & Cash Entry */
             <>
-              {/* Header Icon */}
               <div className="w-14 h-14 rounded-full bg-primary/10 text-primary flex items-center justify-center mx-auto shadow-xs">
                 <Wallet className="w-7 h-7 stroke-2" />
               </div>
@@ -113,7 +111,6 @@ export function PaymentModal({
                 </p>
               </div>
 
-              {/* Total Pay Banner Box */}
               <div className="bg-muted/40 rounded-2xl p-3.5 border border-border/60 text-center space-y-0.5">
                 <p className="text-[11px] text-muted-foreground font-medium uppercase tracking-wider">
                   Total Amount Due
@@ -123,7 +120,6 @@ export function PaymentModal({
                 </p>
               </div>
 
-              {/* Payment Method Selector Grid */}
               <div className="space-y-1.5 text-left">
                 <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider">
                   Payment Method
@@ -152,7 +148,6 @@ export function PaymentModal({
                 </div>
               </div>
 
-              {/* Cash Input & Change Calculation Section (Cash Only) */}
               {paymentMethod === "Cash" && (
                 <div className="space-y-2 text-left bg-muted/30 p-3.5 rounded-2xl border border-border/60 animate-in fade-in duration-200">
                   <div className="flex justify-between items-center">
@@ -179,7 +174,6 @@ export function PaymentModal({
                     />
                   </div>
 
-                  {/* Preset Amount Chips */}
                   <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar pt-0.5">
                     <button
                       type="button"
@@ -203,7 +197,6 @@ export function PaymentModal({
                     )}
                   </div>
 
-                  {/* Validation Error Message */}
                   {!isNaN(numericCash) && numericCash < total && (
                     <p className="text-[11px] text-destructive font-semibold">
                       Insufficient cash by {formatRupiah(total - numericCash)}
@@ -212,7 +205,6 @@ export function PaymentModal({
                 </div>
               )}
 
-              {/* Action Buttons: Back vs Confirm */}
               <div className="grid grid-cols-2 gap-3 pt-1">
                 <Button
                   variant="outline"
@@ -234,7 +226,6 @@ export function PaymentModal({
           )}
 
           {step === "processing" && (
-            /* STEP 2: Processing Payment Loading Screen */
             <div className="py-6 space-y-4 animate-in fade-in zoom-in-95 duration-200">
               <div className="w-16 h-16 rounded-full bg-primary/10 text-primary flex items-center justify-center mx-auto shadow-xs">
                 <Loader2 className="w-8 h-8 animate-spin" />
@@ -259,9 +250,7 @@ export function PaymentModal({
           )}
 
           {step === "success" && (
-            /* STEP 3: Payment Successful Receipt */
             <div className="space-y-5 animate-in fade-in zoom-in-90 duration-300">
-              {/* Success Badge Icon with Pulsing Aura Animation */}
               <div className="relative w-16 h-16 mx-auto flex items-center justify-center">
                 <span className="absolute inset-0 rounded-full bg-emerald-500/20 animate-ping opacity-75 duration-1000" />
                 <div className="relative w-16 h-16 rounded-full bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shadow-md border border-emerald-500/30 animate-in zoom-in-50 duration-500">
@@ -278,7 +267,6 @@ export function PaymentModal({
                 </p>
               </div>
 
-              {/* Receipt Breakdown Box */}
               <div className="bg-muted/40 rounded-2xl p-4 text-left text-xs space-y-2 border border-border/60 max-h-60 overflow-y-auto no-scrollbar">
                 <p className="font-bold text-foreground border-b border-border/60 pb-1.5 mb-2">
                   Order Details
@@ -312,7 +300,6 @@ export function PaymentModal({
                     </span>
                   </div>
 
-                  {/* Cash Change Details (Cash Payment Only) */}
                   {paymentMethod === "Cash" && (
                     <div className="pt-2 border-t border-border/40 space-y-1">
                       <div className="flex justify-between font-medium text-foreground">
@@ -328,7 +315,6 @@ export function PaymentModal({
                 </div>
               </div>
 
-              {/* Single Full Width Action Button: New Order */}
               <div className="pt-2">
                 <Button
                   onClick={handleNewOrder}

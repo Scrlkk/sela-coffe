@@ -43,7 +43,6 @@ export const RevenueOverviewCard: React.FC<RevenueOverviewCardProps> = ({
         className,
       )}
     >
-      {/* Card Header with Refresh Button & Filter */}
       <CardHeader className="p-0 flex flex-row items-center justify-between space-y-0 pb-2">
         <div>
           <CardTitle className="text-sm sm:text-base font-bold tracking-tight text-foreground">
@@ -80,7 +79,6 @@ export const RevenueOverviewCard: React.FC<RevenueOverviewCardProps> = ({
       <CardContent className="p-0 relative flex-1 flex flex-col justify-between mt-1 w-full min-h-44 sm:min-h-48">
         {isLoading ? (
           <div className="w-full h-full min-h-44 sm:min-h-48 flex flex-col justify-between space-y-3 pt-1">
-            {/* Top Summary Stat Skeleton */}
             <div className="flex items-center justify-between pt-0.5">
               <div className="space-y-1">
                 <Skeleton className="h-3 w-16" />
@@ -89,7 +87,6 @@ export const RevenueOverviewCard: React.FC<RevenueOverviewCardProps> = ({
               <Skeleton className="h-4 w-14 rounded-full" />
             </div>
 
-            {/* Simulated Chart Grid Lines Skeleton */}
             <div className="w-full flex-1 flex flex-col justify-between py-2 px-1 space-y-2">
               <Skeleton className="w-full h-0.5 opacity-30" />
               <Skeleton className="w-full h-0.5 opacity-40" />
@@ -97,7 +94,6 @@ export const RevenueOverviewCard: React.FC<RevenueOverviewCardProps> = ({
               <Skeleton className="w-full h-0.5 opacity-20" />
             </div>
 
-            {/* Bottom X-Axis Days Skeleton Pills */}
             <div className="flex items-center justify-between px-1 pt-1">
               {Array.from({ length: 7 }).map((_, i) => (
                 <Skeleton key={i} className="h-3 w-6 rounded-md" />

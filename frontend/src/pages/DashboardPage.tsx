@@ -27,14 +27,12 @@ export default function DashboardPage() {
 
   return (
     <div className="space-y-6">
-      {/* Top Stat Cards Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5 sm:gap-5">
         {STAT_CARDS.map((stat) => (
           <StatCard key={stat.title} {...stat} />
         ))}
       </div>
 
-      {/* Synchronized Charts Section */}
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 sm:gap-6 items-stretch">
         <Suspense
           fallback={
@@ -66,7 +64,6 @@ export default function DashboardPage() {
         </Suspense>
       </div>
 
-      {/* Today's Transactions & Recent Activity */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6 items-stretch">
         <TodaysTransactionsCard
           isLoading={loadingTxn}

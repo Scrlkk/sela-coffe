@@ -17,7 +17,6 @@ export const ProductSkeleton: React.FC = () => {
 
   return (
     <div className="flex-1 flex flex-col min-w-0 space-y-4 animate-in fade-in duration-300">
-      {/* Top Stat Cards Grid Skeleton */}
       <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3.5 sm:gap-5">
         {Array.from({ length: 4 }).map((_, i) => (
           <Card
@@ -38,7 +37,6 @@ export const ProductSkeleton: React.FC = () => {
         ))}
       </div>
 
-      {/* Search Bar & Controls Header Skeleton (Two-Row Header) */}
       <div className="flex flex-col space-y-3">
         <Skeleton className="h-10 w-full rounded-xl" />
         <div className="flex items-center justify-between gap-2 flex-wrap sm:flex-nowrap">
@@ -53,9 +51,7 @@ export const ProductSkeleton: React.FC = () => {
         </div>
       </div>
 
-      {/* Dynamic Content Skeleton (Table or Grid based on viewMode) */}
       {viewMode === "table" ? (
-        /* TABLE VIEW SKELETON */
         <Card className="rounded-2xl border border-border/60 bg-card p-3.5 sm:p-4 shadow-xs w-full overflow-hidden mb-6">
           <div className="space-y-3">
             <div className="flex justify-between items-center pb-3 border-b border-border/60">
@@ -83,7 +79,6 @@ export const ProductSkeleton: React.FC = () => {
           </div>
         </Card>
       ) : (
-        /* GRID VIEW SKELETON */
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3.5 pt-1 pb-6">
           {Array.from({ length: 8 }).map((_, i) => (
             <Card

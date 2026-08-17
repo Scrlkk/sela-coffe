@@ -126,7 +126,6 @@ input::-ms-clear {
   display: none;
 }
 
-/* Hide number input spin arrows */
 input[type="number"]::-webkit-outer-spin-button,
 input[type="number"]::-webkit-inner-spin-button {
   -webkit-appearance: none;
@@ -173,7 +172,6 @@ input[type="number"] {
   box-shadow: none !important;
 }
 
-/* Custom Modern Inset Scrollbar without Overflow */
 .custom-scrollbar::-webkit-scrollbar {
   width: 6px;
 }

@@ -92,9 +92,7 @@ export default function CashierPage() {
 
   return (
     <div className="h-full flex flex-col xl:flex-row gap-5">
-      {/* Left Column: Menu Items & Top Filters */}
       <div className="flex-1 flex flex-col min-w-0">
-        {/* Top Bar: Search & Category Filter */}
         <CategoryFilter
           selectedCategory={selectedCategory}
           onSelectCategory={setSelectedCategory}
@@ -102,7 +100,6 @@ export default function CashierPage() {
           onSearchChange={setSearchQuery}
         />
 
-        {/* Product Menu Grid */}
         <div className="flex-1 overflow-y-auto no-scrollbar">
           {filteredProducts.length === 0 ? (
             <div className="h-64 flex flex-col items-center justify-center text-center p-6 bg-card rounded-2xl border border-dashed border-border">
@@ -133,7 +130,6 @@ export default function CashierPage() {
         </div>
       </div>
 
-      {/* Right Column: Checkout Cart Panel */}
       <div className="w-full xl:w-96 2xl:w-105 shrink-0 xl:h-full pb-6 xl:pb-0">
         <CartPanel
           cart={cart}
@@ -145,7 +141,6 @@ export default function CashierPage() {
         />
       </div>
 
-      {/* Payment Confirmation & Success Modal */}
       <PaymentModal
         isOpen={isModalOpen}
         orderNumber={activeTxnNumber}

@@ -34,12 +34,10 @@ export const OpenRegisterCard: React.FC<OpenRegisterCardProps> = ({
   return (
     <Card className="border border-border/60 shadow-xs rounded-2xl bg-card text-card-foreground w-full h-full flex flex-col justify-between transition-all duration-200">
       <CardContent className="p-5 sm:p-7 flex flex-col items-center text-center justify-center flex-1 my-auto">
-        {/* Badge Icon */}
         <div className="w-14 h-14 rounded-full bg-primary/10 text-primary flex items-center justify-center mb-3.5 shadow-2xs">
           <DollarSign className="w-7 h-7 stroke-[2.5]" />
         </div>
 
-        {/* Heading & Subtitle */}
         <h2 className="text-xl font-bold text-foreground mb-1 tracking-tight">
           Open Register
         </h2>
@@ -47,7 +45,6 @@ export const OpenRegisterCard: React.FC<OpenRegisterCardProps> = ({
           Enter your opening cash float to begin the day's session.
         </p>
 
-        {/* Form Input */}
         <form onSubmit={handleSubmit} className="w-full space-y-4 text-left">
           <div className="space-y-1.5">
             <Label

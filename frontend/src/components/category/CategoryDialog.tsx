@@ -20,7 +20,9 @@ export const CategoryDialog: React.FC<CategoryDialogProps> = ({
   initialData,
 }) => {
   const [name, setName] = useState(initialData?.name ?? "");
-  const [description, setDescription] = useState(initialData?.description ?? "");
+  const [description, setDescription] = useState(
+    initialData?.description ?? "",
+  );
   const [prevInitialData, setPrevInitialData] = useState(initialData);
   const [prevIsOpen, setPrevIsOpen] = useState(isOpen);
 
@@ -57,25 +59,24 @@ export const CategoryDialog: React.FC<CategoryDialogProps> = ({
       onClick={(e) => {
         if (e.target === e.currentTarget) onClose();
       }}
-      className="fixed inset-0 z-50 flex items-center justify-center p-3 bg-black/60 backdrop-blur-xs animate-in fade-in duration-200"
+      className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/60 backdrop-blur-xs animate-in fade-in duration-200 overflow-y-auto"
     >
-      <Card className="border-border/60 shadow-xl rounded-2xl bg-card text-card-foreground max-w-md w-full overflow-hidden animate-in zoom-in-95 duration-200">
-        <CardContent className="p-4 sm:p-5 space-y-3.5">
-          {/* Modal Header */}
-          <div className="flex items-center justify-between border-b border-border/60 pb-3">
-            <div className="flex items-center gap-2.5">
-              <div className="w-8 h-8 rounded-xl bg-primary/10 text-primary flex items-center justify-center shrink-0">
+      <Card className="border-border/60 shadow-xl rounded-2xl sm:rounded-3xl bg-card text-card-foreground max-w-lg w-full overflow-hidden animate-in zoom-in-95 duration-200 my-auto">
+        <CardContent className="p-4 sm:p-6 space-y-3 sm:space-y-5">
+          <div className="flex items-center justify-between border-b border-border/60 pb-2.5 sm:pb-4">
+            <div className="flex items-center gap-2.5 sm:gap-3">
+              <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl sm:rounded-2xl bg-primary/10 text-primary flex items-center justify-center shrink-0">
                 {initialData ? (
-                  <Pencil className="w-4 h-4" />
+                  <Pencil className="w-4 h-4 sm:w-5 sm:h-5" />
                 ) : (
-                  <FolderPlus className="w-4 h-4" />
+                  <FolderPlus className="w-4 h-4 sm:w-5 sm:h-5" />
                 )}
               </div>
               <div>
-                <h3 className="text-base font-bold text-foreground leading-tight">
+                <h3 className="text-base sm:text-lg font-bold text-foreground">
                   {initialData ? "Edit Category" : "Add New Category"}
                 </h3>
-                <p className="text-[11px] text-muted-foreground mt-0.5">
+                <p className="text-[11px] sm:text-xs text-muted-foreground mt-0.5">
                   Fill in details for Sela Coffee product category
                 </p>
               </div>
@@ -84,17 +85,18 @@ export const CategoryDialog: React.FC<CategoryDialogProps> = ({
               variant="ghost"
               size="icon"
               onClick={onClose}
-              className="rounded-full h-7 w-7 text-muted-foreground hover:text-foreground cursor-pointer"
+              className="rounded-full h-7 w-7 sm:h-8 sm:w-8 text-muted-foreground hover:text-foreground cursor-pointer"
             >
               <X className="w-4 h-4" />
             </Button>
           </div>
 
-          {/* Form Content */}
-          <form onSubmit={handleSubmit} className="space-y-3">
-            {/* Category Name */}
+          <form onSubmit={handleSubmit} className="space-y-3 sm:space-y-4">
             <div className="space-y-1">
-              <Label htmlFor="cat-name" className="text-xs font-bold text-foreground">
+              <Label
+                htmlFor="cat-name"
+                className="text-xs font-bold text-foreground"
+              >
                 Category Name <span className="text-destructive">*</span>
               </Label>
               <Input
@@ -103,13 +105,15 @@ export const CategoryDialog: React.FC<CategoryDialogProps> = ({
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 required
-                className="h-9 rounded-xl bg-card border-border/60 text-foreground text-xs focus-visible:ring-primary"
+                className="h-8.5 sm:h-10 rounded-xl bg-card border-input text-foreground text-xs sm:text-sm font-semibold focus-visible:ring-primary"
               />
             </div>
 
-            {/* Category Description */}
             <div className="space-y-1">
-              <Label htmlFor="cat-desc" className="text-xs font-bold text-foreground">
+              <Label
+                htmlFor="cat-desc"
+                className="text-xs font-bold text-foreground"
+              >
                 Description
               </Label>
               <Input
@@ -117,23 +121,22 @@ export const CategoryDialog: React.FC<CategoryDialogProps> = ({
                 placeholder="Brief description of this category..."
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
-                className="h-9 rounded-xl bg-card border-border/60 text-foreground text-xs focus-visible:ring-primary"
+                className="h-8.5 sm:h-10 rounded-xl bg-card border-input text-foreground text-xs sm:text-sm font-semibold focus-visible:ring-primary"
               />
             </div>
 
-            {/* Action Buttons */}
-            <div className="grid grid-cols-2 gap-2.5 pt-2.5 border-t border-border/60">
+            <div className="grid grid-cols-2 gap-2.5 sm:gap-3 pt-2 sm:pt-3 border-t border-border/60">
               <Button
                 type="button"
                 variant="outline"
                 onClick={onClose}
-                className="h-9 rounded-xl border-border text-foreground hover:bg-muted text-xs font-bold transition-all cursor-pointer"
+                className="h-9 sm:h-11 rounded-full border-border text-foreground hover:bg-muted text-xs font-bold transition-all cursor-pointer"
               >
                 Cancel
               </Button>
               <Button
                 type="submit"
-                className="h-9 rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground text-xs font-bold shadow-xs transition-all active:scale-[0.99] cursor-pointer"
+                className="h-9 sm:h-11 rounded-full bg-primary hover:bg-primary/90 text-primary-foreground text-xs font-bold shadow-xs transition-all active:scale-[0.99] cursor-pointer"
               >
                 {initialData ? "Save Changes" : "Add Category"}
               </Button>

@@ -30,7 +30,6 @@ export const TodaysTransactionsCard: React.FC<TodaysTransactionsCardProps> = ({
         className,
       )}
     >
-      {/* Card Header with Refresh Button */}
       <CardHeader className="p-0 flex flex-row items-center justify-between space-y-0 pb-3">
         <CardTitle className="text-sm sm:text-base font-bold tracking-tight text-foreground">
           Today's Transactions
@@ -63,7 +62,6 @@ export const TodaysTransactionsCard: React.FC<TodaysTransactionsCardProps> = ({
         </div>
       </CardHeader>
 
-      {/* Scrollable Compact Transactions List */}
       <CardContent className="p-0 flex-1 my-auto w-full">
         <div className="flex-1 max-h-72 overflow-y-auto no-scrollbar space-y-2 pr-0.5">
           {isLoading
@@ -90,7 +88,6 @@ export const TodaysTransactionsCard: React.FC<TodaysTransactionsCardProps> = ({
                   key={item.id}
                   className="flex items-center justify-between p-2.5 sm:p-3 rounded-2xl bg-secondary/35 hover:bg-secondary/65 border border-border/40 transition-all cursor-pointer group"
                 >
-                  {/* Left Side: Icon & Details */}
                   <div className="flex items-center gap-3 min-w-0">
                     <div className="w-9 h-9 rounded-xl bg-primary/10 flex items-center justify-center text-primary shrink-0 group-hover:scale-105 transition-transform">
                       <Receipt className="w-4 h-4" />
@@ -106,7 +103,6 @@ export const TodaysTransactionsCard: React.FC<TodaysTransactionsCardProps> = ({
                     </div>
                   </div>
 
-                  {/* Right Side: Amount & Status Badge */}
                   <div className="flex flex-col items-end shrink-0 ml-2">
                     <span className="text-xs sm:text-sm font-bold text-foreground">
                       {item.formattedAmount}

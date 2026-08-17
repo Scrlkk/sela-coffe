@@ -17,7 +17,6 @@ export const CategorySkeleton: React.FC = () => {
 
   return (
     <div className="flex-1 flex flex-col min-w-0 space-y-4 animate-in fade-in duration-300">
-      {/* Top Stat Cards Grid Skeleton */}
       <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3.5 sm:gap-5">
         {Array.from({ length: 3 }).map((_, i) => (
           <Card
@@ -38,7 +37,6 @@ export const CategorySkeleton: React.FC = () => {
         ))}
       </div>
 
-      {/* Search Bar & Controls Header Skeleton */}
       <div className="flex flex-col sm:flex-row gap-3 justify-between items-center">
         <Skeleton className="h-10 w-full sm:flex-1 rounded-xl" />
         <div className="flex items-center gap-2 w-full sm:w-auto justify-end shrink-0">
@@ -47,7 +45,6 @@ export const CategorySkeleton: React.FC = () => {
         </div>
       </div>
 
-      {/* Dynamic Content Skeleton */}
       {viewMode === "table" ? (
         <Card className="rounded-2xl border border-border/60 bg-card p-3.5 sm:p-4 shadow-xs w-full overflow-hidden mb-6">
           <div className="space-y-3">

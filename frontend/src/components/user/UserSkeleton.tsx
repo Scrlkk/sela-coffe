@@ -5,7 +5,6 @@ import { Card, CardContent } from "@/components/ui/card";
 export const UserSkeleton: React.FC = () => {
   return (
     <div className="flex-1 flex flex-col min-w-0 space-y-4 animate-pulse">
-      {/* Top 4 Stat Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3.5 sm:gap-5">
         {[1, 2, 3, 4].map((i) => (
           <Card key={i} className="border-border/60 shadow-xs">
@@ -20,7 +19,6 @@ export const UserSkeleton: React.FC = () => {
         ))}
       </div>
 
-      {/* Search & Action Bar */}
       <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
         <Skeleton className="h-10 w-full sm:w-72 rounded-xl" />
         <div className="flex items-center gap-2">
@@ -29,7 +27,6 @@ export const UserSkeleton: React.FC = () => {
         </div>
       </div>
 
-      {/* Main Table / Grid Container */}
       <Card className="border-border/60 shadow-xs p-4 sm:p-5 space-y-4">
         <div className="space-y-3">
           {[1, 2, 3, 4, 5].map((i) => (

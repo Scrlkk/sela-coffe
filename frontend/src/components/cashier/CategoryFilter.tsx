@@ -18,7 +18,6 @@ export function CategoryFilter({
 }: CategoryFilterProps) {
   return (
     <div className="space-y-3 mb-4">
-      {/* Search Input Bar */}
       <div className="relative flex items-center w-full">
         <Search className="absolute left-3.5 w-4 h-4 text-muted-foreground pointer-events-none" />
         <Input
@@ -39,7 +38,6 @@ export function CategoryFilter({
         )}
       </div>
 
-      {/* Category Horizontal Filter Pills */}
       <div className="flex items-center gap-2 overflow-x-auto no-scrollbar pb-1">
         {CATEGORIES.map((cat) => {
           const isActive = selectedCategory === cat.id;

@@ -110,7 +110,6 @@ export const UserDialog: React.FC<UserDialogProps> = ({
     >
       <Card className="border-border/60 shadow-xl rounded-2xl sm:rounded-3xl bg-card text-card-foreground max-w-lg w-full overflow-hidden animate-in zoom-in-95 duration-200 my-auto">
         <CardContent className="p-4 sm:p-6 space-y-3 sm:space-y-5">
-          {/* Header */}
           <div className="flex items-center justify-between border-b border-border/60 pb-2.5 sm:pb-4">
             <div className="flex items-center gap-2.5 sm:gap-3">
               <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl sm:rounded-2xl bg-primary/10 text-primary flex items-center justify-center shrink-0">
@@ -141,9 +140,7 @@ export const UserDialog: React.FC<UserDialogProps> = ({
             </Button>
           </div>
 
-          {/* Form */}
           <form onSubmit={handleSubmit} className="space-y-3 sm:space-y-4">
-            {/* Full Name */}
             <div className="space-y-1">
               <Label
                 htmlFor="name"
@@ -168,7 +165,6 @@ export const UserDialog: React.FC<UserDialogProps> = ({
               )}
             </div>
 
-            {/* Username & Phone */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 sm:gap-3">
               <div className="space-y-1">
                 <Label
@@ -214,7 +210,6 @@ export const UserDialog: React.FC<UserDialogProps> = ({
               </div>
             </div>
 
-            {/* Role Selection */}
             <div className="space-y-1.5">
               <div className="flex items-center justify-between">
                 <span className="text-xs font-bold text-foreground">
@@ -255,9 +250,7 @@ export const UserDialog: React.FC<UserDialogProps> = ({
               </div>
             </div>
 
-            {/* Password Fields matching Profile Style */}
             <div className="space-y-3">
-              {/* Password */}
               <div className="space-y-1">
                 <Label
                   htmlFor="password"
@@ -307,7 +300,6 @@ export const UserDialog: React.FC<UserDialogProps> = ({
                   </button>
                 </div>
 
-                {/* Real-time Length Feedback */}
                 {password.length > 0 && (
                   <div className="pt-0.5">
                     {password.length < 6 ? (
@@ -332,7 +324,6 @@ export const UserDialog: React.FC<UserDialogProps> = ({
                 )}
               </div>
 
-              {/* Confirm Password (only appears if password is typed) */}
               {password.length > 0 && (
                 <div className="space-y-1 animate-in fade-in slide-in-from-top-2 duration-200">
                   <Label
@@ -378,7 +369,6 @@ export const UserDialog: React.FC<UserDialogProps> = ({
                     </button>
                   </div>
 
-                  {/* Real-time Match Feedback */}
                   {confirmPassword.length > 0 && (
                     <div className="pt-0.5">
                       {password !== confirmPassword ? (
@@ -403,7 +393,6 @@ export const UserDialog: React.FC<UserDialogProps> = ({
               )}
             </div>
 
-            {/* Action Buttons */}
             <div className="grid grid-cols-2 gap-2.5 sm:gap-3 pt-2 sm:pt-3 border-t border-border/60">
               <Button
                 type="button"

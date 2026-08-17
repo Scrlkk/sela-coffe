@@ -28,7 +28,6 @@ export const RecentActivityCard: React.FC<RecentActivityCardProps> = ({
         className,
       )}
     >
-      {/* Card Header with Refresh Button */}
       <CardHeader className="p-0 flex flex-row items-center justify-between space-y-0 pb-3">
         <CardTitle className="text-sm sm:text-base font-bold tracking-tight text-foreground">
           Recent Activity
@@ -51,7 +50,6 @@ export const RecentActivityCard: React.FC<RecentActivityCardProps> = ({
         )}
       </CardHeader>
 
-      {/* Scrollable Compact Activity List */}
       <CardContent className="p-0 flex-1 my-auto w-full">
         <div className="flex-1 max-h-72 overflow-y-auto no-scrollbar space-y-2 pr-0.5">
           {isLoading
@@ -72,13 +70,10 @@ export const RecentActivityCard: React.FC<RecentActivityCardProps> = ({
                   key={item.id}
                   className="flex items-start gap-3 p-2.5 sm:p-3 rounded-2xl bg-secondary/35 hover:bg-secondary/65 border border-border/40 transition-all cursor-pointer group"
                 >
-                  {/* Left Side: Vertical Color Bar Indicator */}
                   <span
                     className="w-1.5 rounded-full self-stretch shrink-0 min-h-9 transition-transform group-hover:scale-y-105"
                     style={{ backgroundColor: item.accentColor }}
                   />
-
-                  {/* Right Side: Activity Text & TimeAgo */}
                   <div className="flex-1 min-w-0">
                     <p className="text-xs sm:text-sm font-semibold text-foreground/90 leading-snug">
                       {item.message}

@@ -157,7 +157,6 @@ export const NotificationDropdown: React.FC = () => {
         align="end"
         className="w-80 sm:w-96 p-0 overflow-hidden rounded-2xl shadow-xl border-border/80"
       >
-        {/* Header */}
         <div className="flex items-center justify-between p-3.5 border-b border-border bg-card">
           <div className="flex items-center gap-2">
             <h4 className="text-sm font-bold text-foreground">Notifications</h4>
@@ -197,7 +196,6 @@ export const NotificationDropdown: React.FC = () => {
           )}
         </div>
 
-        {/* Notifications List */}
         <div className="max-h-84 overflow-y-auto divide-y divide-border/50 custom-scrollbar">
           {notifications.length === 0 ? (
             <div className="flex flex-col items-center justify-center p-8 text-center text-muted-foreground">
@@ -220,7 +218,6 @@ export const NotificationDropdown: React.FC = () => {
                   !item.isRead ? "bg-primary/5" : "bg-card",
                 )}
               >
-                {/* Type Icon */}
                 <div
                   className={cn(
                     "p-2 rounded-xl shrink-0 mt-0.5",
@@ -230,7 +227,6 @@ export const NotificationDropdown: React.FC = () => {
                   {getIcon(item.type)}
                 </div>
 
-                {/* Content */}
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center justify-between gap-1">
                     <p
@@ -252,7 +248,6 @@ export const NotificationDropdown: React.FC = () => {
                   </p>
                 </div>
 
-                {/* Action Buttons (Mark Read / Delete) */}
                 <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
                   {!item.isRead && (
                     <Button

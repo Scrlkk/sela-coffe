@@ -31,7 +31,6 @@ export function CartPanel({
   return (
     <Card className="border border-border/60 shadow-xs rounded-2xl bg-card text-card-foreground h-full flex flex-col justify-between overflow-hidden py-0">
       <CardContent className="px-4 sm:px-5 pt-3.5 sm:pt-4 pb-4 sm:pb-5 flex flex-col h-full space-y-3.5">
-        {/* Panel Header */}
         <div className="flex items-center justify-between pb-2 border-b border-border/60">
           <div>
             <h2 className="text-base font-bold text-foreground flex items-center gap-2">
@@ -52,7 +51,6 @@ export function CartPanel({
           )}
         </div>
 
-        {/* Cart Items List */}
         <div className="flex-1 overflow-y-auto no-scrollbar space-y-2 min-h-40 pr-0.5">
           {cart.length === 0 ? (
             <div className="h-full min-h-44 flex flex-col items-center justify-center text-center p-4">
@@ -81,7 +79,6 @@ export function CartPanel({
                   </p>
                 </div>
 
-                {/* Quantity Modifier */}
                 <div className="flex items-center gap-1.5 shrink-0">
                   <button
                     onClick={() => onUpdateQuantity(item.product.id, -1)}
@@ -111,9 +108,7 @@ export function CartPanel({
           )}
         </div>
 
-        {/* Footer Summary & Pay Now Button */}
         <div className="pt-3 border-t border-border/60 space-y-3 mt-auto">
-          {/* Subtotal, Tax, Total */}
           <div className="space-y-1 text-xs">
             <div className="flex justify-between text-muted-foreground">
               <span>Subtotal</span>
@@ -135,7 +130,6 @@ export function CartPanel({
             </div>
           </div>
 
-          {/* Checkout Button */}
           <Button
             disabled={cart.length === 0}
             onClick={onCheckout}

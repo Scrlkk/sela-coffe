@@ -61,7 +61,6 @@ export const SalesByCategoryCard: React.FC<SalesByCategoryCardProps> = ({
           </div>
         ) : (
           <>
-            {/* Recharts Donut PieChart */}
             <div
               className="relative w-40 sm:w-48 lg:w-full h-40 sm:h-44 lg:h-36 flex items-center justify-center shrink-0 my-0.5 outline-none focus:outline-none [&_.recharts-surface]:outline-none [&_.recharts-wrapper]:outline-none [&_.recharts-sector]:outline-none"
               onMouseLeave={() => setHoveredIdx(null)}
@@ -101,7 +100,6 @@ export const SalesByCategoryCard: React.FC<SalesByCategoryCardProps> = ({
                 </PieChart>
               </ResponsiveContainer>
 
-              {/* Donut Center Live Interactive Tooltip */}
               <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none text-center p-2">
                 {activeSlice ? (
                   <div className="animate-in fade-in zoom-in-90 duration-150">
@@ -125,7 +123,6 @@ export const SalesByCategoryCard: React.FC<SalesByCategoryCardProps> = ({
               </div>
             </div>
 
-            {/* Compact Legend List */}
             <div
               className="flex-1 max-w-xs lg:w-full max-h-28 overflow-y-auto no-scrollbar space-y-1 animate-in fade-in slide-in-from-bottom-2 duration-500 ease-out fill-mode-backwards"
               onMouseLeave={() => setHoveredIdx(null)}

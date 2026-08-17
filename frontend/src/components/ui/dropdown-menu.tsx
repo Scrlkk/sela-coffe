@@ -8,6 +8,7 @@ interface DropdownMenuProps {
 interface DropdownMenuTriggerProps {
   children: React.ReactNode;
   asChild?: boolean;
+  className?: string;
 }
 
 interface DropdownMenuContentProps {
@@ -57,10 +58,11 @@ export const DropdownMenu: React.FC<DropdownMenuProps> = ({ children, className 
 
 export const DropdownMenuTrigger: React.FC<DropdownMenuTriggerProps> = ({
   children,
+  className,
 }) => {
   const { open, setOpen } = React.useContext(DropdownMenuContext);
   return (
-    <div onClick={() => setOpen(!open)} className="cursor-pointer">
+    <div onClick={() => setOpen(!open)} className={cn("cursor-pointer", className)}>
       {children}
     </div>
   );
