@@ -1,21 +1,24 @@
+import React from "react";
 import { Card, CardContent } from "@/components/ui/card";
-import { CATEGORIES, type ProductItem } from "@/constants/cashier";
+import type { ProductItem } from "@/constants/cashier";
 import { formatRupiah } from "@/utils/formatCurrency";
 
 interface ProductCardProps {
   product: ProductItem;
   quantity?: number;
   onAddToCart: (product: ProductItem) => void;
+  categoryLabel?: string;
 }
 
-export function ProductCard({
+export const ProductCard: React.FC<ProductCardProps> = ({
   product,
   quantity = 0,
   onAddToCart,
-}: ProductCardProps) {
-  const categoryLabel =
-    CATEGORIES.find((c) => c.id === product.category)?.label ||
-    product.category;
+  categoryLabel,
+}) => {
+  const displayCategory =
+    categoryLabel ||
+    (product.category ? product.category.replace(/-/g, " ") : "");
 
   return (
     <Card
@@ -37,7 +40,7 @@ export function ProductCard({
 
         <div className="flex items-center justify-between pt-1.5 border-t border-border/40 mt-auto text-xs gap-1">
           <span className="text-muted-foreground font-medium text-[11px] truncate capitalize">
-            {categoryLabel}
+            {displayCategory}
           </span>
           <span className="font-extrabold text-xs sm:text-sm text-foreground shrink-0">
             {formatRupiah(product.price)}
@@ -46,4 +49,6 @@ export function ProductCard({
       </CardContent>
     </Card>
   );
-}
+};
+
+export default ProductCard;

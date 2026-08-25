@@ -4,11 +4,8 @@ import { CategoryFilter } from "@/components/cashier/CategoryFilter";
 import { ProductCard } from "@/components/cashier/ProductCard";
 import { CartPanel } from "@/components/cashier/CartPanel";
 import { PaymentModal } from "@/components/cashier/PaymentModal";
-import {
-  PRODUCTS_DATA,
-  type ProductItem,
-  type CartItem,
-} from "@/constants/cashier";
+import type { ProductItem, CartItem } from "@/constants/cashier";
+import { getStoredProducts } from "@/services/product";
 
 function generateTxnNumber() {
   return `TXN-${Math.floor(1000 + Math.random() * 9000)}`;
@@ -23,8 +20,11 @@ export default function CashierPage() {
   const [activeTxnNumber, setActiveTxnNumber] =
     useState<string>(generateTxnNumber);
 
+  const allProducts = useMemo(() => getStoredProducts(false), []);
+
   const filteredProducts = useMemo(() => {
-    return PRODUCTS_DATA.filter((product) => {
+    return allProducts.filter((product) => {
+      if (product.is_active === false) return false;
       const matchesCategory =
         selectedCategory === "all" || product.category === selectedCategory;
       const matchesSearch = product.name
@@ -32,7 +32,7 @@ export default function CashierPage() {
         .includes(searchQuery.toLowerCase());
       return matchesCategory && matchesSearch;
     });
-  }, [selectedCategory, searchQuery]);
+  }, [allProducts, selectedCategory, searchQuery]);
 
   const { subtotal, tax, total } = useMemo(() => {
     const sub = cart.reduce(
@@ -94,6 +94,7 @@ export default function CashierPage() {
     <div className="h-full flex flex-col xl:flex-row gap-5">
       <div className="flex-1 flex flex-col min-w-0">
         <CategoryFilter
+          products={allProducts}
           selectedCategory={selectedCategory}
           onSelectCategory={setSelectedCategory}
           searchQuery={searchQuery}

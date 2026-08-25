@@ -1,10 +1,6 @@
 import * as React from "react";
 import { cn } from "@/lib/utils";
 
-interface DropdownMenuProps {
-  children: React.ReactNode;
-}
-
 interface DropdownMenuTriggerProps {
   children: React.ReactNode;
   asChild?: boolean;
@@ -33,7 +29,10 @@ interface DropdownMenuProps {
   className?: string;
 }
 
-export const DropdownMenu: React.FC<DropdownMenuProps> = ({ children, className }) => {
+export const DropdownMenu: React.FC<DropdownMenuProps> = ({
+  children,
+  className,
+}) => {
   const [open, setOpen] = React.useState(false);
   const ref = React.useRef<HTMLDivElement>(null);
 
@@ -49,7 +48,10 @@ export const DropdownMenu: React.FC<DropdownMenuProps> = ({ children, className 
 
   return (
     <DropdownMenuContext.Provider value={{ open, setOpen }}>
-      <div ref={ref} className={cn("relative inline-block text-left", className)}>
+      <div
+        ref={ref}
+        className={cn("relative inline-block text-left", className)}
+      >
         {children}
       </div>
     </DropdownMenuContext.Provider>
@@ -62,7 +64,10 @@ export const DropdownMenuTrigger: React.FC<DropdownMenuTriggerProps> = ({
 }) => {
   const { open, setOpen } = React.useContext(DropdownMenuContext);
   return (
-    <div onClick={() => setOpen(!open)} className={cn("cursor-pointer", className)}>
+    <div
+      onClick={() => setOpen(!open)}
+      className={cn("cursor-pointer", className)}
+    >
       {children}
     </div>
   );
@@ -81,7 +86,7 @@ export const DropdownMenuContent: React.FC<DropdownMenuContentProps> = ({
       className={cn(
         "absolute z-50 mt-2 w-56 rounded-2xl bg-popover text-popover-foreground border border-border/80 shadow-xl dark:shadow-2xl p-1.5 animate-in fade-in zoom-in-95 duration-150 backdrop-blur-md",
         align === "end" ? "right-0" : "left-0",
-        className
+        className,
       )}
     >
       {children}
@@ -103,7 +108,7 @@ export const DropdownMenuItem: React.FC<DropdownMenuItemProps> = ({
       }}
       className={cn(
         "flex items-center gap-2.5 px-3 py-2 text-xs font-medium rounded-xl text-foreground hover:bg-primary/10 hover:text-primary cursor-pointer transition-colors select-none",
-        className
+        className,
       )}
     >
       {children}

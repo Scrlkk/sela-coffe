@@ -16,6 +16,10 @@ const ProductPage = lazy(() => import("@/pages/ProductPage"));
 const ProductSkeleton = lazy(
   () => import("@/components/product/ProductSkeleton"),
 );
+const IngredientPage = lazy(() => import("@/pages/IngredientPage"));
+const IngredientSkeleton = lazy(
+  () => import("@/components/ingredient/IngredientSkeleton"),
+);
 const CategoryPage = lazy(() => import("@/pages/CategoryPage"));
 const CategorySkeleton = lazy(
   () => import("@/components/category/CategorySkeleton"),
@@ -26,6 +30,8 @@ const SupplierSkeleton = lazy(
 );
 const UserPage = lazy(() => import("@/pages/UserPage"));
 const UserSkeleton = lazy(() => import("@/components/user/UserSkeleton"));
+const StockPage = lazy(() => import("@/pages/StockPage"));
+const StockSkeleton = lazy(() => import("@/components/stock/StockSkeleton"));
 const DashboardPage = lazy(() => import("@/pages/DashboardPage"));
 const ProfilePage = lazy(() => import("@/pages/ProfilePage"));
 const CashSessionPage = lazy(() => import("@/pages/CashSessionPage"));
@@ -83,6 +89,14 @@ export const router = createBrowserRouter([
             ),
           },
           {
+            path: "/ingredients",
+            element: (
+              <Suspense fallback={<IngredientSkeleton />}>
+                <IngredientPage />
+              </Suspense>
+            ),
+          },
+          {
             path: "/categories",
             element: (
               <Suspense fallback={<CategorySkeleton />}>
@@ -108,14 +122,14 @@ export const router = createBrowserRouter([
           },
           {
             path: "/stock",
-            element: <div />,
+            element: (
+              <Suspense fallback={<StockSkeleton />}>
+                <StockPage />
+              </Suspense>
+            ),
           },
           {
             path: "/stock-movement",
-            element: <div />,
-          },
-          {
-            path: "/stock-adjustment",
             element: <div />,
           },
           {

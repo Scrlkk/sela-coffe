@@ -3,6 +3,7 @@ export interface SupplierItem {
   name: string;
   contactPerson: string;
   phone: string;
+  link?: string;
   email?: string;
   address?: string;
   isDeleted?: boolean;
@@ -14,7 +15,7 @@ export const INITIAL_SUPPLIERS: SupplierItem[] = [
     name: "PT Sangkar Kopi Utama",
     contactPerson: "Pak Ahmad",
     phone: "081122334455",
-    email: "ahmad@sangkarkopi.com",
+    link: "https://tokopedia.com/sangkarkopi",
     address: "Jl. Merdeka No. 45, Bandung",
     isDeleted: false,
   },
@@ -23,7 +24,7 @@ export const INITIAL_SUPPLIERS: SupplierItem[] = [
     name: "CV Java Roastery",
     contactPerson: "Ibu Dian",
     phone: "085678901234",
-    email: "dian@javaroastery.id",
+    link: "https://shopee.co.id/javaroastery",
     address: "Jl. Dipatiukur No. 12, Bandung",
     isDeleted: false,
   },
@@ -32,7 +33,7 @@ export const INITIAL_SUPPLIERS: SupplierItem[] = [
     name: "UD Susu Fresh Farm",
     contactPerson: "Mas Budi",
     phone: "081987654321",
-    email: "budi@freshfarm.co.id",
+    link: "https://wa.me/6281987654321",
     address: "Jl. Raya Lembang No. 88, KBB",
     isDeleted: false,
   },
@@ -41,7 +42,7 @@ export const INITIAL_SUPPLIERS: SupplierItem[] = [
     name: "PT Sirup Nusantara",
     contactPerson: "Siti Rahma",
     phone: "087711223344",
-    email: "sales@sirupnusantara.com",
+    link: "https://tokopedia.com/sirupnusantara",
     address: "Kawasan Industri Cimahi Blok C3",
     isDeleted: false,
   },

@@ -155,7 +155,7 @@ export const NotificationDropdown: React.FC = () => {
 
       <DropdownMenuContent
         align="end"
-        className="w-80 sm:w-96 p-0 overflow-hidden rounded-2xl shadow-xl border-border/80"
+        className="fixed inset-x-3 top-16 sm:absolute sm:inset-auto sm:right-0 sm:top-full sm:mt-2 w-auto sm:w-96 p-0 overflow-hidden rounded-2xl shadow-2xl border border-border/80 z-50"
       >
         <div className="flex items-center justify-between p-3.5 border-b border-border bg-card">
           <div className="flex items-center gap-2">
@@ -213,8 +213,16 @@ export const NotificationDropdown: React.FC = () => {
             notifications.map((item) => (
               <div
                 key={item.id}
+                onClick={() => {
+                  if (!item.isRead) {
+                    const updated = notifications.map((n) =>
+                      n.id === item.id ? { ...n, isRead: true } : n,
+                    );
+                    saveNotifications(updated);
+                  }
+                }}
                 className={cn(
-                  "flex items-start gap-3 p-3.5 transition-colors group hover:bg-muted/40",
+                  "flex items-start gap-3 p-3.5 transition-colors group hover:bg-muted/40 cursor-pointer select-none",
                   !item.isRead ? "bg-primary/5" : "bg-card",
                 )}
               >
@@ -248,7 +256,7 @@ export const NotificationDropdown: React.FC = () => {
                   </p>
                 </div>
 
-                <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
+                <div className="flex items-center gap-0.5 sm:gap-1 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity shrink-0">
                   {!item.isRead && (
                     <Button
                       variant="ghost"

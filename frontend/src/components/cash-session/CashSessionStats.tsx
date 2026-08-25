@@ -1,6 +1,7 @@
 import React from "react";
 import { DollarSign, Banknote, TrendingUp, ShoppingBag } from "lucide-react";
 import { StatCard, type StatCardProps } from "@/components/dashboard/StatCard";
+import { StatGrid } from "@/components/dashboard/StatGrid";
 import { formatRupiah } from "@/utils/formatCurrency";
 
 interface CashSessionStatsProps {
@@ -45,10 +46,12 @@ export const CashSessionStats: React.FC<CashSessionStatsProps> = ({
   ];
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3.5 sm:gap-5 mb-6">
-      {statItems.map((stat) => (
-        <StatCard key={stat.title} {...stat} />
-      ))}
+    <div className="mb-6">
+      <StatGrid>
+        {statItems.map((stat) => (
+          <StatCard key={stat.title} {...stat} />
+        ))}
+      </StatGrid>
     </div>
   );
 };

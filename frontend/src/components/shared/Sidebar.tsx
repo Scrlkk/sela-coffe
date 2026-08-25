@@ -31,7 +31,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
   return (
     <aside
       className={cn(
-        "h-screen max-h-screen bg-sidebar text-sidebar-foreground transition-all duration-300 ease-in-out flex flex-col z-50 shrink-0 select-none border-r border-sidebar-border fixed inset-y-0 left-0 md:static",
+        "h-screen max-h-screen bg-sidebar text-sidebar-foreground transition-[width,transform] duration-300 ease-in-out flex flex-col z-50 shrink-0 select-none border-r border-sidebar-border fixed inset-y-0 left-0 md:static overflow-hidden",
         mobileOpen
           ? "translate-x-0 shadow-2xl w-64"
           : "-translate-x-full md:translate-x-0",

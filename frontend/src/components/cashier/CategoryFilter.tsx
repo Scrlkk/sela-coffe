@@ -1,21 +1,61 @@
+import React, { useMemo, useEffect } from "react";
 import { Search, X } from "lucide-react";
 import { Input } from "@/components/ui/input";
-import { CATEGORIES } from "@/constants/cashier";
+import { getStoredCategories } from "@/services/category";
+import { getStoredProducts } from "@/services/product";
+import type { ProductItem } from "@/constants/cashier";
 import { cn } from "@/lib/utils";
 
 interface CategoryFilterProps {
+  products?: ProductItem[];
   selectedCategory: string;
   onSelectCategory: (category: string) => void;
   searchQuery: string;
   onSearchChange: (query: string) => void;
 }
 
-export function CategoryFilter({
+export const CategoryFilter: React.FC<CategoryFilterProps> = ({
+  products,
   selectedCategory,
   onSelectCategory,
   searchQuery,
   onSearchChange,
-}: CategoryFilterProps) {
+}) => {
+  const categories = useMemo(() => {
+    const stored = getStoredCategories(false, "product");
+    const activeProducts = (products ?? getStoredProducts(false)).filter(
+      (p) => !p.isDeleted && p.is_active !== false,
+    );
+
+    const usedCategoryKeys = new Set<string>();
+    activeProducts.forEach((p) => {
+      if (p.category) {
+        usedCategoryKeys.add(p.category.toLowerCase().trim());
+      }
+    });
+
+    const activeCategories = stored.filter(
+      (c) =>
+        usedCategoryKeys.has(c.id.toLowerCase().trim()) ||
+        usedCategoryKeys.has(c.name.toLowerCase().trim()),
+    );
+
+    return [
+      { id: "all", label: "All Items" },
+      ...activeCategories.map((c) => ({ id: c.id, label: c.name })),
+    ];
+  }, [products]);
+
+  // ponytail: auto-reset ke 'all' jika kategori terpilih sudah tidak memiliki produk
+  useEffect(() => {
+    if (
+      selectedCategory !== "all" &&
+      !categories.some((c) => c.id === selectedCategory)
+    ) {
+      onSelectCategory("all");
+    }
+  }, [categories, selectedCategory, onSelectCategory]);
+
   return (
     <div className="space-y-3 mb-4">
       <div className="relative flex items-center w-full">
@@ -39,7 +79,7 @@ export function CategoryFilter({
       </div>
 
       <div className="flex items-center gap-2 overflow-x-auto no-scrollbar pb-1">
-        {CATEGORIES.map((cat) => {
+        {categories.map((cat) => {
           const isActive = selectedCategory === cat.id;
           return (
             <button
@@ -59,5 +99,6 @@ export function CategoryFilter({
       </div>
     </div>
   );
-}
+};
 
+export default CategoryFilter;

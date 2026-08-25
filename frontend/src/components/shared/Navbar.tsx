@@ -20,6 +20,7 @@ import {
   Menu,
 } from "lucide-react";
 import { ROUTE_META } from "@/constants/navigation";
+import { getInitials } from "@/utils/formatString";
 import { cn } from "@/lib/utils";
 
 interface NavbarProps {
@@ -33,13 +34,6 @@ export const Navbar: React.FC<NavbarProps> = ({ onToggleMobileSidebar }) => {
   const location = useLocation();
 
   const currentMeta = ROUTE_META[location.pathname];
-
-  const getInitials = (name?: string) => {
-    if (!name) return "U";
-    const parts = name.split(" ");
-    if (parts.length >= 2) return `${parts[0][0]}${parts[1][0]}`.toUpperCase();
-    return name.substring(0, 2).toUpperCase();
-  };
 
   return (
     <header className="h-16 bg-card/70 backdrop-blur-md border-b border-border flex items-center justify-between px-4 sm:px-6 sticky top-0 z-20 transition-colors">

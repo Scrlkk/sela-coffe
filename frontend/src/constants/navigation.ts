@@ -7,9 +7,9 @@ import {
   Users,
   Warehouse,
   ArrowLeftRight,
-  SlidersHorizontal,
   FileSpreadsheet,
   PackageCheck,
+  Wheat,
 } from "lucide-react";
 
 export interface RouteInfo {
@@ -30,9 +30,13 @@ export const ROUTE_META: Record<string, RouteInfo> = {
     title: "Product Management",
     description: "Manage menu items, prices, and product variants",
   },
+  "/ingredients": {
+    title: "Raw Ingredients",
+    description: "Manage coffee beans, milk, syrups, powders, and packaging",
+  },
   "/categories": {
-    title: "Product Categories",
-    description: "Organize coffee shop menu categories",
+    title: "Categories",
+    description: "Organize menu products and raw ingredient categories",
   },
   "/suppliers": {
     title: "Suppliers",
@@ -88,6 +92,7 @@ export const menuGroups = [
     label: "MASTER DATA",
     items: [
       { label: "Products", path: "/products", icon: Package },
+      { label: "Ingredients", path: "/ingredients", icon: Wheat },
       { label: "Categories", path: "/categories", icon: Tags },
       { label: "Suppliers", path: "/suppliers", icon: Truck },
       { label: "Users", path: "/users", icon: Users },
@@ -101,11 +106,6 @@ export const menuGroups = [
         label: "Stock Movement",
         path: "/stock-movement",
         icon: ArrowLeftRight,
-      },
-      {
-        label: "Adjustment",
-        path: "/stock-adjustment",
-        icon: SlidersHorizontal,
       },
     ],
   },

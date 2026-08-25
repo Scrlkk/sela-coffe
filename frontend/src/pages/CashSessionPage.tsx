@@ -9,6 +9,7 @@ import {
 } from "@/components/cash-session/CashSessionHistory";
 import { type FilterPeriod } from "@/constants/dashboard";
 import { formatRupiah } from "@/utils/formatCurrency";
+import { formatSessionDateTime } from "@/utils/formatDate";
 
 export default function CashSessionPage() {
   const [isOpen, setIsOpen] = useState<boolean>(false);
@@ -73,27 +74,17 @@ export default function CashSessionPage() {
   ]);
 
   const handleOpenRegister = (floatAmount: number) => {
-    const nowStr = new Date().toLocaleTimeString("en-US", {
-      hour: "2-digit",
-      minute: "2-digit",
-      hour12: true,
-    });
-    const todayDate = new Date().toLocaleDateString("en-GB", {
-      day: "2-digit",
-      month: "short",
-      year: "numeric",
-    });
-
+    const { timeStr, fullStr } = formatSessionDateTime();
     const newSessionId = `SES-08${Math.floor(42 + Math.random() * 50)}`;
 
     setOpeningFloat(floatAmount);
-    setStartedAt(nowStr);
+    setStartedAt(timeStr);
     setIsOpen(true);
 
     const newRecord: SessionHistoryItem = {
       id: newSessionId,
       openedBy: "Kasir (kasir)",
-      openedAt: `${todayDate}, ${nowStr}`,
+      openedAt: fullStr,
       closedAt: null,
       openingFloat: floatAmount,
       cashSales: cashSalesToday,
@@ -108,23 +99,14 @@ export default function CashSessionPage() {
   };
 
   const handleCloseRegister = () => {
-    const nowStr = new Date().toLocaleTimeString("en-US", {
-      hour: "2-digit",
-      minute: "2-digit",
-      hour12: true,
-    });
-    const todayDate = new Date().toLocaleDateString("en-GB", {
-      day: "2-digit",
-      month: "short",
-      year: "numeric",
-    });
+    const { fullStr } = formatSessionDateTime();
 
     setHistory((prev) =>
       prev.map((item) =>
         item.status === "active"
           ? {
               ...item,
-              closedAt: `${todayDate}, ${nowStr}`,
+              closedAt: fullStr,
               status: "completed",
             }
           : item,
