@@ -100,7 +100,7 @@ const ProductDialogForm: React.FC<ProductFormProps> = ({
       </DialogHeader>
 
       <form onSubmit={handleSubmit} className="space-y-3.5 sm:space-y-4 py-2">
-        {/* Product Name */}
+        
         <div className="space-y-1">
           <Label
             htmlFor="prod-name"
@@ -119,7 +119,6 @@ const ProductDialogForm: React.FC<ProductFormProps> = ({
           />
         </div>
 
-        {/* Category Selector Dropdown */}
         <div className="space-y-1">
           <Label className="text-xs font-bold text-foreground">
             Category <span className="text-destructive">*</span>
@@ -133,7 +132,6 @@ const ProductDialogForm: React.FC<ProductFormProps> = ({
           />
         </div>
 
-        {/* Price & Stock in 2 Columns */}
         <div className="grid grid-cols-2 gap-2.5 sm:gap-3">
           <div className="space-y-1">
             <Label
@@ -194,7 +192,6 @@ const ProductDialogForm: React.FC<ProductFormProps> = ({
           </div>
         </div>
 
-        {/* Stock management notice in edit mode */}
         {isEditMode && (
           <div className="flex items-start gap-2 p-2.5 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-800 dark:text-amber-300 text-xs">
             <Info className="w-4 h-4 shrink-0 mt-0.5" />

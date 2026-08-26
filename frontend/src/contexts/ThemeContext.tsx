@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
+import { safeStorage } from "@/utils/storage";
 
 export type Theme = "light" | "dark";
 
@@ -16,7 +17,7 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
   const [theme, setThemeState] = useState<Theme>(() => {
-    const saved = localStorage.getItem("theme") as Theme;
+    const saved = safeStorage.getItem("theme") as Theme;
     if (saved === "light" || saved === "dark") return saved;
     return window.matchMedia("(prefers-color-scheme: dark)").matches
       ? "dark"
@@ -30,7 +31,7 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({
     } else {
       root.classList.remove("dark");
     }
-    localStorage.setItem("theme", theme);
+    safeStorage.setItem("theme", theme);
   }, [theme]);
 
   const setTheme = (newTheme: Theme) => {

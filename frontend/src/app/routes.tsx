@@ -32,6 +32,7 @@ const UserPage = lazy(() => import("@/pages/UserPage"));
 const UserSkeleton = lazy(() => import("@/components/user/UserSkeleton"));
 const StockPage = lazy(() => import("@/pages/StockPage"));
 const StockSkeleton = lazy(() => import("@/components/stock/StockSkeleton"));
+const StockMovementPage = lazy(() => import("@/pages/StockMovementPage"));
 const DashboardPage = lazy(() => import("@/pages/DashboardPage"));
 const ProfilePage = lazy(() => import("@/pages/ProfilePage"));
 const CashSessionPage = lazy(() => import("@/pages/CashSessionPage"));
@@ -130,7 +131,11 @@ export const router = createBrowserRouter([
           },
           {
             path: "/stock-movement",
-            element: <div />,
+            element: (
+              <Suspense fallback={<StockSkeleton />}>
+                <StockMovementPage />
+              </Suspense>
+            ),
           },
           {
             path: "/purchases",

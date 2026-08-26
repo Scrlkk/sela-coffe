@@ -13,6 +13,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Truck, Pencil } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 interface SupplierDialogProps {
   isOpen: boolean;
@@ -109,12 +110,8 @@ const SupplierDialogForm: React.FC<SupplierFormProps> = ({
 
       <form onSubmit={handleSubmit} className="space-y-3.5 sm:space-y-4 py-2">
         <div className="space-y-1">
-          <Label
-            htmlFor="name"
-            className="text-xs font-bold text-foreground"
-          >
-            Company / Supplier Name{" "}
-            <span className="text-destructive">*</span>
+          <Label htmlFor="name" className="text-xs font-bold text-foreground">
+            Company / Supplier Name <span className="text-destructive">*</span>
           </Label>
           <Input
             id="name"
@@ -123,9 +120,10 @@ const SupplierDialogForm: React.FC<SupplierFormProps> = ({
             onChange={(e) => setName(e.target.value)}
             required
             autoFocus
-            className={`h-9.5 sm:h-10 rounded-xl bg-card border-input text-foreground text-xs sm:text-sm font-semibold ${
-              errors.name ? "border-destructive" : ""
-            }`}
+            className={cn(
+              "h-9.5 sm:h-10 rounded-xl bg-card border-input text-foreground text-xs sm:text-sm font-semibold",
+              errors.name && "border-destructive",
+            )}
           />
           {errors.name && (
             <p className="text-[11px] text-destructive mt-0.5 font-medium">
@@ -147,9 +145,10 @@ const SupplierDialogForm: React.FC<SupplierFormProps> = ({
               placeholder="Mr. Ahmad"
               value={contactPerson}
               onChange={(e) => setContactPerson(e.target.value)}
-              className={`h-9.5 sm:h-10 rounded-xl bg-card border-input text-foreground text-xs sm:text-sm font-semibold ${
-                errors.contactPerson ? "border-destructive" : ""
-              }`}
+              className={cn(
+                "h-9.5 sm:h-10 rounded-xl bg-card border-input text-foreground text-xs sm:text-sm font-semibold",
+                errors.contactPerson && "border-destructive",
+              )}
             />
             {errors.contactPerson && (
               <p className="text-[11px] text-destructive mt-0.5 font-medium">
@@ -170,9 +169,10 @@ const SupplierDialogForm: React.FC<SupplierFormProps> = ({
               placeholder="08123456789"
               value={phone}
               onChange={(e) => setPhone(e.target.value)}
-              className={`h-9.5 sm:h-10 rounded-xl bg-card border-input text-foreground text-xs sm:text-sm font-semibold ${
-                errors.phone ? "border-destructive" : ""
-              }`}
+              className={cn(
+                "h-9.5 sm:h-10 rounded-xl bg-card border-input text-foreground text-xs sm:text-sm font-semibold",
+                errors.phone && "border-destructive",
+              )}
             />
             {errors.phone && (
               <p className="text-[11px] text-destructive mt-0.5 font-medium">
@@ -183,10 +183,7 @@ const SupplierDialogForm: React.FC<SupplierFormProps> = ({
         </div>
 
         <div className="space-y-1">
-          <Label
-            htmlFor="link"
-            className="text-xs font-bold text-foreground"
-          >
+          <Label htmlFor="link" className="text-xs font-bold text-foreground">
             Store / Purchase Link (E-Commerce / Catalog URL){" "}
             <span className="text-muted-foreground font-normal">
               (Optional)
@@ -195,7 +192,7 @@ const SupplierDialogForm: React.FC<SupplierFormProps> = ({
           <Input
             id="link"
             type="text"
-            placeholder="e.g. https://tokopedia.com/... or https://shopee.co.id/..."
+            placeholder="e.g. https://shopee.co.id/..."
             value={link}
             onChange={(e) => setLink(e.target.value)}
             className="h-9.5 sm:h-10 rounded-xl bg-card border-input text-foreground text-xs sm:text-sm font-semibold"

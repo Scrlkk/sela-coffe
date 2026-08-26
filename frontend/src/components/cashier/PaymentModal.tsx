@@ -15,6 +15,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import type { CartItem } from "@/constants/cashier";
 import { formatRupiah } from "@/utils/formatCurrency";
+import { calculatePaymentChange, getCashPresets } from "@/utils/checkout";
 import { cn } from "@/lib/utils";
 
 interface PaymentModalProps {
@@ -46,12 +47,13 @@ export function PaymentModal({
 
   if (!isOpen) return null;
 
+  const { numericCash, isCashValid, changeAmount, insufficientAmount } =
+    calculatePaymentChange({
+      total,
+      cashReceived: cashInput,
+      paymentMethod,
+    });
   const cashReceived = cashInput ?? total.toString();
-  const numericCash = Number(cashReceived);
-  const isCashValid =
-    paymentMethod !== "Cash" || (!isNaN(numericCash) && numericCash >= total);
-  const changeAmount =
-    paymentMethod === "Cash" ? Math.max(0, numericCash - total) : 0;
 
   const paymentMethods = [
     { id: "Cash", label: "Cash", icon: Banknote },
@@ -182,24 +184,21 @@ export function PaymentModal({
                     >
                       Exact Amount
                     </button>
-                    {[50000, 100000, 150000, 200000].map(
-                      (preset) =>
-                        preset >= total && (
-                          <button
-                            key={preset}
-                            type="button"
-                            onClick={() => setCashInput(preset.toString())}
-                            className="px-2.5 py-1 rounded-lg text-[11px] font-semibold bg-card border border-border/60 hover:bg-muted text-foreground cursor-pointer shrink-0"
-                          >
-                            {formatRupiah(preset)}
-                          </button>
-                        ),
-                    )}
+                    {getCashPresets(total).map((preset) => (
+                      <button
+                        key={preset}
+                        type="button"
+                        onClick={() => setCashInput(preset.toString())}
+                        className="px-2.5 py-1 rounded-lg text-[11px] font-semibold bg-card border border-border/60 hover:bg-muted text-foreground cursor-pointer shrink-0"
+                      >
+                        {formatRupiah(preset)}
+                      </button>
+                    ))}
                   </div>
 
-                  {!isNaN(numericCash) && numericCash < total && (
+                  {insufficientAmount > 0 && (
                     <p className="text-[11px] text-destructive font-semibold">
-                      Insufficient cash by {formatRupiah(total - numericCash)}
+                      Insufficient cash by {formatRupiah(insufficientAmount)}
                     </p>
                   )}
                 </div>
@@ -331,4 +330,3 @@ export function PaymentModal({
     </div>
   );
 }
-

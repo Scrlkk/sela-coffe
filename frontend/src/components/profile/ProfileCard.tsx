@@ -26,6 +26,7 @@ import {
   EyeOff,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { getInitials } from "@/utils/formatString";
 
 export const ProfileCard: React.FC = () => {
   const { user, login, token } = useAuth();
@@ -55,15 +56,6 @@ export const ProfileCard: React.FC = () => {
       })
       .catch(() => {});
   }, [token, login]);
-
-  const getInitials = (userName?: string) => {
-    if (!userName) return "U";
-    const cleanParts = userName.trim().split(/\s+/).filter(Boolean);
-    if (cleanParts.length === 0) return "U";
-    if (cleanParts.length === 1)
-      return cleanParts[0].substring(0, 2).toUpperCase();
-    return `${cleanParts[0][0]}${cleanParts[1][0]}`.toUpperCase();
-  };
 
   const isFormDirty =
     name !== (user?.name || "") ||

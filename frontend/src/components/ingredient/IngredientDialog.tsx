@@ -116,7 +116,7 @@ const IngredientDialogForm: React.FC<IngredientFormProps> = ({
       </DialogHeader>
 
       <form onSubmit={handleSubmit} className="space-y-3.5 sm:space-y-4 py-2">
-        {/* Material Name */}
+        
         <div className="space-y-1">
           <Label
             htmlFor="ing-name"
@@ -135,7 +135,6 @@ const IngredientDialogForm: React.FC<IngredientFormProps> = ({
           />
         </div>
 
-        {/* Category Dropdown */}
         <div className="space-y-1">
           <Label className="text-xs font-bold text-foreground">
             Category <span className="text-destructive">*</span>
@@ -149,9 +148,8 @@ const IngredientDialogForm: React.FC<IngredientFormProps> = ({
           />
         </div>
 
-        {/* Unit & Standard Cost in 2 Columns */}
         <div className="grid grid-cols-2 gap-2.5 sm:gap-3">
-          {/* Unit Selector */}
+          
           <div className="space-y-1">
             <Label className="text-xs font-bold text-foreground">
               Unit of Measure <span className="text-destructive">*</span>
@@ -165,7 +163,6 @@ const IngredientDialogForm: React.FC<IngredientFormProps> = ({
             />
           </div>
 
-          {/* Standard Cost Price */}
           <div className="space-y-1">
             <Label
               htmlFor="ing-cost"
@@ -195,7 +192,6 @@ const IngredientDialogForm: React.FC<IngredientFormProps> = ({
           </div>
         </div>
 
-        {/* Supplier Partner Dropdown */}
         <div className="space-y-1">
           <Label className="text-xs font-bold text-foreground">
             Partner Supplier (Optional)
@@ -209,7 +205,6 @@ const IngredientDialogForm: React.FC<IngredientFormProps> = ({
           />
         </div>
 
-        {/* Notes / Specifications */}
         <div className="space-y-1">
           <Label
             htmlFor="ing-notes"

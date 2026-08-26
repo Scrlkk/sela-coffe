@@ -1,7 +1,3 @@
-/**
- * Utility functions for date & time formatting
- */
-
 export const formatDate = (dateStr?: string, locale = "id-ID"): string => {
   if (!dateStr) return "-";
   try {
@@ -11,6 +7,40 @@ export const formatDate = (dateStr?: string, locale = "id-ID"): string => {
       day: "numeric",
       month: "short",
       year: "numeric",
+    }).format(date);
+  } catch {
+    return "-";
+  }
+};
+
+export const formatDateTime = (
+  dateStr?: string,
+  locale = "id-ID",
+): string => {
+  if (!dateStr) return "-";
+  try {
+    const date = new Date(dateStr);
+    if (isNaN(date.getTime())) return "-";
+    return new Intl.DateTimeFormat(locale, {
+      day: "numeric",
+      month: "short",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    }).format(date);
+  } catch {
+    return "-";
+  }
+};
+
+export const formatTime = (dateStr?: string, locale = "id-ID"): string => {
+  if (!dateStr) return "-";
+  try {
+    const date = new Date(dateStr);
+    if (isNaN(date.getTime())) return "-";
+    return new Intl.DateTimeFormat(locale, {
+      hour: "2-digit",
+      minute: "2-digit",
     }).format(date);
   } catch {
     return "-";

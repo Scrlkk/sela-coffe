@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useDeferredValue } from "react";
 import type { SupplierItem } from "@/services/supplier";
 import {
   getStoredSuppliers,
@@ -30,14 +30,13 @@ import {
   MapPin,
   RotateCcw,
   Building2,
-  ArrowUpDown,
-  ArrowUp,
-  ArrowDown,
   ExternalLink,
   Globe,
 } from "lucide-react";
 import { useViewMode } from "@/hooks/useViewMode";
 import { useTableSort } from "@/hooks/useTableSort";
+import { SortableTh } from "@/components/shared/SortableTh";
+import { formatWhatsAppUrl } from "@/utils/formatString";
 
 const getStoreLabel = (url?: string) => {
   if (!url) return null;
@@ -49,27 +48,27 @@ const getStoreLabel = (url?: string) => {
   }
 };
 
+type SupplierDialogState =
+  | { type: "create" }
+  | { type: "edit"; supplier: SupplierItem }
+  | { type: "delete"; supplier: SupplierItem }
+  | { type: "restore"; supplier: SupplierItem }
+  | null;
+
 export const SupplierPage: React.FC = () => {
   const [allSuppliers, setAllSuppliers] = useState<SupplierItem[]>(() =>
     getStoredSuppliers(true),
   );
   const [showDeleted, setShowDeleted] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const deferredSearch = useDeferredValue(searchQuery);
 
   const { viewMode, userSwitchedView, handleViewModeChange } = useViewMode(
     "sela_supplier_view_mode",
     "table",
   );
 
-  const [isFormOpen, setIsFormOpen] = useState(false);
-  const [editingSupplier, setEditingSupplier] = useState<SupplierItem | null>(
-    null,
-  );
-  const [deletingSupplier, setDeletingSupplier] = useState<SupplierItem | null>(
-    null,
-  );
-  const [restoringSupplier, setRestoringSupplier] =
-    useState<SupplierItem | null>(null);
+  const [dialog, setDialog] = useState<SupplierDialogState>(null);
 
   const stats = useMemo(() => {
     const active = allSuppliers.filter((s) => !s.isDeleted);
@@ -90,8 +89,8 @@ export const SupplierPage: React.FC = () => {
       const isStateMatch = showDeleted ? Boolean(s.isDeleted) : !s.isDeleted;
       if (!isStateMatch) return false;
 
-      if (!searchQuery.trim()) return true;
-      const q = searchQuery.toLowerCase();
+      if (!deferredSearch.trim()) return true;
+      const q = deferredSearch.toLowerCase();
       return (
         s.name.toLowerCase().includes(q) ||
         s.contactPerson.toLowerCase().includes(q) ||
@@ -100,7 +99,7 @@ export const SupplierPage: React.FC = () => {
         (s.address && s.address.toLowerCase().includes(q))
       );
     });
-  }, [allSuppliers, showDeleted, searchQuery]);
+  }, [allSuppliers, showDeleted, deferredSearch]);
 
   const {
     sortedItems: displayedSuppliers,
@@ -114,32 +113,27 @@ export const SupplierPage: React.FC = () => {
     toast.success(`Supplier "${created.name}" added successfully`);
   };
 
-  const handleUpdate = (data: Omit<SupplierItem, "id">) => {
-    if (!editingSupplier) return;
-    const updated = updateSupplier(editingSupplier.id, data);
+  const handleUpdate = (id: string, data: Omit<SupplierItem, "id">) => {
+    const updated = updateSupplier(id, data);
     if (updated) {
       setAllSuppliers(getStoredSuppliers(true));
       toast.success(`Supplier "${updated.name}" updated successfully`);
     }
   };
 
-  const handleDelete = () => {
-    if (!deletingSupplier) return;
-    const success = softDeleteSupplier(deletingSupplier.id);
+  const handleDelete = (supplier: SupplierItem) => {
+    const success = softDeleteSupplier(supplier.id);
     if (success) {
       setAllSuppliers(getStoredSuppliers(true));
-      toast.success(`Supplier "${deletingSupplier.name}" archived`);
-      setDeletingSupplier(null);
+      toast.success(`Supplier "${supplier.name}" archived`);
     }
   };
 
-  const handleRestore = () => {
-    if (!restoringSupplier) return;
-    const success = restoreSupplier(restoringSupplier.id);
+  const handleRestore = (supplier: SupplierItem) => {
+    const success = restoreSupplier(supplier.id);
     if (success) {
       setAllSuppliers(getStoredSuppliers(true));
-      toast.success(`Supplier "${restoringSupplier.name}" restored`);
-      setRestoringSupplier(null);
+      toast.success(`Supplier "${supplier.name}" restored`);
     }
   };
 
@@ -199,7 +193,6 @@ export const SupplierPage: React.FC = () => {
           )}
         </div>
 
-        {/* ponytail: smart responsive action controls - 1 row on xl, auto-wrap/stacked below on < xl */}
         <div className="flex flex-wrap items-center justify-between sm:justify-end gap-2 w-full xl:w-auto min-w-0">
           <div className="flex items-center gap-2 shrink-0">
             <ViewModeSwitcher
@@ -227,10 +220,7 @@ export const SupplierPage: React.FC = () => {
 
           {!showDeleted && (
             <Button
-              onClick={() => {
-                setEditingSupplier(null);
-                setIsFormOpen(true);
-              }}
+              onClick={() => setDialog({ type: "create" })}
               className="h-9.5 rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground text-xs font-bold gap-1.5 px-4 shadow-xs transition-all active:scale-[0.99] cursor-pointer shrink-0"
             >
               <Plus className="w-4 h-4" />
@@ -251,33 +241,37 @@ export const SupplierPage: React.FC = () => {
             title="No suppliers found"
             description={
               searchQuery
-                ? `No supplier matches "${searchQuery}".`
+                ? "No supplier matches your search filters."
                 : showDeleted
-                  ? "Archived suppliers trash is currently empty."
-                  : "No supplier partners registered yet. Click 'Add Supplier' to get started."
+                  ? "Deleted suppliers trash is currently empty."
+                  : "No suppliers registered yet. Click Add Supplier to register your partners."
             }
           />
         ) : viewMode === "grid" ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5 pt-1 pb-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3.5 sm:gap-4 pt-1 pb-6">
             {displayedSuppliers.map((supplier) => (
               <Card
                 key={supplier.id}
                 className="group relative border border-border/60 shadow-2xs rounded-2xl bg-card text-card-foreground transition-all duration-200 hover:border-primary hover:shadow-md overflow-hidden flex flex-col justify-between select-none"
               >
                 <CardContent className="p-4 flex flex-col justify-between h-full space-y-3">
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="space-y-1 min-w-0 flex-1">
-                      <div className="flex items-center gap-2">
-                        <Building2 className="w-4 h-4 text-primary shrink-0" />
-                        <h3 className="text-sm font-bold text-foreground leading-tight truncate">
-                          {supplier.name}
-                        </h3>
-                      </div>
-                      <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                        <User className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
-                        <span className="truncate">
-                          {supplier.contactPerson}
-                        </span>
+                  <div className="space-y-1.5">
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="flex items-center gap-2.5 min-w-0 flex-1">
+                        <div className="w-8 h-8 rounded-xl bg-primary/10 text-primary flex items-center justify-center shrink-0">
+                          <Truck className="w-4 h-4" />
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <h4 className="font-bold text-foreground text-sm truncate">
+                            {supplier.name}
+                          </h4>
+                          <span className="text-[11px] text-muted-foreground flex items-center gap-1 truncate">
+                            <User className="w-3 h-3 shrink-0" />
+                            <span className="truncate">
+                              {supplier.contactPerson}
+                            </span>
+                          </span>
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -286,7 +280,7 @@ export const SupplierPage: React.FC = () => {
                     <div className="flex items-center gap-2">
                       <Phone className="w-3.5 h-3.5 text-primary shrink-0" />
                       <a
-                        href={`https://wa.me/${supplier.phone.replace(/[^0-9]/g, "")}`}
+                        href={formatWhatsAppUrl(supplier.phone)}
                         target="_blank"
                         rel="noreferrer"
                         className="font-medium text-foreground hover:underline truncate"
@@ -305,7 +299,7 @@ export const SupplierPage: React.FC = () => {
                           }
                           target="_blank"
                           rel="noreferrer"
-                          className="inline-flex items-center gap-1 font-semibold text-primary hover:underline truncate max-w-56"
+                          className="font-medium text-primary hover:underline flex items-center gap-1 truncate"
                         >
                           <span className="truncate">
                             {getStoreLabel(supplier.link)}
@@ -327,7 +321,7 @@ export const SupplierPage: React.FC = () => {
                       <Button
                         variant="outline"
                         size="sm"
-                        onClick={() => setRestoringSupplier(supplier)}
+                        onClick={() => setDialog({ type: "restore", supplier })}
                         className="w-full text-xs bg-emerald-500/10 text-emerald-600 border-emerald-500/40 hover:bg-emerald-500/20 hover:text-emerald-700 font-semibold gap-1.5 cursor-pointer"
                       >
                         <RotateCcw className="w-3.5 h-3.5" />
@@ -338,10 +332,7 @@ export const SupplierPage: React.FC = () => {
                         <Button
                           variant="ghost"
                           size="sm"
-                          onClick={() => {
-                            setEditingSupplier(supplier);
-                            setIsFormOpen(true);
-                          }}
+                          onClick={() => setDialog({ type: "edit", supplier })}
                           className="h-8 rounded-lg text-xs font-semibold text-muted-foreground hover:text-primary hover:bg-primary/10 gap-1.5 cursor-pointer flex-1"
                         >
                           <Pencil className="w-3.5 h-3.5" />
@@ -350,7 +341,7 @@ export const SupplierPage: React.FC = () => {
                         <Button
                           variant="ghost"
                           size="sm"
-                          onClick={() => setDeletingSupplier(supplier)}
+                          onClick={() => setDialog({ type: "delete", supplier })}
                           className="h-8 rounded-lg text-xs font-semibold text-muted-foreground hover:text-destructive hover:bg-destructive/10 gap-1.5 cursor-pointer"
                         >
                           <Trash2 className="w-3.5 h-3.5" />
@@ -371,48 +362,24 @@ export const SupplierPage: React.FC = () => {
                   <table className="w-full text-left text-xs border-collapse">
                     <thead>
                       <tr className="border-b border-border/60 text-muted-foreground font-bold uppercase tracking-wider sticky top-0 bg-card z-10">
-                        <th
-                          onClick={() => requestSort("name")}
-                          className="pb-2.5 px-3 cursor-pointer select-none group hover:text-foreground transition-colors"
-                        >
-                          <div className="flex items-center gap-1">
-                            <span>Supplier Name</span>
-                            {sortConfig?.key === "name" ? (
-                              sortConfig.direction === "asc" ? (
-                                <ArrowUp className="w-3.5 h-3.5 text-primary" />
-                              ) : (
-                                <ArrowDown className="w-3.5 h-3.5 text-primary" />
-                              )
-                            ) : (
-                              <ArrowUpDown className="w-3 h-3 opacity-0 group-hover:opacity-40 transition-opacity" />
-                            )}
-                          </div>
+                        <SortableTh
+                          label="Supplier / Partner"
+                          sortKey="name"
+                          sortConfig={sortConfig}
+                          onSort={requestSort}
+                        />
+                        <SortableTh
+                          label="Contact Person"
+                          sortKey="contactPerson"
+                          sortConfig={sortConfig}
+                          onSort={requestSort}
+                        />
+                        <th className="py-2.5 px-3">Phone</th>
+                        <th className="py-2.5 px-3">Store Link</th>
+                        <th className="py-2.5 px-3 hidden xl:table-cell">
+                          Address
                         </th>
-                        <th
-                          onClick={() => requestSort("contactPerson")}
-                          className="pb-2.5 px-3 hidden md:table-cell cursor-pointer select-none group hover:text-foreground transition-colors"
-                        >
-                          <div className="flex items-center gap-1">
-                            <span>Contact Person</span>
-                            {sortConfig?.key === "contactPerson" ? (
-                              sortConfig.direction === "asc" ? (
-                                <ArrowUp className="w-3.5 h-3.5 text-primary" />
-                              ) : (
-                                <ArrowDown className="w-3.5 h-3.5 text-primary" />
-                              )
-                            ) : (
-                              <ArrowUpDown className="w-3 h-3 opacity-0 group-hover:opacity-40 transition-opacity" />
-                            )}
-                          </div>
-                        </th>
-                        <th className="pb-2.5 px-3">Phone / WhatsApp</th>
-                        <th className="pb-2.5 px-3 hidden lg:table-cell">
-                          Store / Purchase Link
-                        </th>
-                        <th className="pb-2.5 px-3 hidden xl:table-cell">
-                          Location / Address
-                        </th>
-                        <th className="pb-2.5 px-3 text-right">Actions</th>
+                        <th className="py-2.5 px-3 text-right">Actions</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-border/40 font-medium">
@@ -421,26 +388,19 @@ export const SupplierPage: React.FC = () => {
                           key={supplier.id}
                           className="hover:bg-muted/40 transition-colors"
                         >
-                          <td className="py-2.5 px-3">
-                            <div className="min-w-0">
-                              <div className="flex items-center gap-1.5 font-bold text-foreground text-xs sm:text-sm">
-                                <Building2 className="w-3.5 h-3.5 text-primary shrink-0" />
-                                <span className="truncate">
-                                  {supplier.name}
-                                </span>
+                          <td className="py-2.5 px-3 font-bold text-foreground">
+                            <div className="flex items-center gap-2">
+                              <div className="w-7 h-7 rounded-lg bg-primary/10 text-primary flex items-center justify-center shrink-0">
+                                <Building2 className="w-3.5 h-3.5" />
                               </div>
-                              <span className="text-[10px] text-muted-foreground block truncate md:hidden pl-5">
-                                Contact: {supplier.contactPerson}
-                              </span>
+                              <span className="truncate">{supplier.name}</span>
                             </div>
                           </td>
 
-                          <td className="py-2.5 px-3 text-foreground font-semibold hidden md:table-cell">
+                          <td className="py-2.5 px-3 text-muted-foreground font-medium">
                             <div className="flex items-center gap-1.5">
-                              <User className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
-                              <span className="truncate">
-                                {supplier.contactPerson}
-                              </span>
+                              <User className="w-3.5 h-3.5 text-muted-foreground/70 shrink-0" />
+                              <span>{supplier.contactPerson}</span>
                             </div>
                           </td>
 
@@ -448,7 +408,7 @@ export const SupplierPage: React.FC = () => {
                             <div className="flex items-center gap-1.5">
                               <Phone className="w-3.5 h-3.5 text-primary shrink-0" />
                               <a
-                                href={`https://wa.me/${supplier.phone.replace(/[^0-9]/g, "")}`}
+                                href={formatWhatsAppUrl(supplier.phone)}
                                 target="_blank"
                                 rel="noreferrer"
                                 className="hover:underline text-foreground"
@@ -458,7 +418,7 @@ export const SupplierPage: React.FC = () => {
                             </div>
                           </td>
 
-                          <td className="py-2.5 px-3 text-muted-foreground hidden lg:table-cell whitespace-nowrap">
+                          <td className="py-2.5 px-3 max-w-40">
                             {supplier.link ? (
                               <a
                                 href={
@@ -468,16 +428,16 @@ export const SupplierPage: React.FC = () => {
                                 }
                                 target="_blank"
                                 rel="noreferrer"
-                                className="inline-flex items-center gap-1 text-xs font-semibold text-primary hover:underline"
+                                className="inline-flex items-center gap-1 text-primary hover:underline font-medium truncate max-w-full"
                               >
                                 <Globe className="w-3.5 h-3.5 shrink-0" />
-                                <span className="truncate max-w-40">
+                                <span className="truncate">
                                   {getStoreLabel(supplier.link)}
                                 </span>
-                                <ExternalLink className="w-3 h-3 shrink-0" />
+                                <ExternalLink className="w-2.5 h-2.5 shrink-0" />
                               </a>
                             ) : (
-                              <span className="text-muted-foreground/50">
+                              <span className="text-muted-foreground/40">
                                 -
                               </span>
                             )}
@@ -504,7 +464,7 @@ export const SupplierPage: React.FC = () => {
                                 <Button
                                   variant="outline"
                                   size="sm"
-                                  onClick={() => setRestoringSupplier(supplier)}
+                                  onClick={() => setDialog({ type: "restore", supplier })}
                                   className="h-7.5 px-2 rounded-lg bg-emerald-500/10 text-emerald-600 border-emerald-500/40 hover:bg-emerald-500/20 hover:text-emerald-700 text-xs font-semibold gap-1 cursor-pointer"
                                   title="Restore Supplier"
                                 >
@@ -516,10 +476,7 @@ export const SupplierPage: React.FC = () => {
                                   <Button
                                     variant="ghost"
                                     size="icon"
-                                    onClick={() => {
-                                      setEditingSupplier(supplier);
-                                      setIsFormOpen(true);
-                                    }}
+                                    onClick={() => setDialog({ type: "edit", supplier })}
                                     className="h-7.5 w-7.5 rounded-lg text-muted-foreground hover:text-primary hover:bg-primary/10 transition-colors cursor-pointer"
                                     title="Edit Supplier"
                                   >
@@ -528,9 +485,7 @@ export const SupplierPage: React.FC = () => {
                                   <Button
                                     variant="ghost"
                                     size="icon"
-                                    onClick={() =>
-                                      setDeletingSupplier(supplier)
-                                    }
+                                    onClick={() => setDialog({ type: "delete", supplier })}
                                     className="h-7.5 w-7.5 rounded-lg text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors cursor-pointer"
                                     title="Delete Supplier"
                                   >
@@ -548,35 +503,37 @@ export const SupplierPage: React.FC = () => {
               </Card>
             </div>
 
-            <div className="grid grid-cols-1 gap-3.5 sm:hidden pt-1 pb-6">
-              {filteredSuppliers.map((supplier) => (
+            <div className="grid grid-cols-1 sm:hidden gap-3.5 pt-1 pb-6">
+              {displayedSuppliers.map((supplier) => (
                 <Card
                   key={supplier.id}
-                  className="rounded-2xl border border-border/60 bg-card p-4 shadow-xs"
+                  className="group relative border border-border/60 shadow-2xs rounded-2xl bg-card text-card-foreground transition-all duration-200 hover:border-primary hover:shadow-md overflow-hidden flex flex-col justify-between select-none"
                 >
-                  <CardContent className="p-0 space-y-3">
-                    <div className="flex items-start justify-between gap-2">
-                      <div className="flex items-center gap-2.5">
-                        <div className="w-8 h-8 rounded-xl bg-primary/10 text-primary flex items-center justify-center font-bold text-xs shrink-0">
-                          <Building2 className="w-4 h-4" />
+                  <CardContent className="p-4 space-y-3">
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="flex items-center gap-2.5 min-w-0 flex-1">
+                        <div className="w-8 h-8 rounded-xl bg-primary/10 text-primary flex items-center justify-center shrink-0">
+                          <Truck className="w-4 h-4" />
                         </div>
-                        <div>
-                          <h4 className="font-bold text-foreground leading-tight">
+                        <div className="min-w-0 flex-1">
+                          <h4 className="font-bold text-foreground text-sm truncate">
                             {supplier.name}
                           </h4>
-                          <p className="text-xs text-muted-foreground mt-0.5 flex items-center gap-1">
-                            <User className="w-3 h-3" />{" "}
-                            {supplier.contactPerson}
-                          </p>
+                          <span className="text-[11px] text-muted-foreground flex items-center gap-1 truncate">
+                            <User className="w-3 h-3 shrink-0" />
+                            <span className="truncate">
+                              {supplier.contactPerson}
+                            </span>
+                          </span>
                         </div>
                       </div>
                     </div>
 
-                    <div className="space-y-1.5 pt-1 border-t border-border/40 text-xs text-muted-foreground">
+                    <div className="space-y-1.5 text-xs text-muted-foreground border-t border-border/40 pt-2.5">
                       <div className="flex items-center gap-2">
                         <Phone className="w-3.5 h-3.5 text-primary shrink-0" />
                         <a
-                          href={`https://wa.me/${supplier.phone.replace(/[^0-9]/g, "")}`}
+                          href={formatWhatsAppUrl(supplier.phone)}
                           target="_blank"
                           rel="noreferrer"
                           className="font-medium text-foreground hover:underline"
@@ -595,10 +552,12 @@ export const SupplierPage: React.FC = () => {
                             }
                             target="_blank"
                             rel="noreferrer"
-                            className="inline-flex items-center gap-1 font-semibold text-primary hover:underline"
+                            className="font-medium text-primary hover:underline flex items-center gap-1 truncate"
                           >
-                            <span>{getStoreLabel(supplier.link)}</span>
-                            <ExternalLink className="w-3 h-3" />
+                            <span className="truncate">
+                              {getStoreLabel(supplier.link)}
+                            </span>
+                            <ExternalLink className="w-3 h-3 shrink-0" />
                           </a>
                         </div>
                       )}
@@ -617,7 +576,7 @@ export const SupplierPage: React.FC = () => {
                         <Button
                           variant="outline"
                           size="sm"
-                          onClick={() => setRestoringSupplier(supplier)}
+                          onClick={() => setDialog({ type: "restore", supplier })}
                           className="w-full text-xs bg-emerald-500/10 text-emerald-600 border-emerald-500/40 hover:bg-emerald-500/20 hover:text-emerald-700 font-semibold gap-1.5 cursor-pointer"
                         >
                           <RotateCcw className="w-3.5 h-3.5" />
@@ -628,10 +587,7 @@ export const SupplierPage: React.FC = () => {
                           <Button
                             variant="outline"
                             size="sm"
-                            onClick={() => {
-                              setEditingSupplier(supplier);
-                              setIsFormOpen(true);
-                            }}
+                            onClick={() => setDialog({ type: "edit", supplier })}
                             className="flex-1 text-xs cursor-pointer rounded-xl h-8.5"
                           >
                             <Pencil className="w-3.5 h-3.5 mr-1.5" /> Edit
@@ -639,7 +595,7 @@ export const SupplierPage: React.FC = () => {
                           <Button
                             variant="outline"
                             size="sm"
-                            onClick={() => setDeletingSupplier(supplier)}
+                            onClick={() => setDialog({ type: "delete", supplier })}
                             className="text-xs text-destructive hover:bg-destructive/10 hover:text-destructive cursor-pointer rounded-xl h-8.5"
                           >
                             <Trash2 className="w-3.5 h-3.5 mr-1" /> Delete
@@ -656,45 +612,59 @@ export const SupplierPage: React.FC = () => {
       </div>
 
       <SupplierDialog
-        isOpen={isFormOpen}
-        onClose={() => {
-          setIsFormOpen(false);
-          setEditingSupplier(null);
+        isOpen={dialog?.type === "create" || dialog?.type === "edit"}
+        onClose={() => setDialog(null)}
+        supplier={dialog?.type === "edit" ? dialog.supplier : null}
+        onSave={(data) => {
+          if (dialog?.type === "edit") {
+            handleUpdate(dialog.supplier.id, data);
+          } else {
+            handleCreate(data);
+          }
+          setDialog(null);
         }}
-        supplier={editingSupplier}
-        onSave={editingSupplier ? handleUpdate : handleCreate}
       />
 
       <ConfirmDialog
-        isOpen={Boolean(deletingSupplier)}
-        onClose={() => setDeletingSupplier(null)}
-        onConfirm={handleDelete}
-        title="Archive Supplier"
-        subtitle={deletingSupplier?.name}
-        description={
-          <span>
-            Are you sure you want to move <strong>{deletingSupplier?.name}</strong> to trash?
-          </span>
+        isOpen={dialog?.type === "delete" || dialog?.type === "restore"}
+        onClose={() => setDialog(null)}
+        onConfirm={() => {
+          if (dialog?.type === "delete") {
+            handleDelete(dialog.supplier);
+          } else if (dialog?.type === "restore") {
+            handleRestore(dialog.supplier);
+          }
+          setDialog(null);
+        }}
+        title={
+          dialog?.type === "delete" ? "Archive Supplier" : "Restore Supplier"
         }
-        confirmText="Move to Trash"
-        cancelText="Cancel"
-        variant="destructive"
-      />
-
-      <ConfirmDialog
-        isOpen={Boolean(restoringSupplier)}
-        onClose={() => setRestoringSupplier(null)}
-        onConfirm={handleRestore}
-        title="Restore Supplier"
-        subtitle={restoringSupplier?.name}
-        description={
-          <span>
-            Restore <strong>{restoringSupplier?.name}</strong> back to active suppliers?
-          </span>
+        subtitle={
+          dialog?.type === "delete" || dialog?.type === "restore"
+            ? dialog.supplier.name
+            : undefined
         }
-        confirmText="Restore Supplier"
+        description={
+          dialog?.type === "delete" ? (
+            <span>
+              Are you sure you want to move{" "}
+              <strong>{dialog.supplier.name}</strong> to trash?
+            </span>
+          ) : (
+            <span>
+              Restore{" "}
+              <strong>
+                {dialog?.type === "restore" ? dialog.supplier.name : ""}
+              </strong>{" "}
+              back to active suppliers?
+            </span>
+          )
+        }
+        confirmText={
+          dialog?.type === "delete" ? "Move to Trash" : "Restore Supplier"
+        }
         cancelText="Cancel"
-        variant="success"
+        variant={dialog?.type === "delete" ? "destructive" : "success"}
       />
     </div>
   );

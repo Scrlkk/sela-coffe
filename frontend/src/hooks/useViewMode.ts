@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { safeStorage } from "@/utils/storage";
 
 export type ViewMode = "grid" | "table";
 
@@ -7,16 +8,12 @@ export function useViewMode(
   fallbackMode: ViewMode = "table",
 ) {
   const [viewMode, setViewMode] = useState<ViewMode>(() => {
-    try {
-      if (typeof window === "undefined") return fallbackMode;
-      const saved = localStorage.getItem(storageKey);
-      if (saved === "grid" || saved === "table") {
-        return saved;
-      }
-      return fallbackMode;
-    } catch {
-      return fallbackMode;
+    if (typeof window === "undefined") return fallbackMode;
+    const saved = safeStorage.getItem(storageKey);
+    if (saved === "grid" || saved === "table") {
+      return saved;
     }
+    return fallbackMode;
   });
 
   const [userSwitchedView, setUserSwitchedView] = useState(false);
@@ -26,11 +23,7 @@ export function useViewMode(
       setUserSwitchedView(true);
       setViewMode(mode);
     }
-    try {
-      localStorage.setItem(storageKey, mode);
-    } catch (e) {
-      console.error(e);
-    }
+    safeStorage.setItem(storageKey, mode);
   };
 
   return {

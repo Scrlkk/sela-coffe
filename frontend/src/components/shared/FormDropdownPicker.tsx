@@ -20,6 +20,8 @@ interface FormDropdownPickerProps {
   placeholder?: string;
   icon?: LucideIcon;
   className?: string;
+  align?: "start" | "end" | "center";
+  side?: "top" | "bottom" | "left" | "right";
 }
 
 export const FormDropdownPicker: React.FC<FormDropdownPickerProps> = ({
@@ -29,6 +31,8 @@ export const FormDropdownPicker: React.FC<FormDropdownPickerProps> = ({
   placeholder = "Select option",
   icon: Icon,
   className,
+  align = "start",
+  side = "bottom",
 }) => {
   const selectedLabel =
     options.find((o) => o.id === value)?.label || placeholder;
@@ -36,19 +40,25 @@ export const FormDropdownPicker: React.FC<FormDropdownPickerProps> = ({
   return (
     <DropdownMenu className={cn("w-full", className)}>
       <DropdownMenuTrigger className="w-full">
-        <div className="w-full h-9.5 sm:h-10 px-3 rounded-xl border border-input bg-card text-foreground text-xs sm:text-sm font-semibold flex items-center justify-between cursor-pointer hover:border-primary/60 transition-colors select-none">
-          <div className="flex items-center gap-2 min-w-0 flex-1">
-            {Icon && <Icon className="w-4 h-4 text-primary shrink-0" />}
-            <span className="font-bold text-foreground truncate">
+        <button
+          type="button"
+          className="w-full h-9.5 px-3 rounded-xl border border-border/80 bg-background dark:bg-input/30 text-foreground text-xs font-semibold flex items-center justify-between cursor-pointer hover:border-primary/70 transition-colors select-none outline-none shadow-2xs min-w-0"
+        >
+          <div className="flex items-center gap-2 min-w-0 flex-1 truncate">
+            {Icon && (
+              <Icon className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
+            )}
+            <span className="text-xs font-semibold text-foreground truncate">
               {selectedLabel}
             </span>
           </div>
-          <ChevronDown className="w-4 h-4 text-muted-foreground shrink-0 ml-1.5" />
-        </div>
+          <ChevronDown className="w-3.5 h-3.5 text-muted-foreground shrink-0 ml-1.5" />
+        </button>
       </DropdownMenuTrigger>
       <DropdownMenuContent
-        align="start"
-        className="w-full min-w-full max-w-full max-h-48 overflow-y-auto no-scrollbar p-1 rounded-xl bg-card border border-border/80 shadow-lg z-50 divide-y divide-border/30"
+        align={align}
+        side={side}
+        className="w-full min-w-full max-w-full max-h-56 overflow-y-auto no-scrollbar p-1 rounded-xl bg-card border border-border/80 shadow-md z-50 divide-y divide-border/20"
       >
         {options.map((opt) => {
           const isSelected = value === opt.id;
@@ -57,15 +67,13 @@ export const FormDropdownPicker: React.FC<FormDropdownPickerProps> = ({
               key={opt.id}
               onClick={() => onChange(opt.id)}
               className={cn(
-                "flex items-center justify-between py-2 px-2.5 rounded-lg cursor-pointer transition-colors text-xs",
+                "flex items-center justify-between py-2 px-2.5 rounded-lg cursor-pointer transition-colors text-xs font-medium",
                 isSelected
                   ? "bg-primary/10 text-primary font-bold"
                   : "hover:bg-muted/60 text-foreground",
               )}
             >
-              <span className="font-bold text-foreground truncate text-xs">
-                {opt.label}
-              </span>
+              <span className="truncate text-xs">{opt.label}</span>
               {isSelected && (
                 <Check className="w-3.5 h-3.5 text-primary shrink-0" />
               )}

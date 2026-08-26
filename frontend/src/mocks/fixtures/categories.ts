@@ -1,0 +1,88 @@
+import type { CategoryItem } from "@/services/category";
+
+export const INITIAL_CATEGORIES: CategoryItem[] = [
+  {
+    id: "espresso",
+    name: "Espresso Based",
+    description: "Espresso & espresso-based coffee drinks",
+    type: "product",
+    isDeleted: false,
+  },
+  {
+    id: "manual-brew",
+    name: "Manual Brew",
+    description: "Filter coffee & artisan manual brews",
+    type: "product",
+    isDeleted: false,
+  },
+  {
+    id: "non-coffee",
+    name: "Non Coffee",
+    description: "Tea, chocolate, and non-coffee beverages",
+    type: "product",
+    isDeleted: false,
+  },
+  {
+    id: "pastry",
+    name: "Pastry & Bakery",
+    description: "Freshly baked croissants, pastries, & breads",
+    type: "product",
+    isDeleted: false,
+  },
+  {
+    id: "food",
+    name: "Main Course",
+    description: "Delicious hot meals and savory dishes",
+    type: "product",
+    isDeleted: false,
+  },
+  {
+    id: "coffee-beans",
+    name: "Coffee Beans",
+    description: "Single origin & espresso blend roasted beans",
+    type: "ingredient",
+    isDeleted: false,
+  },
+  {
+    id: "dairy-milk",
+    name: "Dairy & Plant Milk",
+    description: "Fresh milk, oat milk, almond milk, and creamers",
+    type: "ingredient",
+    isDeleted: false,
+  },
+  {
+    id: "syrup-flavor",
+    name: "Syrup & Sauce",
+    description: "Flavored syrups, caramel drizzles, and sauces",
+    type: "ingredient",
+    isDeleted: false,
+  },
+  {
+    id: "tea-powder",
+    name: "Tea & Powders",
+    description: "Matcha, cocoa powder, loose leaf teas, and powders",
+    type: "ingredient",
+    isDeleted: false,
+  },
+  {
+    id: "packaging",
+    name: "Cups & Packaging",
+    description: "Hot cups, cold cups, lids, straws, and take-away bags",
+    type: "ingredient",
+    isDeleted: false,
+  },
+  {
+    id: "bakery-ingredient",
+    name: "Bakery Ingredients",
+    description: "Flour, butter blocks, chocolates, and baking supplies",
+    type: "ingredient",
+    isDeleted: false,
+  },
+  {
+    id: "other",
+    name: "Other Supplies",
+    description: "Cleaning supplies, filters, and operational items",
+    type: "ingredient",
+    isDeleted: false,
+  },
+];

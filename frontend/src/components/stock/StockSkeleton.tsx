@@ -1,23 +1,20 @@
 import React, { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
+import { safeStorage } from "@/utils/storage";
 
 export const StockSkeleton: React.FC = () => {
   const [viewMode] = useState<"grid" | "table">(() => {
-    try {
-      if (typeof window !== "undefined" && window.innerWidth < 768) {
-        return "grid";
-      }
-      const saved = localStorage.getItem("sela_stock_view_mode");
-      return saved === "grid" || saved === "table" ? saved : "grid";
-    } catch {
+    if (typeof window !== "undefined" && window.innerWidth < 768) {
       return "grid";
     }
+    const saved = safeStorage.getItem("sela_stock_view_mode");
+    return saved === "grid" || saved === "table" ? saved : "grid";
   });
 
   return (
     <div className="flex-1 flex flex-col min-w-0 space-y-4 animate-in fade-in duration-300">
-      {/* 4 Stat Cards */}
+      
       <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3.5 sm:gap-5">
         {Array.from({ length: 4 }).map((_, i) => (
           <Card
@@ -38,7 +35,6 @@ export const StockSkeleton: React.FC = () => {
         ))}
       </div>
 
-      {/* Toolbar Skeleton */}
       <div className="flex flex-col gap-2.5 sm:gap-3 bg-card p-3 sm:p-4 rounded-2xl border border-border/80 shadow-xs">
         <Skeleton className="h-9.5 w-full rounded-xl" />
         <div className="flex items-center justify-between gap-2 flex-wrap">
@@ -53,7 +49,6 @@ export const StockSkeleton: React.FC = () => {
         </div>
       </div>
 
-      {/* View Skeleton */}
       {viewMode === "table" ? (
         <Card className="rounded-2xl border border-border/60 bg-card p-3.5 sm:p-4 shadow-xs w-full overflow-hidden mb-6">
           <div className="space-y-3">

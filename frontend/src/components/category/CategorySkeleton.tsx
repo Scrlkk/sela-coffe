@@ -1,18 +1,15 @@
 import React, { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
+import { safeStorage } from "@/utils/storage";
 
 export const CategorySkeleton: React.FC = () => {
   const [viewMode] = useState<"grid" | "table">(() => {
-    try {
-      if (typeof window !== "undefined" && window.innerWidth < 768) {
-        return "grid";
-      }
-      const saved = localStorage.getItem("sela_category_view_mode");
-      return saved === "table" || saved === "grid" ? saved : "grid";
-    } catch {
+    if (typeof window !== "undefined" && window.innerWidth < 768) {
       return "grid";
     }
+    const saved = safeStorage.getItem("sela_category_view_mode");
+    return saved === "table" || saved === "grid" ? saved : "grid";
   });
 
   return (

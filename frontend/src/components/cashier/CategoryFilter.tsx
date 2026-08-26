@@ -46,7 +46,6 @@ export const CategoryFilter: React.FC<CategoryFilterProps> = ({
     ];
   }, [products]);
 
-  // ponytail: auto-reset ke 'all' jika kategori terpilih sudah tidak memiliki produk
   useEffect(() => {
     if (
       selectedCategory !== "all" &&

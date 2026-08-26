@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useDeferredValue } from "react";
 import type { UserItem } from "@/services/user";
 import {
   getStoredUsers,
@@ -17,14 +17,9 @@ import { StatCard } from "@/components/dashboard/StatCard";
 import { StatGrid } from "@/components/dashboard/StatGrid";
 import { ViewModeSwitcher } from "@/components/shared/ViewModeSwitcher";
 import { EmptyState } from "@/components/shared/EmptyState";
+import { FormDropdownPicker } from "@/components/shared/FormDropdownPicker";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
-import {
-  DropdownMenu,
-  DropdownMenuTrigger,
-  DropdownMenuContent,
-  DropdownMenuItem,
-} from "@/components/ui/dropdown-menu";
 import {
   Plus,
   Search,
@@ -36,16 +31,19 @@ import {
   Phone,
   RotateCcw,
   UserCheck,
-  ArrowUpDown,
-  ArrowUp,
-  ArrowDown,
-  ChevronDown,
-  Check,
 } from "lucide-react";
 import { formatDate } from "@/utils/formatDate";
-import { getInitials } from "@/utils/formatString";
 import { useViewMode } from "@/hooks/useViewMode";
 import { useTableSort } from "@/hooks/useTableSort";
+import { SortableTh } from "@/components/shared/SortableTh";
+import { getInitials, formatWhatsAppUrl } from "@/utils/formatString";
+
+type UserDialogState =
+  | { type: "create" }
+  | { type: "edit"; user: UserItem }
+  | { type: "delete"; user: UserItem }
+  | { type: "restore"; user: UserItem }
+  | null;
 
 export const UserPage: React.FC = () => {
   const [allUsers, setAllUsers] = useState<UserItem[]>(() =>
@@ -53,6 +51,7 @@ export const UserPage: React.FC = () => {
   );
   const [showDeleted, setShowDeleted] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const deferredSearch = useDeferredValue(searchQuery);
   const [roleFilter, setRoleFilter] = useState<"ALL" | "ADMIN" | "CASHIER">(
     "ALL",
   );
@@ -61,10 +60,7 @@ export const UserPage: React.FC = () => {
     "sela_user_view_mode",
   );
 
-  const [isFormOpen, setIsFormOpen] = useState(false);
-  const [editingUser, setEditingUser] = useState<UserItem | null>(null);
-  const [deletingUser, setDeletingUser] = useState<UserItem | null>(null);
-  const [restoringUser, setRestoringUser] = useState<UserItem | null>(null);
+  const [dialog, setDialog] = useState<UserDialogState>(null);
 
   const stats = useMemo(() => {
     const active = allUsers.filter((u) => !u.isDeleted);
@@ -87,15 +83,15 @@ export const UserPage: React.FC = () => {
 
       if (roleFilter !== "ALL" && u.role !== roleFilter) return false;
 
-      if (!searchQuery.trim()) return true;
-      const q = searchQuery.toLowerCase();
+      if (!deferredSearch.trim()) return true;
+      const q = deferredSearch.toLowerCase();
       return (
         u.name.toLowerCase().includes(q) ||
         u.username.toLowerCase().includes(q) ||
         (u.phone && u.phone.toLowerCase().includes(q))
       );
     });
-  }, [allUsers, showDeleted, roleFilter, searchQuery]);
+  }, [allUsers, showDeleted, roleFilter, deferredSearch]);
 
   const {
     sortedItems: displayedUsers,
@@ -109,32 +105,30 @@ export const UserPage: React.FC = () => {
     toast.success(`User "${created.name}" created successfully`);
   };
 
-  const handleUpdate = (data: Omit<UserItem, "id"> & { password?: string }) => {
-    if (!editingUser) return;
-    const updated = updateUser(editingUser.id, data);
+  const handleUpdate = (
+    id: string,
+    data: Omit<UserItem, "id"> & { password?: string },
+  ) => {
+    const updated = updateUser(id, data);
     if (updated) {
       setAllUsers(getStoredUsers(true));
       toast.success(`User "${updated.name}" updated successfully`);
     }
   };
 
-  const handleDelete = () => {
-    if (!deletingUser) return;
-    const success = softDeleteUser(deletingUser.id);
+  const handleDelete = (user: UserItem) => {
+    const success = softDeleteUser(user.id);
     if (success) {
       setAllUsers(getStoredUsers(true));
-      toast.success(`User "${deletingUser.name}" moved to trash`);
-      setDeletingUser(null);
+      toast.success(`User "${user.name}" moved to trash`);
     }
   };
 
-  const handleRestore = () => {
-    if (!restoringUser) return;
-    const success = restoreUser(restoringUser.id);
+  const handleRestore = (user: UserItem) => {
+    const success = restoreUser(user.id);
     if (success) {
       setAllUsers(getStoredUsers(true));
-      toast.success(`User "${restoringUser.name}" restored from trash`);
-      setRestoringUser(null);
+      toast.success(`User "${user.name}" restored from trash`);
     }
   };
 
@@ -192,58 +186,20 @@ export const UserPage: React.FC = () => {
           )}
         </div>
 
-        {/* Filters and Actions */}
         <div className="flex flex-wrap items-center justify-between gap-2.5 sm:gap-3 w-full xl:w-auto min-w-0">
-          {/* Mobile & Tablet (< lg): Role Dropdown */}
           <div className="w-full sm:w-auto min-w-0 lg:hidden">
-            <DropdownMenu className="w-full sm:w-auto">
-              <DropdownMenuTrigger className="w-full sm:w-auto">
-                <button
-                  type="button"
-                  className="flex items-center justify-between gap-1.5 sm:gap-2 h-9.5 px-3.5 rounded-xl border border-border/80 bg-background dark:bg-input/30 text-foreground text-xs font-semibold transition-colors cursor-pointer select-none outline-none hover:border-primary/70 focus-visible:ring-1 focus-visible:ring-primary w-full sm:w-40 shadow-2xs min-w-0"
-                >
-                  <span className="truncate sm:whitespace-nowrap">
-                    {roleFilter === "ALL"
-                      ? "All Roles"
-                      : roleFilter === "ADMIN"
-                        ? "Admins"
-                        : "Cashiers"}
-                  </span>
-                  <ChevronDown className="w-3.5 h-3.5 text-muted-foreground shrink-0 ml-1" />
-                </button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent
-                align="start"
-                className="w-44 rounded-xl p-1 bg-card border border-border/80 shadow-md"
-              >
-                {[
-                  { id: "ALL", label: "All Roles" },
-                  { id: "ADMIN", label: "Admins" },
-                  { id: "CASHIER", label: "Cashiers" },
-                ].map((r) => (
-                  <DropdownMenuItem
-                    key={r.id}
-                    onClick={() =>
-                      setRoleFilter(r.id as "ALL" | "ADMIN" | "CASHIER")
-                    }
-                    className={cn(
-                      "flex items-center justify-between py-2 px-2.5 text-xs font-medium rounded-lg cursor-pointer transition-colors",
-                      roleFilter === r.id
-                        ? "bg-primary/10 text-primary font-bold"
-                        : "text-foreground hover:bg-muted/60",
-                    )}
-                  >
-                    <span>{r.label}</span>
-                    {roleFilter === r.id && (
-                      <Check className="w-3.5 h-3.5 text-primary shrink-0" />
-                    )}
-                  </DropdownMenuItem>
-                ))}
-              </DropdownMenuContent>
-            </DropdownMenu>
+            <FormDropdownPicker
+              value={roleFilter}
+              onChange={(val) => setRoleFilter(val as "ALL" | "ADMIN" | "CASHIER")}
+              options={[
+                { id: "ALL", label: "All Roles" },
+                { id: "ADMIN", label: "Admins" },
+                { id: "CASHIER", label: "Cashiers" },
+              ]}
+              className="w-full sm:w-40"
+            />
           </div>
 
-          {/* Desktop (>= lg): Segmented Role Tabs */}
           <div className="hidden lg:flex items-center bg-muted/60 p-1 rounded-xl border border-border/50 text-xs h-9.5 shrink-0">
             {(["ALL", "ADMIN", "CASHIER"] as const).map((r) => (
               <button
@@ -290,10 +246,7 @@ export const UserPage: React.FC = () => {
 
             {!showDeleted && (
               <Button
-                onClick={() => {
-                  setEditingUser(null);
-                  setIsFormOpen(true);
-                }}
+                onClick={() => setDialog({ type: "create" })}
                 className="h-9.5 rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground text-xs font-bold gap-1.5 px-4 shadow-xs transition-all active:scale-[0.99] cursor-pointer shrink-0"
               >
                 <Plus className="w-4 h-4" />
@@ -307,9 +260,7 @@ export const UserPage: React.FC = () => {
       <div
         key={viewMode}
         className={cn(
-          "animate-in fade-in-50 duration-200",
-          userSwitchedView &&
-            "motion-safe:animate-in motion-safe:fade-in-50 motion-safe:zoom-in-[0.99] motion-safe:duration-200",
+          userSwitchedView && "animate-in fade-in-50 zoom-in-98 duration-200",
         )}
       >
         {displayedUsers.length === 0 ? (
@@ -358,7 +309,7 @@ export const UserPage: React.FC = () => {
                       <Phone className="w-3.5 h-3.5 text-primary shrink-0" />
                       {u.phone ? (
                         <a
-                          href={`https://wa.me/${u.phone.replace(/[^0-9]/g, "")}`}
+                          href={formatWhatsAppUrl(u.phone)}
                           target="_blank"
                           rel="noreferrer"
                           className="font-medium text-foreground hover:underline truncate"
@@ -394,7 +345,7 @@ export const UserPage: React.FC = () => {
                       <Button
                         variant="outline"
                         size="sm"
-                        onClick={() => setRestoringUser(u)}
+                        onClick={() => setDialog({ type: "restore", user: u })}
                         className="w-full text-xs bg-emerald-500/10 text-emerald-600 border-emerald-500/40 hover:bg-emerald-500/20 hover:text-emerald-700 font-semibold gap-1.5 cursor-pointer"
                       >
                         <RotateCcw className="w-3.5 h-3.5" />
@@ -405,10 +356,7 @@ export const UserPage: React.FC = () => {
                         <Button
                           variant="ghost"
                           size="sm"
-                          onClick={() => {
-                            setEditingUser(u);
-                            setIsFormOpen(true);
-                          }}
+                          onClick={() => setDialog({ type: "edit", user: u })}
                           className="h-8 rounded-lg text-xs font-semibold text-muted-foreground hover:text-primary hover:bg-primary/10 gap-1.5 cursor-pointer flex-1"
                         >
                           <Pencil className="w-3.5 h-3.5" />
@@ -417,7 +365,7 @@ export const UserPage: React.FC = () => {
                         <Button
                           variant="ghost"
                           size="sm"
-                          onClick={() => setDeletingUser(u)}
+                          onClick={() => setDialog({ type: "delete", user: u })}
                           className="h-8 rounded-lg text-xs font-semibold text-muted-foreground hover:text-destructive hover:bg-destructive/10 gap-1.5 cursor-pointer"
                         >
                           <Trash2 className="w-3.5 h-3.5" />
@@ -438,40 +386,18 @@ export const UserPage: React.FC = () => {
                   <table className="w-full text-left text-xs border-collapse">
                     <thead>
                       <tr className="border-b border-border/60 text-muted-foreground font-bold uppercase tracking-wider sticky top-0 bg-card z-10">
-                        <th
-                          onClick={() => requestSort("name")}
-                          className="pb-2.5 px-3 cursor-pointer select-none group hover:text-foreground transition-colors"
-                        >
-                          <div className="flex items-center gap-1">
-                            <span>Full Name</span>
-                            {sortConfig?.key === "name" ? (
-                              sortConfig.direction === "asc" ? (
-                                <ArrowUp className="w-3.5 h-3.5 text-primary" />
-                              ) : (
-                                <ArrowDown className="w-3.5 h-3.5 text-primary" />
-                              )
-                            ) : (
-                              <ArrowUpDown className="w-3 h-3 opacity-0 group-hover:opacity-40 transition-opacity" />
-                            )}
-                          </div>
-                        </th>
-                        <th
-                          onClick={() => requestSort("username")}
-                          className="pb-2.5 px-3 cursor-pointer select-none group hover:text-foreground transition-colors"
-                        >
-                          <div className="flex items-center gap-1">
-                            <span>Username</span>
-                            {sortConfig?.key === "username" ? (
-                              sortConfig.direction === "asc" ? (
-                                <ArrowUp className="w-3.5 h-3.5 text-primary" />
-                              ) : (
-                                <ArrowDown className="w-3.5 h-3.5 text-primary" />
-                              )
-                            ) : (
-                              <ArrowUpDown className="w-3 h-3 opacity-0 group-hover:opacity-40 transition-opacity" />
-                            )}
-                          </div>
-                        </th>
+                        <SortableTh
+                          label="Full Name"
+                          sortKey="name"
+                          sortConfig={sortConfig}
+                          onSort={requestSort}
+                        />
+                        <SortableTh
+                          label="Username"
+                          sortKey="username"
+                          sortConfig={sortConfig}
+                          onSort={requestSort}
+                        />
                         <th className="pb-2.5 px-3">Role</th>
                         <th className="pb-2.5 px-3">Phone</th>
                         <th className="pb-2.5 px-3">Status</th>
@@ -507,7 +433,7 @@ export const UserPage: React.FC = () => {
                               <div className="flex items-center gap-1.5">
                                 <Phone className="w-3.5 h-3.5 text-primary shrink-0" />
                                 <a
-                                  href={`https://wa.me/${u.phone.replace(/[^0-9]/g, "")}`}
+                                  href={formatWhatsAppUrl(u.phone)}
                                   target="_blank"
                                   rel="noreferrer"
                                   className="hover:underline text-foreground"
@@ -544,7 +470,9 @@ export const UserPage: React.FC = () => {
                                 <Button
                                   variant="outline"
                                   size="sm"
-                                  onClick={() => setRestoringUser(u)}
+                                  onClick={() =>
+                                    setDialog({ type: "restore", user: u })
+                                  }
                                   className="h-8 rounded-lg bg-emerald-500/10 text-emerald-600 border-emerald-500/40 hover:bg-emerald-500/20 hover:text-emerald-700 text-xs font-semibold gap-1 cursor-pointer"
                                   title="Restore User"
                                 >
@@ -556,10 +484,9 @@ export const UserPage: React.FC = () => {
                                   <Button
                                     variant="ghost"
                                     size="icon"
-                                    onClick={() => {
-                                      setEditingUser(u);
-                                      setIsFormOpen(true);
-                                    }}
+                                    onClick={() =>
+                                      setDialog({ type: "edit", user: u })
+                                    }
                                     className="h-8 w-8 rounded-lg text-muted-foreground hover:text-primary hover:bg-primary/10 transition-colors cursor-pointer"
                                     title="Edit User"
                                   >
@@ -568,7 +495,9 @@ export const UserPage: React.FC = () => {
                                   <Button
                                     variant="ghost"
                                     size="icon"
-                                    onClick={() => setDeletingUser(u)}
+                                    onClick={() =>
+                                      setDialog({ type: "delete", user: u })
+                                    }
                                     className="h-8 w-8 rounded-lg text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors cursor-pointer"
                                     title="Delete User"
                                   >
@@ -620,7 +549,7 @@ export const UserPage: React.FC = () => {
                         <Phone className="w-3.5 h-3.5 text-primary shrink-0" />
                         {u.phone ? (
                           <a
-                            href={`https://wa.me/${u.phone.replace(/[^0-9]/g, "")}`}
+                            href={formatWhatsAppUrl(u.phone)}
                             target="_blank"
                             rel="noreferrer"
                             className="font-medium text-foreground hover:underline"
@@ -656,7 +585,9 @@ export const UserPage: React.FC = () => {
                         <Button
                           variant="outline"
                           size="sm"
-                          onClick={() => setRestoringUser(u)}
+                          onClick={() =>
+                            setDialog({ type: "restore", user: u })
+                          }
                           className="w-full text-xs bg-emerald-500/10 text-emerald-600 border-emerald-500/40 hover:bg-emerald-500/20 hover:text-emerald-700 font-semibold gap-1.5 cursor-pointer"
                         >
                           <RotateCcw className="w-3.5 h-3.5" />
@@ -667,10 +598,9 @@ export const UserPage: React.FC = () => {
                           <Button
                             variant="outline"
                             size="sm"
-                            onClick={() => {
-                              setEditingUser(u);
-                              setIsFormOpen(true);
-                            }}
+                            onClick={() =>
+                              setDialog({ type: "edit", user: u })
+                            }
                             className="flex-1 text-xs cursor-pointer"
                           >
                             <Pencil className="w-3.5 h-3.5 mr-1.5" /> Edit
@@ -678,7 +608,9 @@ export const UserPage: React.FC = () => {
                           <Button
                             variant="outline"
                             size="sm"
-                            onClick={() => setDeletingUser(u)}
+                            onClick={() =>
+                              setDialog({ type: "delete", user: u })
+                            }
                             className="text-xs text-destructive hover:bg-destructive/10 hover:text-destructive cursor-pointer"
                           >
                             <Trash2 className="w-3.5 h-3.5 mr-1.5" /> Delete
@@ -695,54 +627,63 @@ export const UserPage: React.FC = () => {
       </div>
 
       <UserDialog
-        isOpen={isFormOpen}
-        onClose={() => {
-          setIsFormOpen(false);
-          setEditingUser(null);
-        }}
-        user={editingUser}
+        isOpen={dialog?.type === "create" || dialog?.type === "edit"}
+        onClose={() => setDialog(null)}
+        user={dialog?.type === "edit" ? dialog.user : null}
         onSave={(data) => {
-          if (editingUser) {
-            handleUpdate(data);
+          if (dialog?.type === "edit") {
+            handleUpdate(dialog.user.id, data);
           } else {
             handleCreate(data);
           }
+          setDialog(null);
         }}
       />
 
       <ConfirmDialog
-        isOpen={!!deletingUser}
-        title="Move User to Trash?"
-        subtitle="Confirm user deletion"
-        description={
-          <p>
-            Are you sure you want to delete{" "}
-            <strong className="text-foreground">"{deletingUser?.name}"</strong>{" "}
-            (@
-            {deletingUser?.username})? It can be restored anytime from trash.
-          </p>
+        isOpen={dialog?.type === "delete" || dialog?.type === "restore"}
+        title={
+          dialog?.type === "delete"
+            ? "Move User to Trash?"
+            : "Restore User Account?"
         }
-        confirmText="Delete User"
-        variant="destructive"
-        onClose={() => setDeletingUser(null)}
-        onConfirm={handleDelete}
-      />
-
-      <ConfirmDialog
-        isOpen={!!restoringUser}
-        title="Restore User Account?"
-        subtitle="Confirm account restoration"
-        description={
-          <p>
-            User account{" "}
-            <strong className="text-foreground">"{restoringUser?.name}"</strong>{" "}
-            will be restored to active team list.
-          </p>
+        subtitle={
+          dialog?.type === "delete"
+            ? "Confirm user deletion"
+            : "Confirm account restoration"
         }
-        confirmText="Restore User"
-        variant="success"
-        onClose={() => setRestoringUser(null)}
-        onConfirm={handleRestore}
+        description={
+          dialog?.type === "delete" ? (
+            <p>
+              Are you sure you want to delete{" "}
+              <strong className="text-foreground">
+                "{dialog.user.name}"
+              </strong>{" "}
+              (@{dialog.user.username})? It can be restored anytime from trash.
+            </p>
+          ) : (
+            <p>
+              User account{" "}
+              <strong className="text-foreground">
+                "{dialog?.type === "restore" ? dialog.user.name : ""}"
+              </strong>{" "}
+              will be restored to active team list.
+            </p>
+          )
+        }
+        confirmText={
+          dialog?.type === "delete" ? "Delete User" : "Restore User"
+        }
+        variant={dialog?.type === "delete" ? "destructive" : "success"}
+        onClose={() => setDialog(null)}
+        onConfirm={() => {
+          if (dialog?.type === "delete") {
+            handleDelete(dialog.user);
+          } else if (dialog?.type === "restore") {
+            handleRestore(dialog.user);
+          }
+          setDialog(null);
+        }}
       />
     </div>
   );

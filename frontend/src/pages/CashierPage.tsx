@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useDeferredValue } from "react";
 import { toast } from "sonner";
 import { CategoryFilter } from "@/components/cashier/CategoryFilter";
 import { ProductCard } from "@/components/cashier/ProductCard";
@@ -14,6 +14,7 @@ function generateTxnNumber() {
 export default function CashierPage() {
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [searchQuery, setSearchQuery] = useState<string>("");
+  const deferredSearch = useDeferredValue(searchQuery);
   const [cart, setCart] = useState<CartItem[]>([]);
 
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
@@ -29,10 +30,10 @@ export default function CashierPage() {
         selectedCategory === "all" || product.category === selectedCategory;
       const matchesSearch = product.name
         .toLowerCase()
-        .includes(searchQuery.toLowerCase());
+        .includes(deferredSearch.toLowerCase());
       return matchesCategory && matchesSearch;
     });
-  }, [allProducts, selectedCategory, searchQuery]);
+  }, [allProducts, selectedCategory, deferredSearch]);
 
   const { subtotal, tax, total } = useMemo(() => {
     const sub = cart.reduce(

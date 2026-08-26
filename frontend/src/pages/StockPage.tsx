@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useDeferredValue } from "react";
 import type { StockItem, StockLogType } from "@/services/stock";
 import {
   getStoredStocks,
@@ -15,12 +15,7 @@ import { StatCard } from "@/components/dashboard/StatCard";
 import { StatGrid } from "@/components/dashboard/StatGrid";
 import { ViewModeSwitcher } from "@/components/shared/ViewModeSwitcher";
 import { EmptyState } from "@/components/shared/EmptyState";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+import { FormDropdownPicker } from "@/components/shared/FormDropdownPicker";
 import { formatRupiah } from "@/utils/formatCurrency";
 import { formatLastUpdated } from "@/utils/formatDate";
 import { toast } from "sonner";
@@ -33,22 +28,24 @@ import {
   XCircle,
   SlidersHorizontal,
   Filter,
-  ChevronDown,
-  Check,
   Settings2,
   Boxes,
-  ArrowUpDown,
-  ArrowUp,
-  ArrowDown,
 } from "lucide-react";
 import { useViewMode } from "@/hooks/useViewMode";
 import { useTableSort } from "@/hooks/useTableSort";
+import { SortableTh } from "@/components/shared/SortableTh";
 
 type StockStatusFilter = "ALL" | "IN_STOCK" | "LOW_STOCK" | "OUT_OF_STOCK";
+
+type StockDialogState =
+  | { type: "adjust"; item?: StockItem | null }
+  | { type: "limits"; item: StockItem }
+  | null;
 
 export const StockPage: React.FC = () => {
   const [stocks, setStocks] = useState<StockItem[]>(() => getStoredStocks());
   const [searchQuery, setSearchQuery] = useState("");
+  const deferredSearch = useDeferredValue(searchQuery);
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [statusFilter, setStatusFilter] = useState<StockStatusFilter>("ALL");
 
@@ -56,13 +53,7 @@ export const StockPage: React.FC = () => {
     "sela_stock_view_mode",
   );
 
-  const [isAdjustDialogOpen, setIsAdjustDialogOpen] = useState(false);
-  const [selectedStockForAdjust, setSelectedStockForAdjust] =
-    useState<StockItem | null>(null);
-
-  const [isLimitsDialogOpen, setIsLimitsDialogOpen] = useState(false);
-  const [selectedStockForLimits, setSelectedStockForLimits] =
-    useState<StockItem | null>(null);
+  const [dialog, setDialog] = useState<StockDialogState>(null);
 
   const stats = useMemo(() => {
     const totalItems = stocks.reduce((acc, s) => acc + s.quantity, 0);
@@ -98,15 +89,15 @@ export const StockPage: React.FC = () => {
         if (item.quantity !== 0) return false;
       }
 
-      if (!searchQuery.trim()) return true;
-      const q = searchQuery.toLowerCase();
+      if (!deferredSearch.trim()) return true;
+      const q = deferredSearch.toLowerCase();
       return (
         item.product_name.toLowerCase().includes(q) ||
         item.sku.toLowerCase().includes(q) ||
         item.category_name.toLowerCase().includes(q)
       );
     });
-  }, [stocks, selectedCategory, statusFilter, searchQuery]);
+  }, [stocks, selectedCategory, statusFilter, deferredSearch]);
 
   const categoriesList = useMemo(() => {
     const stored = getStoredCategories(false, "ingredient").map((c) => ({
@@ -115,6 +106,13 @@ export const StockPage: React.FC = () => {
     }));
     return [{ id: "all", label: "All Categories" }, ...stored];
   }, []);
+
+  const statusOptions = [
+    { id: "ALL", label: "All Status" },
+    { id: "IN_STOCK", label: "In Stock" },
+    { id: "LOW_STOCK", label: "Low Stock" },
+    { id: "OUT_OF_STOCK", label: "Out of Stock" },
+  ];
 
   const stocksWithMetrics = useMemo(() => {
     return filteredStocks.map((s) => ({
@@ -266,94 +264,22 @@ export const StockPage: React.FC = () => {
         <div className="flex flex-wrap items-center justify-between gap-2.5 sm:gap-3 w-full xl:w-auto min-w-0">
           <div className="flex flex-wrap sm:flex-nowrap items-center gap-2 sm:gap-2.5 w-full sm:w-auto min-w-0">
             <div className="flex-1 sm:flex-none min-w-0">
-              <DropdownMenu className="w-full sm:w-auto">
-                <DropdownMenuTrigger className="w-full sm:w-auto">
-                  <button
-                    type="button"
-                    className="flex items-center justify-between gap-1.5 sm:gap-2 h-9.5 px-3 sm:px-3.5 rounded-xl border border-border/80 bg-background dark:bg-input/30 text-foreground text-xs font-semibold transition-colors cursor-pointer select-none outline-none hover:border-primary/70 focus-visible:ring-1 focus-visible:ring-primary w-full sm:w-auto shadow-2xs min-w-0"
-                  >
-                    <div className="flex items-center gap-2 min-w-0 truncate">
-                      <Filter className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
-                      <span className="truncate sm:whitespace-nowrap">
-                        {categoriesList.find((c) => c.id === selectedCategory)
-                          ?.label || "All Categories"}
-                      </span>
-                    </div>
-                    <ChevronDown className="w-3.5 h-3.5 text-muted-foreground shrink-0 ml-1" />
-                  </button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent
-                  align="start"
-                  className="w-52 rounded-xl p-1 bg-card border border-border/80 shadow-md"
-                >
-                  {categoriesList.map((cat) => (
-                    <DropdownMenuItem
-                      key={cat.id}
-                      onClick={() => setSelectedCategory(cat.id)}
-                      className={cn(
-                        "flex items-center justify-between py-2 px-2.5 text-xs font-medium rounded-lg cursor-pointer transition-colors",
-                        selectedCategory === cat.id
-                          ? "bg-primary/10 text-primary font-bold"
-                          : "text-foreground hover:bg-muted/60",
-                      )}
-                    >
-                      <span>{cat.label}</span>
-                      {selectedCategory === cat.id && (
-                        <Check className="w-3.5 h-3.5 text-primary shrink-0" />
-                      )}
-                    </DropdownMenuItem>
-                  ))}
-                </DropdownMenuContent>
-              </DropdownMenu>
+              <FormDropdownPicker
+                value={selectedCategory}
+                onChange={setSelectedCategory}
+                options={categoriesList}
+                icon={Filter}
+                className="w-full sm:w-52"
+              />
             </div>
 
             <div className="flex-1 sm:flex-none min-w-0 lg:hidden">
-              <DropdownMenu className="w-full sm:w-auto">
-                <DropdownMenuTrigger className="w-full sm:w-auto">
-                  <button
-                    type="button"
-                    className="flex items-center justify-between gap-1.5 sm:gap-2 h-9.5 px-3 sm:px-3.5 rounded-xl border border-border/80 bg-background dark:bg-input/30 text-foreground text-xs font-semibold transition-colors cursor-pointer select-none outline-none hover:border-primary/70 focus-visible:ring-1 focus-visible:ring-primary w-full sm:w-auto shadow-2xs min-w-0"
-                  >
-                    <span className="truncate sm:whitespace-nowrap">
-                      {statusFilter === "ALL"
-                        ? "All Status"
-                        : statusFilter === "IN_STOCK"
-                          ? "In Stock"
-                          : statusFilter === "LOW_STOCK"
-                            ? "Low Stock"
-                            : "Out of Stock"}
-                    </span>
-                    <ChevronDown className="w-3.5 h-3.5 text-muted-foreground shrink-0 ml-1" />
-                  </button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent
-                  align="start"
-                  className="w-44 rounded-xl p-1 bg-card border border-border/80 shadow-md"
-                >
-                  {[
-                    { id: "ALL", label: "All Status" },
-                    { id: "IN_STOCK", label: "In Stock" },
-                    { id: "LOW_STOCK", label: "Low Stock" },
-                    { id: "OUT_OF_STOCK", label: "Out of Stock" },
-                  ].map((tab) => (
-                    <DropdownMenuItem
-                      key={tab.id}
-                      onClick={() => setStatusFilter(tab.id as StockStatusFilter)}
-                      className={cn(
-                        "flex items-center justify-between py-2 px-2.5 text-xs font-medium rounded-lg cursor-pointer transition-colors",
-                        statusFilter === tab.id
-                          ? "bg-primary/10 text-primary font-bold"
-                          : "text-foreground hover:bg-muted/60",
-                      )}
-                    >
-                      <span>{tab.label}</span>
-                      {statusFilter === tab.id && (
-                        <Check className="w-3.5 h-3.5 text-primary shrink-0" />
-                      )}
-                    </DropdownMenuItem>
-                  ))}
-                </DropdownMenuContent>
-              </DropdownMenu>
+              <FormDropdownPicker
+                value={statusFilter}
+                onChange={(val) => setStatusFilter(val as StockStatusFilter)}
+                options={statusOptions}
+                className="w-full sm:w-44"
+              />
             </div>
 
             <div className="hidden lg:flex items-center bg-muted/60 p-1 rounded-xl border border-border/50 text-xs h-9.5 shrink-0">
@@ -388,10 +314,7 @@ export const StockPage: React.FC = () => {
             />
 
             <Button
-              onClick={() => {
-                setSelectedStockForAdjust(null);
-                setIsAdjustDialogOpen(true);
-              }}
+              onClick={() => setDialog({ type: "adjust", item: null })}
               className="h-9.5 rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground text-xs font-bold gap-1.5 px-4 shadow-xs transition-all active:scale-[0.99] cursor-pointer shrink-0"
             >
               <SlidersHorizontal className="w-4 h-4" />
@@ -451,42 +374,44 @@ export const StockPage: React.FC = () => {
                           <span className="text-muted-foreground font-medium text-xs">
                             Current Stock:
                           </span>
-                          <span className="font-extrabold text-foreground text-sm font-mono">
+                          <span className="text-base font-extrabold text-foreground font-mono">
                             {item.quantity.toLocaleString("id-ID")}{" "}
                             <span className="text-xs font-normal text-muted-foreground">
-                              / {item.max_stock.toLocaleString("id-ID")}{" "}
                               {item.unit}
                             </span>
                           </span>
                         </div>
 
-                        <div className="w-full h-1.5 rounded-full bg-muted overflow-hidden">
-                          <div
-                            className={cn(
-                              "h-full rounded-full transition-all duration-500",
-                              isOut
-                                ? "bg-destructive w-0"
-                                : isLow
-                                  ? "bg-amber-500"
-                                  : "bg-emerald-500",
-                            )}
-                            style={{ width: `${Math.max(4, percentage)}%` }}
-                          />
+                        <div className="space-y-1">
+                          <div className="flex items-center justify-between text-[11px] text-muted-foreground">
+                            <span>
+                              Min: {item.min_stock.toLocaleString("id-ID")}
+                            </span>
+                            <span>
+                              Max: {item.max_stock.toLocaleString("id-ID")}
+                            </span>
+                          </div>
+                          <div className="h-1.5 rounded-full bg-muted overflow-hidden">
+                            <div
+                              className={cn(
+                                "h-full rounded-full transition-all duration-300",
+                                isOut
+                                  ? "bg-destructive"
+                                  : isLow
+                                    ? "bg-amber-500"
+                                    : "bg-emerald-500",
+                              )}
+                              style={{ width: `${Math.max(4, percentage)}%` }}
+                            />
+                          </div>
                         </div>
 
-                        <div className="flex items-center justify-between text-[11px] text-muted-foreground pt-0.5">
-                          <span>
-                            Min Alert:{" "}
-                            <span className="font-semibold text-foreground">
-                              {item.min_stock.toLocaleString("id-ID")}{" "}
-                              {item.unit}
-                            </span>
+                        <div className="flex items-center justify-between text-xs pt-1 border-t border-border/40">
+                          <span className="text-muted-foreground text-[11px]">
+                            Valuation:
                           </span>
-                          <span>
-                            Valuation:{" "}
-                            <span className="font-semibold text-foreground font-mono">
-                              {formatRupiah(item.asset_value)}
-                            </span>
+                          <span className="font-bold text-foreground text-xs font-mono">
+                            {formatRupiah(item.asset_value)}
                           </span>
                         </div>
                       </div>
@@ -507,8 +432,7 @@ export const StockPage: React.FC = () => {
                           variant="ghost"
                           size="icon"
                           onClick={() => {
-                            setSelectedStockForLimits(item);
-                            setIsLimitsDialogOpen(true);
+                            setDialog({ type: "limits", item });
                           }}
                           className="h-8 w-8 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/80 transition-colors cursor-pointer"
                           title="Set Alert Thresholds"
@@ -519,8 +443,7 @@ export const StockPage: React.FC = () => {
                           variant="outline"
                           size="sm"
                           onClick={() => {
-                            setSelectedStockForAdjust(item);
-                            setIsAdjustDialogOpen(true);
+                            setDialog({ type: "adjust", item });
                           }}
                           className="h-8 px-2.5 rounded-lg text-xs font-semibold gap-1 text-primary hover:bg-primary/10 border-primary/40 cursor-pointer shadow-2xs"
                           title="Adjust Stock"
@@ -543,80 +466,39 @@ export const StockPage: React.FC = () => {
                   <table className="w-full text-left text-xs border-collapse">
                     <thead>
                       <tr className="border-b border-border/60 text-muted-foreground font-bold uppercase tracking-wider sticky top-0 bg-card z-10">
-                        <th
-                          onClick={() => requestSort("product_name")}
-                          className="pb-2.5 px-3 cursor-pointer select-none group hover:text-foreground transition-colors"
-                        >
-                          <div className="flex items-center gap-1">
-                            <span>Material Name</span>
-                            {sortConfig?.key === "product_name" ? (
-                              sortConfig.direction === "asc" ? (
-                                <ArrowUp className="w-3.5 h-3.5 text-primary" />
-                              ) : (
-                                <ArrowDown className="w-3.5 h-3.5 text-primary" />
-                              )
-                            ) : (
-                              <ArrowUpDown className="w-3 h-3 opacity-0 group-hover:opacity-40 transition-opacity" />
-                            )}
-                          </div>
-                        </th>
+                        <SortableTh
+                          label="Material Name"
+                          sortKey="product_name"
+                          sortConfig={sortConfig}
+                          onSort={requestSort}
+                        />
                         <th className="pb-2.5 px-3 hidden md:table-cell">
                           Category
                         </th>
-                        <th
-                          onClick={() => requestSort("quantity")}
-                          className="pb-2.5 px-3 cursor-pointer select-none group hover:text-foreground transition-colors"
-                        >
-                          <div className="flex items-center gap-1">
-                            <span>Current Stock</span>
-                            {sortConfig?.key === "quantity" ? (
-                              sortConfig.direction === "asc" ? (
-                                <ArrowUp className="w-3.5 h-3.5 text-primary" />
-                              ) : (
-                                <ArrowDown className="w-3.5 h-3.5 text-primary" />
-                              )
-                            ) : (
-                              <ArrowUpDown className="w-3 h-3 opacity-0 group-hover:opacity-40 transition-opacity" />
-                            )}
-                          </div>
-                        </th>
+                        <SortableTh
+                          label="Current Stock"
+                          sortKey="quantity"
+                          sortConfig={sortConfig}
+                          onSort={requestSort}
+                        />
                         <th className="pb-2.5 px-3 text-center">
                           Stock Status
                         </th>
-                        <th
-                          onClick={() => requestSort("updated_at")}
-                          className="pb-2.5 px-3 text-center cursor-pointer select-none group hover:text-foreground transition-colors hidden lg:table-cell"
-                        >
-                          <div className="flex items-center justify-center gap-1">
-                            <span>Last Updated</span>
-                            {sortConfig?.key === "updated_at" ? (
-                              sortConfig.direction === "asc" ? (
-                                <ArrowUp className="w-3.5 h-3.5 text-primary" />
-                              ) : (
-                                <ArrowDown className="w-3.5 h-3.5 text-primary" />
-                              )
-                            ) : (
-                              <ArrowUpDown className="w-3 h-3 opacity-0 group-hover:opacity-40 transition-opacity" />
-                            )}
-                          </div>
-                        </th>
-                        <th
-                          onClick={() => requestSort("asset_value")}
-                          className="pb-2.5 px-3 text-right cursor-pointer select-none group hover:text-foreground transition-colors"
-                        >
-                          <div className="flex items-center justify-end gap-1">
-                            <span>Asset Value</span>
-                            {sortConfig?.key === "asset_value" ? (
-                              sortConfig.direction === "asc" ? (
-                                <ArrowUp className="w-3.5 h-3.5 text-primary" />
-                              ) : (
-                                <ArrowDown className="w-3.5 h-3.5 text-primary" />
-                              )
-                            ) : (
-                              <ArrowUpDown className="w-3 h-3 opacity-0 group-hover:opacity-40 transition-opacity" />
-                            )}
-                          </div>
-                        </th>
+                        <SortableTh
+                          label="Last Updated"
+                          sortKey="updated_at"
+                          sortConfig={sortConfig}
+                          onSort={requestSort}
+                          align="center"
+                          className="hidden lg:table-cell"
+                        />
+                        <SortableTh
+                          label="Asset Value"
+                          sortKey="asset_value"
+                          sortConfig={sortConfig}
+                          onSort={requestSort}
+                          align="right"
+                        />
                         <th className="pb-2.5 px-3 text-right">Actions</th>
                       </tr>
                     </thead>
@@ -627,20 +509,23 @@ export const StockPage: React.FC = () => {
                           className="hover:bg-muted/30 transition-colors"
                         >
                           <td className="py-2.5 px-3">
-                            <span className="font-bold text-foreground block truncate text-xs sm:text-sm">
-                              {item.product_name}
-                            </span>
+                            <div className="min-w-0">
+                              <span className="font-bold text-foreground block truncate text-xs sm:text-sm">
+                                {item.product_name}
+                              </span>
+                              <span className="text-[10.5px] font-mono text-muted-foreground uppercase">
+                                {item.sku}
+                              </span>
+                            </div>
                           </td>
 
                           <td className="py-2.5 px-3 text-muted-foreground font-medium hidden md:table-cell">
                             {item.category_name}
                           </td>
 
-                          <td className="py-2.5 px-3 font-mono text-foreground font-semibold whitespace-nowrap">
-                            <span className="font-bold">
-                              {item.quantity.toLocaleString("id-ID")}
-                            </span>{" "}
-                            <span className="text-[11px] font-normal text-muted-foreground">
+                          <td className="py-2.5 px-3 font-mono font-bold text-foreground whitespace-nowrap">
+                            {item.quantity.toLocaleString("id-ID")}{" "}
+                            <span className="text-[11px] text-muted-foreground font-normal">
                               {item.unit}
                             </span>
                           </td>
@@ -663,10 +548,9 @@ export const StockPage: React.FC = () => {
                                 variant="ghost"
                                 size="icon"
                                 onClick={() => {
-                                  setSelectedStockForLimits(item);
-                                  setIsLimitsDialogOpen(true);
+                                  setDialog({ type: "limits", item });
                                 }}
-                                className="h-7.5 w-7.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/80 transition-colors cursor-pointer"
+                                className="h-8 w-8 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/80 transition-colors cursor-pointer"
                                 title="Set Alert Thresholds"
                               >
                                 <Settings2 className="w-3.5 h-3.5" />
@@ -675,10 +559,9 @@ export const StockPage: React.FC = () => {
                                 variant="outline"
                                 size="sm"
                                 onClick={() => {
-                                  setSelectedStockForAdjust(item);
-                                  setIsAdjustDialogOpen(true);
+                                  setDialog({ type: "adjust", item });
                                 }}
-                                className="h-7.5 px-2.5 rounded-lg text-xs font-semibold gap-1 text-primary hover:bg-primary/10 border-primary/40 cursor-pointer shadow-2xs"
+                                className="h-8 px-2.5 rounded-lg text-xs font-semibold gap-1 text-primary hover:bg-primary/10 border-primary/40 cursor-pointer shadow-2xs"
                                 title="Adjust Stock"
                               >
                                 <SlidersHorizontal className="w-3 h-3" />
@@ -747,8 +630,7 @@ export const StockPage: React.FC = () => {
                           variant="ghost"
                           size="icon"
                           onClick={() => {
-                            setSelectedStockForLimits(item);
-                            setIsLimitsDialogOpen(true);
+                            setDialog({ type: "limits", item });
                           }}
                           className="h-8 w-8 rounded-lg text-muted-foreground hover:text-foreground cursor-pointer"
                         >
@@ -758,8 +640,7 @@ export const StockPage: React.FC = () => {
                           variant="outline"
                           size="sm"
                           onClick={() => {
-                            setSelectedStockForAdjust(item);
-                            setIsAdjustDialogOpen(true);
+                            setDialog({ type: "adjust", item });
                           }}
                           className="h-8 px-2.5 rounded-xl text-xs font-semibold gap-1 text-primary border-primary/40 cursor-pointer"
                         >
@@ -777,24 +658,24 @@ export const StockPage: React.FC = () => {
       </div>
 
       <StockAdjustmentDialog
-        isOpen={isAdjustDialogOpen}
-        onClose={() => {
-          setIsAdjustDialogOpen(false);
-          setSelectedStockForAdjust(null);
-        }}
+        isOpen={dialog?.type === "adjust"}
+        onClose={() => setDialog(null)}
         stocks={stocks}
-        initialStockItem={selectedStockForAdjust}
-        onConfirm={handleAdjustConfirm}
+        initialStockItem={dialog?.type === "adjust" ? dialog.item : null}
+        onConfirm={(payload) => {
+          handleAdjustConfirm(payload);
+          setDialog(null);
+        }}
       />
 
       <StockLimitsDialog
-        isOpen={isLimitsDialogOpen}
-        onClose={() => {
-          setIsLimitsDialogOpen(false);
-          setSelectedStockForLimits(null);
+        isOpen={dialog?.type === "limits"}
+        onClose={() => setDialog(null)}
+        stockItem={dialog?.type === "limits" ? dialog.item : null}
+        onSave={(id, limits) => {
+          handleLimitsConfirm(id, limits);
+          setDialog(null);
         }}
-        stockItem={selectedStockForLimits}
-        onSave={handleLimitsConfirm}
       />
     </div>
   );

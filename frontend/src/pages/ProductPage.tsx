@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useDeferredValue } from "react";
 import type { ProductItem } from "@/constants/cashier";
 import { getStoredCategories } from "@/services/category";
 import {
@@ -17,12 +17,7 @@ import { StatCard } from "@/components/dashboard/StatCard";
 import { StatGrid } from "@/components/dashboard/StatGrid";
 import { ViewModeSwitcher } from "@/components/shared/ViewModeSwitcher";
 import { EmptyState } from "@/components/shared/EmptyState";
-import {
-  DropdownMenu,
-  DropdownMenuTrigger,
-  DropdownMenuContent,
-  DropdownMenuItem,
-} from "@/components/ui/dropdown-menu";
+import { FormDropdownPicker } from "@/components/shared/FormDropdownPicker";
 import { toast } from "sonner";
 import { formatRupiah } from "@/utils/formatCurrency";
 import { cn } from "@/lib/utils";
@@ -36,15 +31,18 @@ import {
   Store,
   Tags,
   Filter,
-  ChevronDown,
-  Check,
   RotateCcw,
-  ArrowUpDown,
-  ArrowUp,
-  ArrowDown,
 } from "lucide-react";
 import { useViewMode } from "@/hooks/useViewMode";
 import { useTableSort } from "@/hooks/useTableSort";
+import { SortableTh } from "@/components/shared/SortableTh";
+
+type ProductDialogState =
+  | { type: "create" }
+  | { type: "edit"; product: ProductItem }
+  | { type: "delete"; product: ProductItem }
+  | { type: "restore"; product: ProductItem }
+  | null;
 
 export const ProductPage: React.FC = () => {
   const [allProducts, setAllProducts] = useState<ProductItem[]>(() =>
@@ -52,22 +50,14 @@ export const ProductPage: React.FC = () => {
   );
   const [showDeleted, setShowDeleted] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const deferredSearch = useDeferredValue(searchQuery);
   const [selectedCategory, setSelectedCategory] = useState("all");
 
   const { viewMode, userSwitchedView, handleViewModeChange } = useViewMode(
     "sela_product_view_mode",
   );
 
-  const [isFormOpen, setIsFormOpen] = useState(false);
-  const [editingProduct, setEditingProduct] = useState<ProductItem | null>(
-    null,
-  );
-  const [deletingProduct, setDeletingProduct] = useState<ProductItem | null>(
-    null,
-  );
-  const [restoringProduct, setRestoringProduct] = useState<ProductItem | null>(
-    null,
-  );
+  const [dialog, setDialog] = useState<ProductDialogState>(null);
 
   const stats = useMemo(() => {
     const activeProducts = allProducts.filter((p) => !p.isDeleted);
@@ -109,12 +99,12 @@ export const ProductPage: React.FC = () => {
     return targetList.filter((p) => {
       const matchSearch = p.name
         .toLowerCase()
-        .includes(searchQuery.toLowerCase());
+        .includes(deferredSearch.toLowerCase());
       const matchCategory =
         selectedCategory === "all" || p.category === selectedCategory;
       return matchSearch && matchCategory;
     });
-  }, [allProducts, showDeleted, searchQuery, selectedCategory]);
+  }, [allProducts, showDeleted, deferredSearch, selectedCategory]);
 
   const productsWithMetrics = useMemo(() => {
     return filteredProducts.map((p) => ({
@@ -142,32 +132,32 @@ export const ProductPage: React.FC = () => {
   };
 
   const handleCreateOrUpdate = (
-    data: Omit<ProductItem, "id"> | ProductItem,
+    data: Omit<ProductItem, "id" | "createdAt" | "updatedAt" | "isDeleted">,
   ) => {
-    if ("id" in data && data.id) {
-      const updated = updateProduct(data.id, data);
+    if (dialog?.type === "edit") {
+      const updated = updateProduct(dialog.product.id, data);
       if (updated) {
         setAllProducts(getStoredProducts(true));
         toast.success(`Product "${updated.name}" updated successfully!`);
       }
     } else {
-      const created = addProduct({ ...data, is_active: true });
+      const created = addProduct(data);
       setAllProducts(getStoredProducts(true));
-      toast.success(`Product "${created.name}" added to catalog!`);
+      toast.success(`Product "${created.name}" created successfully!`);
     }
   };
 
   const handleTogglePosStatus = (product: ProductItem) => {
-    const currentStatus = product.is_active !== false;
-    const newStatus = !currentStatus;
-    const updated = updateProduct(product.id, { is_active: newStatus });
+    const newStatus = product.is_active === false ? true : false;
+    const updated = updateProduct(product.id, {
+      ...product,
+      is_active: newStatus,
+    });
     if (updated) {
       setAllProducts(getStoredProducts(true));
-      if (newStatus) {
-        toast.success(`"${product.name}" is now Active on POS`);
-      } else {
-        toast.info(`"${product.name}" is now Off Menu (Hidden from POS)`);
-      }
+      toast.success(
+        `Product "${updated.name}" is now ${newStatus ? "ACTIVE" : "HIDDEN"} on POS`,
+      );
     }
   };
 
@@ -189,7 +179,7 @@ export const ProductPage: React.FC = () => {
 
   return (
     <div className="flex-1 flex flex-col min-w-0 space-y-4">
-      {/* 4 Stat Cards */}
+      
       <StatGrid>
         <StatCard
           title="Total Menu Products"
@@ -219,9 +209,8 @@ export const ProductPage: React.FC = () => {
         />
       </StatGrid>
 
-      {/* Main Filter & Action Bar */}
       <div className="flex flex-col xl:flex-row items-stretch xl:items-center justify-between gap-2.5 sm:gap-3 bg-card p-3 sm:p-4 rounded-2xl border border-border/80 shadow-xs min-w-0">
-        {/* Search Bar */}
+        
         <div className="relative w-full xl:flex-1 min-w-0">
           <Search className="w-4 h-4 text-muted-foreground absolute left-3 top-1/2 -translate-y-1/2" />
           <Input
@@ -246,51 +235,16 @@ export const ProductPage: React.FC = () => {
           )}
         </div>
 
-        {/* Filters and Actions */}
         <div className="flex flex-wrap items-center justify-between gap-2.5 sm:gap-3 w-full xl:w-auto min-w-0">
-          {/* Category Dropdown Filter */}
+          
           <div className="w-full sm:w-auto min-w-0">
-            <DropdownMenu className="w-full sm:w-auto">
-              <DropdownMenuTrigger className="w-full sm:w-auto">
-                <button
-                  type="button"
-                  className="flex items-center justify-between gap-1.5 sm:gap-2 h-9.5 px-3 sm:px-3.5 rounded-xl border border-border/80 bg-background dark:bg-input/30 text-foreground text-xs font-semibold transition-colors cursor-pointer select-none outline-none hover:border-primary/70 focus-visible:ring-1 focus-visible:ring-primary w-full sm:w-auto shadow-2xs min-w-0"
-                >
-                  <div className="flex items-center gap-2 min-w-0 truncate">
-                    <Filter className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
-                    <span className="truncate sm:whitespace-nowrap">
-                      {selectedCategory === "all"
-                        ? "All Categories"
-                        : getCategoryLabel(selectedCategory)}
-                    </span>
-                  </div>
-                  <ChevronDown className="w-3.5 h-3.5 text-muted-foreground shrink-0 ml-1" />
-                </button>
-              </DropdownMenuTrigger>
-
-              <DropdownMenuContent
-                align="start"
-                className="w-56 sm:w-64 rounded-xl p-1 bg-card border border-border/80 shadow-md"
-              >
-                {categoriesList.map((cat) => (
-                  <DropdownMenuItem
-                    key={cat.id}
-                    onClick={() => setSelectedCategory(cat.id)}
-                    className={cn(
-                      "flex items-center justify-between py-2 px-2.5 text-xs font-medium rounded-lg cursor-pointer transition-colors",
-                      selectedCategory === cat.id
-                        ? "bg-primary/10 text-primary font-bold"
-                        : "text-foreground hover:bg-muted/60",
-                    )}
-                  >
-                    <span>{cat.label}</span>
-                    {selectedCategory === cat.id && (
-                      <Check className="w-3.5 h-3.5 text-primary shrink-0" />
-                    )}
-                  </DropdownMenuItem>
-                ))}
-              </DropdownMenuContent>
-            </DropdownMenu>
+            <FormDropdownPicker
+              value={selectedCategory}
+              onChange={setSelectedCategory}
+              options={categoriesList}
+              icon={Filter}
+              className="w-full sm:w-56"
+            />
           </div>
 
           <div className="flex items-center justify-between sm:justify-end gap-2.5 w-full sm:w-auto shrink-0">
@@ -318,10 +272,7 @@ export const ProductPage: React.FC = () => {
 
             {!showDeleted && (
               <Button
-                onClick={() => {
-                  setEditingProduct(null);
-                  setIsFormOpen(true);
-                }}
+                onClick={() => setDialog({ type: "create" })}
                 className="h-9.5 rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground text-xs font-bold gap-1.5 px-4 shadow-xs transition-all active:scale-[0.99] cursor-pointer justify-center shrink-0"
               >
                 <Plus className="w-4 h-4" />
@@ -332,7 +283,6 @@ export const ProductPage: React.FC = () => {
         </div>
       </div>
 
-      {/* Grid vs Table View Content */}
       <div
         key={viewMode}
         className={cn(
@@ -341,13 +291,13 @@ export const ProductPage: React.FC = () => {
       >
         {displayedProducts.length === 0 ? (
           <EmptyState
-            title="No products found"
+            title="No menu products found"
             description={
               searchQuery
                 ? `No products match "${searchQuery}".`
                 : showDeleted
-                  ? "No deleted products found in trash."
-                  : "No products registered yet. Click 'Add Product' to get started."
+                  ? "Archived products trash is currently empty."
+                  : "No products added yet. Click 'Add Product' to create your menu items."
             }
           />
         ) : viewMode === "grid" ? (
@@ -372,46 +322,60 @@ export const ProductPage: React.FC = () => {
                           </span>
                         </div>
 
-                        {/* POS Status Badge */}
                         <span
                           className={cn(
-                            "inline-flex items-center gap-1.5 text-[10.5px] px-2.5 py-0.5 rounded-full font-semibold shrink-0 select-none",
+                            "w-2 h-2 rounded-full mt-1.5 shrink-0 shadow-2xs",
                             isPosActive
-                              ? "bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-500/20"
-                              : "bg-muted/60 text-muted-foreground border border-border/40",
+                              ? "bg-emerald-500 shadow-emerald-500/50"
+                              : "bg-muted-foreground/40",
                           )}
-                        >
-                          <span
-                            className={cn(
-                              "w-1.5 h-1.5 rounded-full",
-                              isPosActive
-                                ? "bg-emerald-500"
-                                : "bg-muted-foreground/50",
-                            )}
-                          />
-                          <span>
-                            {isPosActive ? "Active on POS" : "Off Menu"}
-                          </span>
-                        </span>
+                          title={
+                            isPosActive ? "Active on POS" : "Hidden from POS"
+                          }
+                        />
                       </div>
 
-                      <div className="flex items-baseline justify-between pt-1">
-                        <span className="text-muted-foreground text-xs font-medium">
-                          Selling Price:
-                        </span>
-                        <span className="text-base font-extrabold text-foreground font-mono">
-                          {formatRupiah(p.price)}
-                        </span>
+                      <div className="space-y-1 pt-1">
+                        <div className="flex items-baseline justify-between">
+                          <span className="text-muted-foreground text-xs font-medium">
+                            Price:
+                          </span>
+                          <span className="text-base font-extrabold text-foreground font-mono">
+                            {formatRupiah(p.price)}
+                          </span>
+                        </div>
+
+                        <div className="flex items-center justify-between text-xs pt-0.5">
+                          <span className="text-muted-foreground font-medium text-[11px]">
+                            Catalog ID:
+                          </span>
+                          <span className="font-mono text-muted-foreground text-[10.5px]">
+                            {p.id}
+                          </span>
+                        </div>
                       </div>
                     </div>
 
                     <div className="flex items-center justify-between pt-2 border-t border-border/40 mt-auto text-xs gap-1">
                       <div className="min-w-0 flex-1">
                         <span className="text-muted-foreground font-medium text-[10px] block truncate">
-                          Price Contribution
+                          Status
                         </span>
-                        <span className="font-bold text-xs text-foreground">
-                          {p.salesShare}% of menu
+                        <span
+                          className={cn(
+                            "font-bold text-xs block truncate",
+                            p.isDeleted
+                              ? "text-destructive"
+                              : isPosActive
+                                ? "text-emerald-600 dark:text-emerald-400"
+                                : "text-muted-foreground",
+                          )}
+                        >
+                          {p.isDeleted
+                            ? "Trash"
+                            : isPosActive
+                              ? "Menu Ready"
+                              : "Off Menu"}
                         </span>
                       </div>
 
@@ -420,7 +384,7 @@ export const ProductPage: React.FC = () => {
                           <Button
                             variant="outline"
                             size="sm"
-                            onClick={() => setRestoringProduct(p)}
+                            onClick={() => setDialog({ type: "restore", product: p })}
                             className="h-8 px-2.5 rounded-lg bg-emerald-500/10 text-emerald-600 border-emerald-500/40 hover:bg-emerald-500/20 hover:text-emerald-700 text-xs font-semibold gap-1 cursor-pointer shadow-2xs"
                             title="Restore Product"
                           >
@@ -429,7 +393,6 @@ export const ProductPage: React.FC = () => {
                           </Button>
                         ) : (
                           <>
-                            {/* Quick POS Toggle Action Button */}
                             <Button
                               variant="ghost"
                               size="icon"
@@ -452,10 +415,7 @@ export const ProductPage: React.FC = () => {
                             <Button
                               variant="ghost"
                               size="icon"
-                              onClick={() => {
-                                setEditingProduct(p);
-                                setIsFormOpen(true);
-                              }}
+                              onClick={() => setDialog({ type: "edit", product: p })}
                               className="h-8 w-8 rounded-lg text-muted-foreground hover:text-primary hover:bg-primary/10 transition-colors cursor-pointer"
                               title="Edit Product"
                             >
@@ -464,7 +424,7 @@ export const ProductPage: React.FC = () => {
                             <Button
                               variant="ghost"
                               size="icon"
-                              onClick={() => setDeletingProduct(p)}
+                              onClick={() => setDialog({ type: "delete", product: p })}
                               className="h-8 w-8 rounded-lg text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors cursor-pointer"
                               title="Move to Trash"
                             >
@@ -480,84 +440,36 @@ export const ProductPage: React.FC = () => {
             })}
           </div>
         ) : (
-          <div className="pb-6">
+          <div className="space-y-4">
             <div className="hidden sm:block">
               <Card className="rounded-2xl border border-border/60 bg-card p-3.5 sm:p-4 shadow-xs text-card-foreground transition-all duration-200 w-full flex-col justify-between overflow-hidden mb-6">
                 <div className="overflow-x-auto no-scrollbar">
                   <table className="w-full text-left text-xs border-collapse">
                     <thead>
                       <tr className="border-b border-border/60 text-muted-foreground font-bold uppercase tracking-wider sticky top-0 bg-card z-10">
-                        <th
-                          onClick={() => requestSort("name")}
-                          className="pb-2.5 px-3 cursor-pointer select-none group hover:text-foreground transition-colors"
-                        >
-                          <div className="flex items-center gap-1">
-                            <span>Product Name</span>
-                            {sortConfig?.key === "name" ? (
-                              sortConfig.direction === "asc" ? (
-                                <ArrowUp className="w-3.5 h-3.5 text-primary" />
-                              ) : (
-                                <ArrowDown className="w-3.5 h-3.5 text-primary" />
-                              )
-                            ) : (
-                              <ArrowUpDown className="w-3 h-3 opacity-0 group-hover:opacity-40 transition-opacity" />
-                            )}
-                          </div>
-                        </th>
+                        <SortableTh
+                          label="Product Name"
+                          sortKey="name"
+                          sortConfig={sortConfig}
+                          onSort={requestSort}
+                        />
                         <th className="pb-2.5 px-3 hidden md:table-cell">
                           Category
                         </th>
-                        <th
-                          onClick={() => requestSort("price")}
-                          className="pb-2.5 px-3 text-right cursor-pointer select-none group hover:text-foreground transition-colors"
-                        >
-                          <div className="flex items-center justify-end gap-1">
-                            <span>Selling Price</span>
-                            {sortConfig?.key === "price" ? (
-                              sortConfig.direction === "asc" ? (
-                                <ArrowUp className="w-3.5 h-3.5 text-primary" />
-                              ) : (
-                                <ArrowDown className="w-3.5 h-3.5 text-primary" />
-                              )
-                            ) : (
-                              <ArrowUpDown className="w-3 h-3 opacity-0 group-hover:opacity-40 transition-opacity" />
-                            )}
-                          </div>
-                        </th>
-                        <th
-                          onClick={() => requestSort("posStatus")}
-                          className="pb-2.5 px-3 text-center cursor-pointer select-none group hover:text-foreground transition-colors"
-                        >
-                          <div className="flex items-center justify-center gap-1">
-                            <span>POS Status</span>
-                            {sortConfig?.key === "posStatus" ? (
-                              sortConfig.direction === "asc" ? (
-                                <ArrowUp className="w-3.5 h-3.5 text-primary" />
-                              ) : (
-                                <ArrowDown className="w-3.5 h-3.5 text-primary" />
-                              )
-                            ) : (
-                              <ArrowUpDown className="w-3 h-3 opacity-0 group-hover:opacity-40 transition-opacity" />
-                            )}
-                          </div>
-                        </th>
-                        <th
-                          onClick={() => requestSort("salesShare")}
-                          className="pb-2.5 px-3 text-right cursor-pointer select-none group hover:text-foreground transition-colors hidden lg:table-cell"
-                        >
-                          <div className="flex items-center justify-end gap-1">
-                            <span>Price Share</span>
-                            {sortConfig?.key === "salesShare" ? (
-                              sortConfig.direction === "asc" ? (
-                                <ArrowUp className="w-3.5 h-3.5 text-primary" />
-                              ) : (
-                                <ArrowDown className="w-3.5 h-3.5 text-primary" />
-                              )
-                            ) : (
-                              <ArrowUpDown className="w-3 h-3 opacity-0 group-hover:opacity-40 transition-opacity" />
-                            )}
-                          </div>
-                        </th>
+                        <SortableTh
+                          label="Selling Price"
+                          sortKey="price"
+                          sortConfig={sortConfig}
+                          onSort={requestSort}
+                          className="text-right"
+                        />
+                        <SortableTh
+                          label="POS Ready"
+                          sortKey="posStatus"
+                          sortConfig={sortConfig}
+                          onSort={requestSort}
+                          className="text-center"
+                        />
                         <th className="pb-2.5 px-3 text-right">Actions</th>
                       </tr>
                     </thead>
@@ -580,26 +492,12 @@ export const ProductPage: React.FC = () => {
                               {getCategoryLabel(p.category)}
                             </td>
 
-                            <td className="py-2.5 px-3 text-right font-mono font-bold text-foreground whitespace-nowrap">
+                            <td className="py-2.5 px-3 text-right font-mono text-foreground font-semibold whitespace-nowrap">
                               {formatRupiah(p.price)}
                             </td>
 
                             <td className="py-2.5 px-3 text-center whitespace-nowrap">
-                              <button
-                                type="button"
-                                onClick={() => handleTogglePosStatus(p)}
-                                className={cn(
-                                  "inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-0.5 rounded-full transition-colors cursor-pointer select-none",
-                                  isPosActive
-                                    ? "text-emerald-700 dark:text-emerald-400 bg-emerald-500/10 hover:bg-emerald-500/20"
-                                    : "text-muted-foreground bg-muted/60 hover:bg-muted",
-                                )}
-                                title={
-                                  isPosActive
-                                    ? "Click to hide from POS"
-                                    : "Click to activate on POS"
-                                }
-                              >
+                              <span className="inline-flex items-center gap-1.5 text-xs font-semibold whitespace-nowrap">
                                 <span
                                   className={cn(
                                     "w-1.5 h-1.5 rounded-full",
@@ -608,26 +506,16 @@ export const ProductPage: React.FC = () => {
                                       : "bg-muted-foreground/50",
                                   )}
                                 />
-                                <span>
-                                  {isPosActive ? "Active on POS" : "Off Menu"}
+                                <span
+                                  className={
+                                    isPosActive
+                                      ? "text-emerald-600 dark:text-emerald-400"
+                                      : "text-muted-foreground"
+                                  }
+                                >
+                                  {isPosActive ? "Active" : "Off Menu"}
                                 </span>
-                              </button>
-                            </td>
-
-                            <td className="py-2.5 px-3 text-right hidden lg:table-cell whitespace-nowrap">
-                              <div className="inline-flex items-center justify-end gap-2">
-                                <span className="font-bold text-xs">
-                                  {p.salesShare}%
-                                </span>
-                                <div className="w-16 sm:w-20 h-1.5 rounded-full bg-muted overflow-hidden">
-                                  <div
-                                    className="h-full bg-primary rounded-full transition-all duration-300"
-                                    style={{
-                                      width: `${Math.max(4, p.salesShare)}%`,
-                                    }}
-                                  />
-                                </div>
-                              </div>
+                              </span>
                             </td>
 
                             <td className="py-2.5 px-3 text-right whitespace-nowrap">
@@ -636,7 +524,7 @@ export const ProductPage: React.FC = () => {
                                   <Button
                                     variant="outline"
                                     size="sm"
-                                    onClick={() => setRestoringProduct(p)}
+                                    onClick={() => setDialog({ type: "restore", product: p })}
                                     className="h-8 px-2.5 rounded-lg bg-emerald-500/10 text-emerald-600 border-emerald-500/40 hover:bg-emerald-500/20 hover:text-emerald-700 text-xs font-semibold gap-1 cursor-pointer shadow-2xs"
                                     title="Restore Product"
                                   >
@@ -645,7 +533,6 @@ export const ProductPage: React.FC = () => {
                                   </Button>
                                 ) : (
                                   <>
-                                    {/* Quick POS Toggle Action Button */}
                                     <Button
                                       variant="ghost"
                                       size="icon"
@@ -668,10 +555,7 @@ export const ProductPage: React.FC = () => {
                                     <Button
                                       variant="ghost"
                                       size="icon"
-                                      onClick={() => {
-                                        setEditingProduct(p);
-                                        setIsFormOpen(true);
-                                      }}
+                                      onClick={() => setDialog({ type: "edit", product: p })}
                                       className="h-8 w-8 rounded-lg text-muted-foreground hover:text-primary hover:bg-primary/10 transition-colors cursor-pointer"
                                       title="Edit Product"
                                     >
@@ -680,7 +564,7 @@ export const ProductPage: React.FC = () => {
                                     <Button
                                       variant="ghost"
                                       size="icon"
-                                      onClick={() => setDeletingProduct(p)}
+                                      onClick={() => setDialog({ type: "delete", product: p })}
                                       className="h-8 w-8 rounded-lg text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors cursor-pointer"
                                       title="Move to Trash"
                                     >
@@ -699,7 +583,6 @@ export const ProductPage: React.FC = () => {
               </Card>
             </div>
 
-            {/* Mobile View Cards */}
             <div className="sm:hidden grid grid-cols-1 gap-3.5 pt-1 pb-6">
               {displayedProducts.map((p) => {
                 const isPosActive = p.is_active !== false;
@@ -715,94 +598,103 @@ export const ProductPage: React.FC = () => {
                           <h3 className="text-xs sm:text-sm font-bold text-foreground leading-tight">
                             {p.name}
                           </h3>
-                          <span className="text-[10px] font-mono text-muted-foreground block truncate">
+                          <span className="text-[10px] text-muted-foreground block truncate">
                             {getCategoryLabel(p.category)}
                           </span>
                         </div>
                         <span
                           className={cn(
-                            "inline-flex items-center gap-1.5 text-[10.5px] px-2.5 py-0.5 rounded-full font-semibold shrink-0",
+                            "w-2 h-2 rounded-full mt-1 shrink-0",
                             isPosActive
-                              ? "bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-500/20"
-                              : "bg-muted/60 text-muted-foreground border border-border/40",
+                              ? "bg-emerald-500 shadow-emerald-500/50"
+                              : "bg-muted-foreground/40",
                           )}
-                        >
+                          title={
+                            isPosActive ? "Active on POS" : "Hidden from POS"
+                          }
+                        />
+                      </div>
+
+                      <div className="space-y-1 text-xs">
+                        <div className="flex items-baseline justify-between">
+                          <span className="text-muted-foreground text-xs">
+                            Price:
+                          </span>
+                          <span className="font-bold text-foreground font-mono">
+                            {formatRupiah(p.price)}
+                          </span>
+                        </div>
+
+                        <div className="flex items-center justify-between text-xs">
+                          <span className="text-muted-foreground">Status:</span>
                           <span
                             className={cn(
-                              "w-1.5 h-1.5 rounded-full",
-                              isPosActive
-                                ? "bg-emerald-500"
-                                : "bg-muted-foreground/50",
+                              "font-bold text-xs",
+                              p.isDeleted
+                                ? "text-destructive"
+                                : isPosActive
+                                  ? "text-emerald-600 dark:text-emerald-400"
+                                  : "text-muted-foreground",
                             )}
-                          />
-                          <span>
-                            {isPosActive ? "Active on POS" : "Off Menu"}
+                          >
+                            {p.isDeleted
+                              ? "Trash"
+                              : isPosActive
+                                ? "Menu Ready"
+                                : "Off Menu"}
                           </span>
-                        </span>
-                      </div>
-
-                      <div className="flex items-baseline justify-between text-xs">
-                        <span className="text-muted-foreground">Price:</span>
-                        <span className="font-bold text-foreground font-mono">
-                          {formatRupiah(p.price)}
-                        </span>
-                      </div>
-
-                      <div className="flex items-center justify-between pt-2 border-t border-border/40 text-xs">
-                        <span className="text-xs text-muted-foreground">
-                          Share: {p.salesShare}%
-                        </span>
-                        <div className="flex items-center gap-1">
-                          {p.isDeleted ? (
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => setRestoringProduct(p)}
-                              className="h-8 px-2.5 rounded-lg bg-emerald-500/10 text-emerald-600 border-emerald-500/40 text-xs font-semibold gap-1"
-                            >
-                              <RotateCcw className="w-3.5 h-3.5" />
-                              <span>Restore</span>
-                            </Button>
-                          ) : (
-                            <>
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                onClick={() => handleTogglePosStatus(p)}
-                                className={cn(
-                                  "h-8 w-8 rounded-lg",
-                                  isPosActive
-                                    ? "text-emerald-600"
-                                    : "text-muted-foreground",
-                                )}
-                                title={
-                                  isPosActive ? "Hide from POS" : "Show on POS"
-                                }
-                              >
-                                <Store className="w-3.5 h-3.5" />
-                              </Button>
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                onClick={() => {
-                                  setEditingProduct(p);
-                                  setIsFormOpen(true);
-                                }}
-                                className="h-8 w-8 rounded-lg text-muted-foreground"
-                              >
-                                <Pencil className="w-3.5 h-3.5" />
-                              </Button>
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                onClick={() => setDeletingProduct(p)}
-                                className="h-8 w-8 rounded-lg text-destructive"
-                              >
-                                <Trash2 className="w-3.5 h-3.5" />
-                              </Button>
-                            </>
-                          )}
                         </div>
+                      </div>
+
+                      <div className="flex items-center justify-end gap-1.5 pt-2 border-t border-border/40">
+                        {p.isDeleted ? (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setDialog({ type: "restore", product: p })}
+                            className="w-full text-xs bg-emerald-500/10 text-emerald-600 border-emerald-500/40 hover:bg-emerald-500/20 hover:text-emerald-700 font-semibold gap-1.5 cursor-pointer"
+                          >
+                            <RotateCcw className="w-3.5 h-3.5" />
+                            <span>Restore</span>
+                          </Button>
+                        ) : (
+                          <>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => handleTogglePosStatus(p)}
+                              className={cn(
+                                "h-8 w-8 rounded-lg",
+                                isPosActive
+                                  ? "text-emerald-600 hover:text-emerald-700 hover:bg-emerald-500/10"
+                                  : "text-muted-foreground",
+                              )}
+                              title={
+                                isPosActive
+                                  ? "Hide from POS"
+                                  : "Activate on POS"
+                              }
+                            >
+                              <Store className="w-3.5 h-3.5" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => setDialog({ type: "edit", product: p })}
+                              className="h-8 w-8 rounded-lg text-muted-foreground"
+                            >
+                              <Pencil className="w-3.5 h-3.5" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => setDialog({ type: "delete", product: p })}
+                              className="h-8 w-8 rounded-lg text-destructive"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </Button>
+                          </>
+                        )}
                       </div>
                     </CardContent>
                   </Card>
@@ -814,57 +706,52 @@ export const ProductPage: React.FC = () => {
       </div>
 
       <ProductDialog
-        isOpen={isFormOpen}
-        onClose={() => {
-          setIsFormOpen(false);
-          setEditingProduct(null);
+        isOpen={dialog?.type === "create" || dialog?.type === "edit"}
+        onClose={() => setDialog(null)}
+        initialData={dialog?.type === "edit" ? dialog.product : null}
+        onSave={(data) => {
+          handleCreateOrUpdate(data);
+          setDialog(null);
         }}
-        initialData={editingProduct}
-        onSave={handleCreateOrUpdate}
       />
 
       <ConfirmDialog
-        isOpen={Boolean(deletingProduct)}
-        onClose={() => setDeletingProduct(null)}
+        isOpen={dialog?.type === "delete" || dialog?.type === "restore"}
+        onClose={() => setDialog(null)}
         onConfirm={() => {
-          if (deletingProduct) {
-            handleDeleteConfirm(deletingProduct.id);
-            setDeletingProduct(null);
+          if (dialog?.type === "delete") {
+            handleDeleteConfirm(dialog.product.id);
+          } else if (dialog?.type === "restore") {
+            handleRestoreConfirm(dialog.product.id);
           }
+          setDialog(null);
         }}
-        title="Move to Trash"
-        subtitle={deletingProduct?.name}
-        description={
-          <span>
-            Are you sure you want to move{" "}
-            <strong>{deletingProduct?.name}</strong> to trash?
-          </span>
+        title={
+          dialog?.type === "delete" ? "Move to Trash" : "Restore Product"
         }
-        confirmText="Move to Trash"
-        cancelText="Cancel"
-        variant="destructive"
-      />
-
-      <ConfirmDialog
-        isOpen={Boolean(restoringProduct)}
-        onClose={() => setRestoringProduct(null)}
-        onConfirm={() => {
-          if (restoringProduct) {
-            handleRestoreConfirm(restoringProduct.id);
-            setRestoringProduct(null);
-          }
-        }}
-        title="Restore Product"
-        subtitle={restoringProduct?.name}
-        description={
-          <span>
-            Restore <strong>{restoringProduct?.name}</strong> back to active
-            menu catalog?
-          </span>
+        subtitle={
+          dialog?.type === "delete" || dialog?.type === "restore"
+            ? dialog.product.name
+            : undefined
         }
-        confirmText="Restore Menu"
+        description={
+          dialog?.type === "delete" ? (
+            <span>
+              Are you sure you want to move{" "}
+              <strong>{dialog.product.name}</strong> to trash?
+            </span>
+          ) : (
+            <span>
+              Restore <strong>{dialog?.type === "restore" ? dialog.product.name : ""}</strong> back to active
+              menu catalog?
+            </span>
+          )
+        }
+        confirmText={
+          dialog?.type === "delete" ? "Move to Trash" : "Restore Menu"
+        }
         cancelText="Cancel"
-        variant="success"
+        variant={dialog?.type === "delete" ? "destructive" : "success"}
       />
     </div>
   );

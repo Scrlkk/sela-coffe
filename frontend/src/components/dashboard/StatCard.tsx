@@ -65,7 +65,7 @@ export const StatCard: React.FC<StatCardProps> = ({
 
           {badgeText && (
             <>
-              {/* Phone screen (< sm): Minimalist dot indicator so title never truncates */}
+              
               <span
                 className={cn(
                   "w-1.5 h-1.5 rounded-full sm:hidden shrink-0 ml-1",
@@ -78,7 +78,6 @@ export const StatCard: React.FC<StatCardProps> = ({
                 title={badgeText}
               />
 
-              {/* Tablet & Desktop (>= sm): Full informative badge text */}
               <span
                 className={cn(
                   "hidden sm:inline-flex text-[10.5px] font-semibold px-2 py-0.5 rounded-full shrink-0 items-center gap-0.5 whitespace-nowrap",

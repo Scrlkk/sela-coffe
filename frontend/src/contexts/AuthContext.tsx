@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { api } from "@/lib/axios";
+import { safeStorage } from "@/utils/storage";
 
 export interface User {
   id: string;
@@ -24,21 +25,21 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
   const [token, setToken] = useState<string | null>(
-    localStorage.getItem("token"),
+    safeStorage.getItem("token"),
   );
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState<boolean>(
-    Boolean(localStorage.getItem("token")),
+    Boolean(safeStorage.getItem("token")),
   );
 
   const login = (newToken: string, newUser: User) => {
-    localStorage.setItem("token", newToken);
+    safeStorage.setItem("token", newToken);
     setToken(newToken);
     setUser(newUser);
   };
 
   const logout = () => {
-    localStorage.removeItem("token");
+    safeStorage.removeItem("token");
     setToken(null);
     setUser(null);
   };
@@ -62,8 +63,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   );
 };
 
-export const useAuth = (): AuthContextType => {
+export const useAuth = () => {
   const context = useContext(AuthContext);
-  if (!context) throw new Error("useAuth must be used within AuthProvider");
+  if (!context) {
+    throw new Error("useAuth must be used within an AuthProvider");
+  }
   return context;
 };

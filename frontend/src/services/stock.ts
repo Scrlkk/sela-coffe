@@ -1,6 +1,8 @@
 import type { IngredientItem } from "./ingredient";
 import { getStoredIngredients, updateIngredient } from "./ingredient";
 import { getStoredCategories } from "./category";
+import { createStorageCrud } from "@/utils/createStorageCrud";
+import { INITIAL_STOCK_LOGS } from "@/mocks/fixtures";
 
 export interface StockItem {
   id: string;
@@ -35,12 +37,14 @@ export interface StockLogItem {
   quantity: number;
   quantity_before: number;
   quantity_after: number;
-  reference_type?: string;
   note?: string;
   created_at: string;
 }
 
-const LOGS_STORAGE_KEY = "sela_stock_logs_data";
+const stockLogsCrud = createStorageCrud<StockLogItem>(
+  "sela_stock_logs_v2",
+  INITIAL_STOCK_LOGS,
+);
 
 const mapIngredientToStock = (
   ing: IngredientItem,
@@ -79,28 +83,18 @@ export const getStoredStocks = (): StockItem[] => {
 };
 
 export const getStoredStockLogs = (): StockLogItem[] => {
-  try {
-    const data = localStorage.getItem(LOGS_STORAGE_KEY);
-    return data ? JSON.parse(data) : [];
-  } catch {
-    return [];
-  }
+  return stockLogsCrud.getRaw();
 };
 
 export const saveStockLogs = (logs: StockLogItem[]): void => {
-  try {
-    localStorage.setItem(LOGS_STORAGE_KEY, JSON.stringify(logs));
-  } catch (e) {
-    console.error("Failed to save stock logs to localStorage", e);
-  }
+  stockLogsCrud.save(logs);
 };
 
 export interface AdjustStockPayload {
-  product_id: string; // Ingredient ID
+  product_id: string;
   type: StockLogType;
   quantity: number;
   note?: string;
-  reference_type?: string;
   user_name?: string;
 }
 
@@ -144,13 +138,6 @@ export const adjustStock = (
     quantity: Math.abs(payload.quantity),
     quantity_before: before,
     quantity_after: after,
-    reference_type:
-      payload.reference_type ||
-      (payload.type === "in"
-        ? "Supplier Restock Delivery"
-        : payload.type === "out"
-          ? "Bar Spoilage / Spillage"
-          : "Physical Stock Opname"),
     note: payload.note || "",
     created_at: new Date().toISOString(),
   };

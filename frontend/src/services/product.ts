@@ -1,198 +1,41 @@
 import type { ProductItem } from "@/constants/cashier";
+import { createStorageCrud } from "@/utils/createStorageCrud";
+import { INITIAL_PRODUCTS } from "@/mocks/fixtures";
 
-export const INITIAL_PRODUCTS: ProductItem[] = [
+const productCrud = createStorageCrud<ProductItem>(
+  "sela_products_data",
+  INITIAL_PRODUCTS,
   {
-    id: "p1",
-    name: "Sela Signature Latte",
-    category: "espresso",
-    price: 28000,
-    image: "☕",
-    stock: 24,
-    isDeleted: false,
-    is_active: true,
+    generateId: () => `p_${Date.now()}`,
+    onCreate: (item) => ({
+      is_active: item.is_active ?? true,
+    }),
   },
-  {
-    id: "p2",
-    name: "Americano Double Shot",
-    category: "espresso",
-    price: 22000,
-    image: "☕",
-    stock: 40,
-    isDeleted: false,
-    is_active: true,
-  },
-  {
-    id: "p3",
-    name: "Caramel Macchiato",
-    category: "espresso",
-    price: 32000,
-    image: "🧋",
-    stock: 18,
-    isDeleted: false,
-    is_active: true,
-  },
-  {
-    id: "p4",
-    name: "V60 Japanese Iced Coffee",
-    category: "manual-brew",
-    price: 35000,
-    image: "🧊",
-    stock: 15,
-    isDeleted: false,
-    is_active: true,
-  },
-  {
-    id: "p5",
-    name: "Aeropress Beans Ethiopia",
-    category: "manual-brew",
-    price: 38000,
-    image: "☕",
-    stock: 10,
-    isDeleted: false,
-    is_active: true,
-  },
-  {
-    id: "p6",
-    name: "Matcha Oat Latte",
-    category: "non-coffee",
-    price: 30000,
-    image: "🍵",
-    stock: 22,
-    isDeleted: false,
-    is_active: true,
-  },
-  {
-    id: "p7",
-    name: "Artisan Chocolate Shake",
-    category: "non-coffee",
-    price: 29000,
-    image: "🥤",
-    stock: 16,
-    isDeleted: false,
-    is_active: true,
-  },
-  {
-    id: "p8",
-    name: "Butter Croissant",
-    category: "pastry",
-    price: 24000,
-    image: "🥐",
-    stock: 12,
-    isDeleted: false,
-    is_active: true,
-  },
-  {
-    id: "p9",
-    name: "Almond Pain au Chocolat",
-    category: "pastry",
-    price: 27000,
-    image: "🥐",
-    stock: 8,
-    isDeleted: false,
-    is_active: true,
-  },
-  {
-    id: "p10",
-    name: "Smoked Beef Croffle",
-    category: "pastry",
-    price: 32000,
-    image: "🧇",
-    stock: 14,
-    isDeleted: false,
-    is_active: true,
-  },
-  {
-    id: "p11",
-    name: "Nasi Goreng Sela Special",
-    category: "food",
-    price: 42000,
-    image: "🍳",
-    stock: 20,
-    isDeleted: false,
-    is_active: true,
-  },
-  {
-    id: "p12",
-    name: "Truffle Fries & Dip",
-    category: "food",
-    price: 28000,
-    image: "🍟",
-    stock: 25,
-    isDeleted: false,
-    is_active: true,
-  },
-];
-
-const STORAGE_KEY = "sela_products_data";
+);
 
 export const getStoredProducts = (includeDeleted = false): ProductItem[] => {
-  try {
-    const data = localStorage.getItem(STORAGE_KEY);
-    const products: ProductItem[] = data
-      ? JSON.parse(data)
-      : INITIAL_PRODUCTS;
-    if (!data) {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(INITIAL_PRODUCTS));
-    }
-    return includeDeleted ? products : products.filter((p) => !p.isDeleted);
-  } catch {
-    return includeDeleted
-      ? INITIAL_PRODUCTS
-      : INITIAL_PRODUCTS.filter((p) => !p.isDeleted);
-  }
+  return productCrud.get(includeDeleted);
 };
 
 export const saveProducts = (products: ProductItem[]): void => {
-  try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(products));
-  } catch {
-    // Safe fallback
-  }
+  productCrud.save(products);
 };
 
 export const addProduct = (product: Omit<ProductItem, "id">): ProductItem => {
-  const allProducts = getStoredProducts(true);
-  const newProduct: ProductItem = {
-    ...product,
-    id: `p_${Date.now()}`,
-    isDeleted: false,
-    is_active: product.is_active ?? true,
-  };
-  const updated = [newProduct, ...allProducts];
-  saveProducts(updated);
-  return newProduct;
+  return productCrud.add(product);
 };
 
 export const updateProduct = (
   id: string,
   updatedFields: Partial<ProductItem>,
 ): ProductItem | null => {
-  const allProducts = getStoredProducts(true);
-  const index = allProducts.findIndex((p) => p.id === id);
-  if (index === -1) return null;
-
-  const updatedItem = { ...allProducts[index], ...updatedFields };
-  allProducts[index] = updatedItem;
-  saveProducts(allProducts);
-  return updatedItem;
+  return productCrud.update(id, updatedFields);
 };
 
 export const softDeleteProduct = (id: string): boolean => {
-  const allProducts = getStoredProducts(true);
-  const index = allProducts.findIndex((p) => p.id === id);
-  if (index === -1) return false;
-
-  allProducts[index].isDeleted = true;
-  saveProducts(allProducts);
-  return true;
+  return productCrud.softDelete(id);
 };
 
 export const restoreProduct = (id: string): boolean => {
-  const allProducts = getStoredProducts(true);
-  const index = allProducts.findIndex((p) => p.id === id);
-  if (index === -1) return false;
-
-  allProducts[index].isDeleted = false;
-  saveProducts(allProducts);
-  return true;
+  return productCrud.restore(id);
 };

@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useDeferredValue } from "react";
 import type { CategoryItem, CategoryType } from "@/services/category";
 import {
   getStoredCategories,
@@ -37,14 +37,19 @@ import {
   Package,
   FolderOpen,
   RotateCcw,
-  ArrowUpDown,
-  ArrowUp,
-  ArrowDown,
   Wheat,
   ChevronDown,
 } from "lucide-react";
 import { useViewMode } from "@/hooks/useViewMode";
 import { useTableSort } from "@/hooks/useTableSort";
+import { SortableTh } from "@/components/shared/SortableTh";
+
+type CategoryDialogState =
+  | { type: "create" }
+  | { type: "edit"; category: CategoryItem }
+  | { type: "delete"; category: CategoryItem }
+  | { type: "restore"; category: CategoryItem }
+  | null;
 
 export const CategoryPage: React.FC = () => {
   const [allCategories, setAllCategories] = useState<CategoryItem[]>(() =>
@@ -53,6 +58,7 @@ export const CategoryPage: React.FC = () => {
   const [activeTab, setActiveTab] = useState<CategoryType>("product");
   const [showDeleted, setShowDeleted] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const deferredSearch = useDeferredValue(searchQuery);
 
   const products = useMemo(() => getStoredProducts(), []);
   const ingredients = useMemo(() => getStoredIngredients(), []);
@@ -61,15 +67,7 @@ export const CategoryPage: React.FC = () => {
     "sela_category_view_mode",
   );
 
-  const [isFormOpen, setIsFormOpen] = useState(false);
-  const [editingCategory, setEditingCategory] = useState<CategoryItem | null>(
-    null,
-  );
-  const [deletingCategory, setDeletingCategory] = useState<CategoryItem | null>(
-    null,
-  );
-  const [restoringCategory, setRestoringCategory] =
-    useState<CategoryItem | null>(null);
+  const [dialog, setDialog] = useState<CategoryDialogState>(null);
 
   const productCategoryCounts = useMemo(() => {
     const counts: Record<string, number> = {};
@@ -123,7 +121,12 @@ export const CategoryPage: React.FC = () => {
       emptyCount,
       archivedCount,
     };
-  }, [allCategories, activeTab, productCategoryCounts, ingredientCategoryCounts]);
+  }, [
+    allCategories,
+    activeTab,
+    productCategoryCounts,
+    ingredientCategoryCounts,
+  ]);
 
   const filteredCategories = useMemo(() => {
     const targetList = allCategories.filter((c) => {
@@ -134,12 +137,12 @@ export const CategoryPage: React.FC = () => {
 
     return targetList.filter((c) => {
       const matchSearch =
-        c.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        c.name.toLowerCase().includes(deferredSearch.toLowerCase()) ||
         (c.description &&
-          c.description.toLowerCase().includes(searchQuery.toLowerCase()));
+          c.description.toLowerCase().includes(deferredSearch.toLowerCase()));
       return matchSearch;
     });
-  }, [allCategories, activeTab, showDeleted, searchQuery]);
+  }, [allCategories, activeTab, showDeleted, deferredSearch]);
 
   const categoriesWithMetrics = useMemo(() => {
     const countsMap =
@@ -151,10 +154,18 @@ export const CategoryPage: React.FC = () => {
       ...c,
       itemCount: countsMap[c.id] || 0,
     }));
-  }, [filteredCategories, activeTab, productCategoryCounts, ingredientCategoryCounts]);
+  }, [
+    filteredCategories,
+    activeTab,
+    productCategoryCounts,
+    ingredientCategoryCounts,
+  ]);
 
-  const { sortedItems: displayedCategories, sortConfig, requestSort } =
-    useTableSort(categoriesWithMetrics, "name", "asc");
+  const {
+    sortedItems: displayedCategories,
+    sortConfig,
+    requestSort,
+  } = useTableSort(categoriesWithMetrics, "name", "asc");
 
   const handleCreateOrUpdate = (
     data: Omit<CategoryItem, "id"> | CategoryItem,
@@ -347,10 +358,10 @@ export const CategoryPage: React.FC = () => {
               <span>Menu Products</span>
               <span
                 className={cn(
-                  "inline-flex items-center justify-center px-1.5 py-0.5 text-[10px] font-bold rounded-full leading-none transition-colors",
+                  "text-xs font-semibold tabular-nums ml-0.5",
                   activeTab === "product"
-                    ? "bg-primary/15 text-primary"
-                    : "bg-muted-foreground/15 text-muted-foreground",
+                    ? "text-primary font-bold"
+                    : "text-muted-foreground",
                 )}
               >
                 {tabCounts.productCount}
@@ -370,10 +381,10 @@ export const CategoryPage: React.FC = () => {
               <span>Raw Ingredients</span>
               <span
                 className={cn(
-                  "inline-flex items-center justify-center px-1.5 py-0.5 text-[10px] font-bold rounded-full leading-none transition-colors",
+                  "text-xs font-semibold tabular-nums ml-0.5",
                   activeTab === "ingredient"
-                    ? "bg-primary/15 text-primary"
-                    : "bg-muted-foreground/15 text-muted-foreground",
+                    ? "text-primary font-bold"
+                    : "text-muted-foreground",
                 )}
               >
                 {tabCounts.ingredientCount}
@@ -406,17 +417,14 @@ export const CategoryPage: React.FC = () => {
 
             {!showDeleted && (
               <Button
-                onClick={() => {
-                  setEditingCategory(null);
-                  setIsFormOpen(true);
-                }}
-                className="h-9.5 rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground text-xs font-bold gap-1.5 px-4 shadow-xs transition-all active:scale-[0.99] cursor-pointer justify-center shrink-0"
+                onClick={() => setDialog({ type: "create" })}
+                className="h-9.5 rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground text-xs font-bold gap-1.5 px-4 shadow-xs transition-all active:scale-[0.99] cursor-pointer shrink-0"
               >
                 <Plus className="w-4 h-4" />
                 <span>
                   {activeTab === "product"
-                    ? "Add Product Category"
-                    : "Add Ingredient Category"}
+                    ? "Add Menu Category"
+                    : "Add Material Category"}
                 </span>
               </Button>
             )}
@@ -425,73 +433,77 @@ export const CategoryPage: React.FC = () => {
       </div>
 
       <div
-        key={`${activeTab}-${viewMode}`}
+        key={viewMode}
         className={cn(
           userSwitchedView && "animate-in fade-in-50 zoom-in-98 duration-200",
         )}
       >
         {displayedCategories.length === 0 ? (
           <EmptyState
-            title={
-              activeTab === "product"
-                ? "No product categories found"
-                : "No ingredient categories found"
-            }
+            title="No categories found"
             description={
               searchQuery
-                ? `No ${activeTab} categories match "${searchQuery}".`
+                ? `No category matches "${searchQuery}".`
                 : showDeleted
-                  ? `No archived ${activeTab} categories found.`
-                  : `No ${activeTab} categories registered yet. Click 'Add Category' to get started.`
+                  ? "Archived categories trash is currently empty."
+                  : "No categories added yet. Click 'Add Category' to organize your items."
             }
           />
         ) : viewMode === "grid" ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3.5 pt-1 pb-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5 pt-1 pb-6">
             {displayedCategories.map((c) => {
-              const count = c.itemCount || 0;
-
+              const count = c.itemCount;
               return (
                 <Card
                   key={c.id}
                   className="group relative border border-border/60 shadow-2xs rounded-2xl bg-card text-card-foreground transition-all duration-200 hover:border-primary hover:shadow-md overflow-hidden flex flex-col justify-between select-none"
                 >
                   <CardContent className="p-4 flex flex-col justify-between h-full space-y-3">
-                    <div className="space-y-2 min-w-0 flex-1">
-                      <div className="flex items-center gap-2.5 min-w-0">
-                        <div className="w-8 h-8 rounded-xl bg-primary/10 text-primary flex items-center justify-center shrink-0">
-                          {activeTab === "product" ? (
-                            <FolderOpen className="w-4 h-4" />
-                          ) : (
-                            <Wheat className="w-4 h-4" />
-                          )}
+                    <div className="space-y-2">
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="flex items-center gap-2.5 min-w-0 flex-1">
+                          <div className="w-9 h-9 rounded-xl bg-primary/10 text-primary flex items-center justify-center font-bold text-sm shrink-0">
+                            {activeTab === "product" ? (
+                              <FolderTree className="w-4 h-4" />
+                            ) : (
+                              <Wheat className="w-4 h-4" />
+                            )}
+                          </div>
+                          <div className="min-w-0 flex-1">
+                            <h3 className="font-bold text-foreground text-sm leading-tight truncate">
+                              {c.name}
+                            </h3>
+                            <span className="text-[10px] font-mono text-muted-foreground uppercase">
+                              {c.id}
+                            </span>
+                          </div>
                         </div>
-                        <h3 className="text-sm font-bold text-foreground leading-tight truncate flex-1 min-w-0">
-                          {c.name}
-                        </h3>
+
+                        <Badge
+                          variant="secondary"
+                          className={cn(
+                            "px-2 py-0.5 rounded-lg text-[10px] font-bold shrink-0 border-0",
+                            count > 0
+                              ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
+                              : "bg-muted text-muted-foreground",
+                          )}
+                        >
+                          {count > 0 ? `${count} items` : "Empty"}
+                        </Badge>
                       </div>
 
-                      <p className="text-xs text-muted-foreground line-clamp-3 leading-relaxed pt-0.5">
-                        {c.description || "No description provided for this category."}
+                      <p className="text-xs text-muted-foreground line-clamp-2 leading-relaxed">
+                        {c.description || "No description provided."}
                       </p>
                     </div>
 
                     <div className="flex items-center justify-between pt-2 border-t border-border/40 mt-auto text-xs gap-1">
-                      <div className="min-w-0 flex-1">
-                        <span className="text-muted-foreground font-medium text-[10px] block truncate">
-                          Assigned Items
-                        </span>
-                        <span className="font-bold text-xs text-foreground block truncate">
-                          {count}{" "}
-                          {activeTab === "product" ? "Products" : "Materials"}
-                        </span>
-                      </div>
-
                       <div className="flex items-center gap-1 shrink-0">
                         {c.isDeleted ? (
                           <Button
                             variant="outline"
                             size="sm"
-                            onClick={() => setRestoringCategory(c)}
+                            onClick={() => setDialog({ type: "restore", category: c })}
                             className="h-8 px-2.5 rounded-lg bg-emerald-500/10 text-emerald-600 border-emerald-500/40 hover:bg-emerald-500/20 hover:text-emerald-700 text-xs font-semibold gap-1 cursor-pointer"
                             title="Restore Category"
                           >
@@ -503,10 +515,7 @@ export const CategoryPage: React.FC = () => {
                             <Button
                               variant="ghost"
                               size="icon"
-                              onClick={() => {
-                                setEditingCategory(c);
-                                setIsFormOpen(true);
-                              }}
+                              onClick={() => setDialog({ type: "edit", category: c })}
                               className="h-8 w-8 rounded-lg text-muted-foreground hover:text-primary hover:bg-primary/10 transition-colors cursor-pointer"
                               title="Edit Category"
                             >
@@ -515,7 +524,7 @@ export const CategoryPage: React.FC = () => {
                             <Button
                               variant="ghost"
                               size="icon"
-                              onClick={() => setDeletingCategory(c)}
+                              onClick={() => setDialog({ type: "delete", category: c })}
                               className="h-8 w-8 rounded-lg text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors cursor-pointer"
                               title="Delete Category"
                             >
@@ -531,79 +540,60 @@ export const CategoryPage: React.FC = () => {
             })}
           </div>
         ) : (
-          <div className="pb-6">
+          <div className="space-y-4">
             <div className="hidden sm:block">
               <Card className="rounded-2xl border border-border/60 bg-card p-3.5 sm:p-4 shadow-xs text-card-foreground transition-all duration-200 w-full flex-col justify-between overflow-hidden mb-6">
                 <div className="overflow-x-auto no-scrollbar">
                   <table className="w-full text-left text-xs border-collapse">
                     <thead>
                       <tr className="border-b border-border/60 text-muted-foreground font-bold uppercase tracking-wider sticky top-0 bg-card z-10">
-                        <th
-                          onClick={() => requestSort("name")}
-                          className="pb-2.5 px-3 cursor-pointer select-none group hover:text-foreground transition-colors"
-                        >
-                          <div className="flex items-center gap-1">
-                            <span>Category Name</span>
-                            {sortConfig?.key === "name" ? (
-                              sortConfig.direction === "asc" ? (
-                                <ArrowUp className="w-3.5 h-3.5 text-primary" />
-                              ) : (
-                                <ArrowDown className="w-3.5 h-3.5 text-primary" />
-                              )
-                            ) : (
-                              <ArrowUpDown className="w-3 h-3 opacity-0 group-hover:opacity-40 transition-opacity" />
-                            )}
-                          </div>
-                        </th>
-                        <th className="pb-2.5 px-3 hidden md:table-cell">
-                          Description
-                        </th>
-                        <th
-                          onClick={() => requestSort("itemCount")}
-                          className="pb-2.5 px-3 text-center cursor-pointer select-none group hover:text-foreground transition-colors"
-                        >
-                          <div className="flex items-center justify-center gap-1">
-                            <span>Total Items</span>
-                            {sortConfig?.key === "itemCount" ? (
-                              sortConfig.direction === "asc" ? (
-                                <ArrowUp className="w-3.5 h-3.5 text-primary" />
-                              ) : (
-                                <ArrowDown className="w-3.5 h-3.5 text-primary" />
-                              )
-                            ) : (
-                              <ArrowUpDown className="w-3 h-3 opacity-0 group-hover:opacity-40 transition-opacity" />
-                            )}
-                          </div>
-                        </th>
+                        <SortableTh
+                          label="Category Name"
+                          sortKey="name"
+                          sortConfig={sortConfig}
+                          onSort={requestSort}
+                        />
+                        <th className="pb-2.5 px-3">Description</th>
+                        <SortableTh
+                          label={
+                            activeTab === "product"
+                              ? "Products Count"
+                              : "Materials Count"
+                          }
+                          sortKey="itemCount"
+                          sortConfig={sortConfig}
+                          onSort={requestSort}
+                          className="text-center"
+                        />
                         <th className="pb-2.5 px-3 text-center">Status</th>
                         <th className="pb-2.5 px-3 text-right">Actions</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-border/40 font-medium">
                       {displayedCategories.map((c) => {
-                        const count = c.itemCount || 0;
-
+                        const count = c.itemCount;
                         return (
                           <tr
                             key={c.id}
                             className="hover:bg-muted/40 transition-colors"
                           >
-                            <td className="py-2.5 px-3">
-                              <span className="font-bold text-foreground block truncate">
-                                {c.name}
-                              </span>
+                            <td className="py-2.5 px-3 font-bold text-foreground">
+                              <div className="flex items-center gap-2">
+                                <div className="w-7 h-7 rounded-lg bg-primary/10 text-primary flex items-center justify-center shrink-0">
+                                  {activeTab === "product" ? (
+                                    <FolderTree className="w-3.5 h-3.5" />
+                                  ) : (
+                                    <Wheat className="w-3.5 h-3.5" />
+                                  )}
+                                </div>
+                                <span>{c.name}</span>
+                              </div>
                             </td>
-                            <td className="py-2.5 px-3 text-muted-foreground max-w-xs truncate hidden md:table-cell">
+                            <td className="py-2.5 px-3 text-muted-foreground max-w-xs truncate">
                               {c.description || "-"}
                             </td>
-                            <td className="py-2.5 px-3 text-center whitespace-nowrap">
-                              <Badge
-                                variant={count > 0 ? "secondary" : "outline"}
-                                className="rounded-full text-[11px] font-bold px-2 py-0.5"
-                              >
-                                {count}{" "}
-                                {activeTab === "product" ? "Products" : "Materials"}
-                              </Badge>
+                            <td className="py-2.5 px-3 text-center font-bold font-mono">
+                              {count}
                             </td>
                             <td className="py-2.5 px-3 text-center whitespace-nowrap">
                               <span className="inline-flex items-center gap-1.5 text-xs font-semibold whitespace-nowrap">
@@ -632,7 +622,7 @@ export const CategoryPage: React.FC = () => {
                                   <Button
                                     variant="outline"
                                     size="sm"
-                                    onClick={() => setRestoringCategory(c)}
+                                    onClick={() => setDialog({ type: "restore", category: c })}
                                     className="h-8 px-2.5 rounded-lg bg-emerald-500/10 text-emerald-600 border-emerald-500/40 hover:bg-emerald-500/20 hover:text-emerald-700 text-xs font-semibold gap-1 cursor-pointer"
                                     title="Restore Category"
                                   >
@@ -644,10 +634,7 @@ export const CategoryPage: React.FC = () => {
                                     <Button
                                       variant="ghost"
                                       size="icon"
-                                      onClick={() => {
-                                        setEditingCategory(c);
-                                        setIsFormOpen(true);
-                                      }}
+                                      onClick={() => setDialog({ type: "edit", category: c })}
                                       className="h-8 w-8 rounded-lg text-muted-foreground hover:text-primary hover:bg-primary/10 transition-colors cursor-pointer"
                                       title="Edit Category"
                                     >
@@ -656,7 +643,7 @@ export const CategoryPage: React.FC = () => {
                                     <Button
                                       variant="ghost"
                                       size="icon"
-                                      onClick={() => setDeletingCategory(c)}
+                                      onClick={() => setDialog({ type: "delete", category: c })}
                                       className="h-8 w-8 rounded-lg text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors cursor-pointer"
                                       title="Delete Category"
                                     >
@@ -675,78 +662,87 @@ export const CategoryPage: React.FC = () => {
               </Card>
             </div>
 
-            <div className="sm:hidden grid grid-cols-1 gap-3.5 pt-1 pb-6">
+            <div className="grid grid-cols-1 gap-3 sm:hidden pt-1 pb-6">
               {displayedCategories.map((c) => {
-                const count = c.itemCount || 0;
+                const count = c.itemCount;
                 return (
                   <Card
                     key={c.id}
-                    className="group relative border border-border/60 shadow-2xs rounded-2xl bg-card text-card-foreground transition-all duration-200 hover:border-primary hover:shadow-md overflow-hidden flex flex-col justify-between select-none"
+                    className="rounded-2xl border border-border/60 bg-card p-4 shadow-xs space-y-3"
                   >
-                    <CardContent className="p-3.5 space-y-2.5">
-                      <div className="space-y-1.5 min-w-0 flex-1">
-                        <div className="flex items-center gap-2 min-w-0">
-                          <div className="w-7 h-7 rounded-lg bg-primary/10 text-primary flex items-center justify-center shrink-0">
+                    <CardContent className="p-0 space-y-3">
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="flex items-center gap-2.5 min-w-0">
+                          <div className="w-8 h-8 rounded-xl bg-primary/10 text-primary flex items-center justify-center font-bold text-xs shrink-0">
                             {activeTab === "product" ? (
-                              <FolderOpen className="w-3.5 h-3.5" />
+                              <FolderOpen className="w-4 h-4" />
                             ) : (
-                              <Wheat className="w-3.5 h-3.5" />
+                              <Wheat className="w-4 h-4" />
                             )}
                           </div>
-                          <h3 className="text-xs sm:text-sm font-bold text-foreground leading-tight truncate flex-1 min-w-0">
-                            {c.name}
-                          </h3>
+                          <div className="min-w-0">
+                            <h4 className="font-bold text-foreground leading-tight truncate">
+                              {c.name}
+                            </h4>
+                            <span className="text-[10px] text-muted-foreground">
+                              {count}{" "}
+                              {activeTab === "product"
+                                ? "products"
+                                : "materials"}
+                            </span>
+                          </div>
                         </div>
-                        <p className="text-[11px] text-muted-foreground line-clamp-2 leading-relaxed">
-                          {c.description || "No description provided"}
-                        </p>
+
+                        <Badge
+                          variant="secondary"
+                          className={cn(
+                            "px-2 py-0.5 text-[10px] font-bold rounded-lg border-0 shrink-0",
+                            count > 0
+                              ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
+                              : "bg-muted text-muted-foreground",
+                          )}
+                        >
+                          {count > 0 ? "In Use" : "Empty"}
+                        </Badge>
                       </div>
 
-                      <div className="flex items-center justify-between pt-2 border-t border-border/40 mt-auto text-xs gap-1">
-                        <div className="min-w-0 flex-1">
-                          <span className="text-muted-foreground font-medium text-[10px] block truncate">
-                            Assigned Items
-                          </span>
-                          <span className="font-bold text-xs text-foreground block truncate">
-                            {count}{" "}
-                            {activeTab === "product" ? "Products" : "Materials"}
-                          </span>
-                        </div>
-                        <div className="flex items-center gap-1 shrink-0">
-                          {c.isDeleted ? (
+                      {c.description && (
+                        <p className="text-xs text-muted-foreground line-clamp-2">
+                          {c.description}
+                        </p>
+                      )}
+
+                      <div className="flex items-center justify-end gap-1.5 pt-2 border-t border-border/40">
+                        {c.isDeleted ? (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setDialog({ type: "restore", category: c })}
+                            className="w-full text-xs bg-emerald-500/10 text-emerald-600 border-emerald-500/40 hover:bg-emerald-500/20 hover:text-emerald-700 font-semibold gap-1.5 cursor-pointer"
+                          >
+                            <RotateCcw className="w-3.5 h-3.5" />
+                            <span>Restore</span>
+                          </Button>
+                        ) : (
+                          <>
                             <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => setRestoringCategory(c)}
-                              className="h-8 px-2.5 rounded-lg bg-emerald-500/10 text-emerald-600 border-emerald-500/40 text-xs font-semibold gap-1"
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => setDialog({ type: "edit", category: c })}
+                              className="h-8 w-8 rounded-lg text-muted-foreground hover:text-primary"
                             >
-                              <RotateCcw className="w-3.5 h-3.5" />
-                              <span>Restore</span>
+                              <Pencil className="w-3.5 h-3.5" />
                             </Button>
-                          ) : (
-                            <>
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                onClick={() => {
-                                  setEditingCategory(c);
-                                  setIsFormOpen(true);
-                                }}
-                                className="h-8 w-8 rounded-lg text-muted-foreground hover:text-primary"
-                              >
-                                <Pencil className="w-3.5 h-3.5" />
-                              </Button>
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                onClick={() => setDeletingCategory(c)}
-                                className="h-8 w-8 rounded-lg text-muted-foreground hover:text-destructive"
-                              >
-                                <Trash2 className="w-3.5 h-3.5" />
-                              </Button>
-                            </>
-                          )}
-                        </div>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => setDialog({ type: "delete", category: c })}
+                              className="h-8 w-8 rounded-lg text-muted-foreground hover:text-destructive"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </Button>
+                          </>
+                        )}
                       </div>
                     </CardContent>
                   </Card>
@@ -758,56 +754,56 @@ export const CategoryPage: React.FC = () => {
       </div>
 
       <CategoryDialog
-        isOpen={isFormOpen}
-        onClose={() => {
-          setIsFormOpen(false);
-          setEditingCategory(null);
-        }}
-        initialData={editingCategory}
+        isOpen={dialog?.type === "create" || dialog?.type === "edit"}
+        onClose={() => setDialog(null)}
+        initialData={dialog?.type === "edit" ? dialog.category : null}
         categoryType={activeTab}
-        onSave={handleCreateOrUpdate}
+        onSave={(data) => {
+          handleCreateOrUpdate(data);
+          setDialog(null);
+        }}
       />
 
       <ConfirmDialog
-        isOpen={Boolean(deletingCategory)}
-        onClose={() => setDeletingCategory(null)}
+        isOpen={dialog?.type === "delete" || dialog?.type === "restore"}
+        onClose={() => setDialog(null)}
         onConfirm={() => {
-          if (deletingCategory) {
-            handleDeleteConfirm(deletingCategory.id);
-            setDeletingCategory(null);
+          if (dialog?.type === "delete") {
+            handleDeleteConfirm(dialog.category.id);
+          } else if (dialog?.type === "restore") {
+            handleRestoreConfirm(dialog.category.id);
           }
+          setDialog(null);
         }}
-        title="Move to Trash"
-        subtitle={deletingCategory?.name}
-        description={
-          <span>
-            Are you sure you want to move <strong>{deletingCategory?.name}</strong> to trash?
-          </span>
+        title={
+          dialog?.type === "delete" ? "Move to Trash" : "Restore Category"
         }
-        confirmText="Move to Trash"
-        cancelText="Cancel"
-        variant="destructive"
-      />
-
-      <ConfirmDialog
-        isOpen={Boolean(restoringCategory)}
-        onClose={() => setRestoringCategory(null)}
-        onConfirm={() => {
-          if (restoringCategory) {
-            handleRestoreConfirm(restoringCategory.id);
-            setRestoringCategory(null);
-          }
-        }}
-        title="Restore Category"
-        subtitle={restoringCategory?.name}
-        description={
-          <span>
-            Restore <strong>{restoringCategory?.name}</strong> back to active categories?
-          </span>
+        subtitle={
+          dialog?.type === "delete" || dialog?.type === "restore"
+            ? dialog.category.name
+            : undefined
         }
-        confirmText="Restore Category"
+        description={
+          dialog?.type === "delete" ? (
+            <span>
+              Are you sure you want to move{" "}
+              <strong>{dialog.category.name}</strong> to trash?
+            </span>
+          ) : (
+            <span>
+              Restore{" "}
+              <strong>
+                {dialog?.type === "restore" ? dialog.category.name : ""}
+              </strong>{" "}
+              back to active categories?
+            </span>
+          )
+        }
+        confirmText={
+          dialog?.type === "delete" ? "Move to Trash" : "Restore Category"
+        }
         cancelText="Cancel"
-        variant="success"
+        variant={dialog?.type === "delete" ? "destructive" : "success"}
       />
     </div>
   );

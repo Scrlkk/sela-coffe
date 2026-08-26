@@ -18,6 +18,7 @@ import {
   Inbox,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { safeStorage } from "@/utils/storage";
 
 export interface NotificationItem {
   id: string;
@@ -67,21 +68,13 @@ const STORAGE_KEY = "sela_mock_notifications";
 
 export const NotificationDropdown: React.FC = () => {
   const [notifications, setNotifications] = useState<NotificationItem[]>(() => {
-    try {
-      const saved = localStorage.getItem(STORAGE_KEY);
-      return saved ? JSON.parse(saved) : INITIAL_NOTIFICATIONS;
-    } catch {
-      return INITIAL_NOTIFICATIONS;
-    }
+    const saved = safeStorage.getItem(STORAGE_KEY);
+    return saved ? JSON.parse(saved) : INITIAL_NOTIFICATIONS;
   });
 
   const saveNotifications = (items: NotificationItem[]) => {
     setNotifications(items);
-    try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
-    } catch {
-      // Safe fallback
-    }
+    safeStorage.setItem(STORAGE_KEY, JSON.stringify(items));
   };
 
   const unreadCount = notifications.filter((n) => !n.isRead).length;
