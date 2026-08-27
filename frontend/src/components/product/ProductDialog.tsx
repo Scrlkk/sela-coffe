@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import type { ProductItem } from "@/constants/cashier";
+import type { ProductItem } from "@/services/product";
 import { getStoredCategories } from "@/services/category";
 import { cn } from "@/lib/utils";
 import {
@@ -14,13 +14,7 @@ import { FormDropdownPicker } from "@/components/shared/FormDropdownPicker";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  PackagePlus,
-  Pencil,
-  Info,
-  Lock,
-  Folder,
-} from "lucide-react";
+import { PackagePlus, Pencil, Info, Lock, Folder } from "lucide-react";
 
 interface ProductDialogProps {
   isOpen: boolean;
@@ -100,7 +94,6 @@ const ProductDialogForm: React.FC<ProductFormProps> = ({
       </DialogHeader>
 
       <form onSubmit={handleSubmit} className="space-y-3.5 sm:space-y-4 py-2">
-        
         <div className="space-y-1">
           <Label
             htmlFor="prod-name"
@@ -186,7 +179,8 @@ const ProductDialogForm: React.FC<ProductFormProps> = ({
               disabled={isEditMode}
               className={cn(
                 "h-9.5 sm:h-10 rounded-xl border-input bg-card text-foreground text-xs sm:text-sm font-semibold",
-                isEditMode && "bg-muted/50 cursor-not-allowed text-muted-foreground opacity-80",
+                isEditMode &&
+                  "bg-muted/50 cursor-not-allowed text-muted-foreground opacity-80",
               )}
             />
           </div>
@@ -196,12 +190,13 @@ const ProductDialogForm: React.FC<ProductFormProps> = ({
           <div className="flex items-start gap-2 p-2.5 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-800 dark:text-amber-300 text-xs">
             <Info className="w-4 h-4 shrink-0 mt-0.5" />
             <p className="leading-relaxed">
-              Physical inventory stock levels are managed via raw ingredient deductions.
+              Physical inventory stock levels are managed via raw ingredient
+              deductions.
             </p>
           </div>
         )}
 
-        <DialogFooter className="gap-2 sm:gap-0 pt-2 border-t border-border/40">
+        <DialogFooter className="pt-2 sm:pt-3">
           <Button
             type="button"
             variant="outline"

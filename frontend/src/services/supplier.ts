@@ -7,7 +7,6 @@ export interface SupplierItem {
   contactPerson: string;
   phone: string;
   link?: string;
-  email?: string;
   address?: string;
   isDeleted?: boolean;
 }

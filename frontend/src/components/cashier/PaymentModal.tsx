@@ -13,10 +13,12 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import type { CartItem } from "@/constants/cashier";
+import type { CartItem } from "@/services/product";
 import { formatRupiah } from "@/utils/formatCurrency";
 import { calculatePaymentChange, getCashPresets } from "@/utils/checkout";
 import { cn } from "@/lib/utils";
+
+import { cashSessionService } from "@/services/cashSession";
 
 interface PaymentModalProps {
   isOpen: boolean;
@@ -65,6 +67,7 @@ export function PaymentModal({
     if (!isCashValid) return;
     setStep("processing");
     setTimeout(() => {
+      cashSessionService.recordSale(paymentMethod, total);
       setStep("success");
     }, 900);
   };

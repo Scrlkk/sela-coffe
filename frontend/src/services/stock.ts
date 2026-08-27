@@ -8,7 +8,6 @@ export interface StockItem {
   id: string;
   product_id: string;
   product_name: string;
-  sku: string;
   category_id: string;
   category_name: string;
   quantity: number;
@@ -17,7 +16,6 @@ export interface StockItem {
   cost_price: number;
   unit: string;
   supplier_name?: string;
-  image?: string;
   is_active: boolean;
   updated_at: string;
   created_at: string;
@@ -29,7 +27,6 @@ export interface StockLogItem {
   id: string;
   product_id: string;
   product_name: string;
-  sku: string;
   unit: string;
   user_id: string;
   user_name: string;
@@ -54,7 +51,6 @@ const mapIngredientToStock = (
     id: `stk_${ing.id}`,
     product_id: ing.id,
     product_name: ing.name,
-    sku: ing.sku,
     category_id: ing.category,
     category_name: categoriesMap.get(ing.category) || ing.category,
     quantity: ing.currentStock ?? 0,
@@ -88,6 +84,7 @@ export const getStoredStockLogs = (): StockLogItem[] => {
 
 export const saveStockLogs = (logs: StockLogItem[]): void => {
   stockLogsCrud.save(logs);
+  window.dispatchEvent(new Event("storage"));
 };
 
 export interface AdjustStockPayload {
@@ -130,7 +127,6 @@ export const adjustStock = (
     id: `log_${Date.now()}`,
     product_id: updatedIng.id,
     product_name: updatedIng.name,
-    sku: updatedIng.sku,
     unit: updatedIng.unit,
     user_id: "u_admin",
     user_name: payload.user_name || "Manager Barista",

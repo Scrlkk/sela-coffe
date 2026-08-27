@@ -11,13 +11,14 @@ import { Badge } from "@/components/ui/badge";
 import {
   ArrowDownLeft,
   ArrowUpRight,
-  SlidersHorizontal,
+  ArrowDownUp,
   Calendar,
   User,
   FileText,
   Package,
 } from "lucide-react";
 import { formatDateTime } from "@/utils/formatDate";
+import { formatNumber, formatStockDelta } from "@/utils/formatCurrency";
 import { cn } from "@/lib/utils";
 
 interface StockMovementDetailDialogProps {
@@ -50,8 +51,8 @@ export const StockMovementDetailDialog: React.FC<
       );
     }
     return (
-      <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl sm:rounded-2xl bg-amber-500/10 text-amber-600 dark:text-amber-400 flex items-center justify-center shrink-0">
-        <SlidersHorizontal className="w-4 h-4 sm:w-5 sm:h-5" />
+      <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl sm:rounded-2xl bg-muted text-muted-foreground border border-border/60 flex items-center justify-center shrink-0">
+        <ArrowDownUp className="w-4 h-4 sm:w-5 sm:h-5" />
       </div>
     );
   };
@@ -64,7 +65,7 @@ export const StockMovementDetailDialog: React.FC<
           className="rounded-full text-[10px] sm:text-xs font-bold px-2.5 py-0.5 sm:py-1 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/30 gap-1.5"
         >
           <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
-          Stock In
+          Restock
         </Badge>
       );
     }
@@ -75,17 +76,17 @@ export const StockMovementDetailDialog: React.FC<
           className="rounded-full text-[10px] sm:text-xs font-bold px-2.5 py-0.5 sm:py-1 bg-destructive/10 text-destructive border-destructive/25 gap-1.5"
         >
           <span className="w-1.5 h-1.5 rounded-full bg-destructive" />
-          Stock Out
+          Usage
         </Badge>
       );
     }
     return (
       <Badge
-        variant="outline"
-        className="rounded-full text-[10px] sm:text-xs font-bold px-2.5 py-0.5 sm:py-1 bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/30 gap-1.5"
+        variant="secondary"
+        className="rounded-full text-[10px] sm:text-xs font-bold px-2.5 py-0.5 sm:py-1 bg-muted text-muted-foreground border border-border/60 gap-1.5"
       >
-        <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
-        Adjustment
+        <span className="w-1.5 h-1.5 rounded-full bg-muted-foreground/60" />
+        Opname
       </Badge>
     );
   };
@@ -135,11 +136,7 @@ export const StockMovementDetailDialog: React.FC<
                       : "text-amber-600 dark:text-amber-400",
                 )}
               >
-                {isIncoming
-                  ? `+${log.quantity.toLocaleString("id-ID")}`
-                  : isOutgoing
-                    ? `-${log.quantity.toLocaleString("id-ID")}`
-                    : `Set to ${log.quantity.toLocaleString("id-ID")}`}
+                {formatStockDelta(log.type, log.quantity, "Set to")}
               </span>
               <span className="text-xs sm:text-sm text-muted-foreground font-semibold">
                 {log.unit}
@@ -152,10 +149,10 @@ export const StockMovementDetailDialog: React.FC<
               </span>
               <span className="font-mono font-bold text-foreground">
                 <span className="text-muted-foreground/70 font-normal">
-                  {log.quantity_before.toLocaleString("id-ID")} →{" "}
+                  {formatNumber(log.quantity_before)} →{" "}
                 </span>
                 <strong className="text-foreground font-extrabold">
-                  {log.quantity_after.toLocaleString("id-ID")} {log.unit}
+                  {formatNumber(log.quantity_after)} {log.unit}
                 </strong>
               </span>
             </div>

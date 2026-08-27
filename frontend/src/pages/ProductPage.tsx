@@ -1,5 +1,4 @@
 import React, { useState, useMemo, useDeferredValue } from "react";
-import type { ProductItem } from "@/constants/cashier";
 import { getStoredCategories } from "@/services/category";
 import {
   getStoredProducts,
@@ -7,10 +6,16 @@ import {
   updateProduct,
   softDeleteProduct,
   restoreProduct,
+  type ProductItem,
 } from "@/services/product";
 import { ProductDialog } from "@/components/product/ProductDialog";
+import {
+  ProductGridCard,
+  ProductTableRow,
+  ProductMobileCard,
+} from "@/components/product/ProductViewItems";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { StatCard } from "@/components/dashboard/StatCard";
@@ -19,19 +24,16 @@ import { ViewModeSwitcher } from "@/components/shared/ViewModeSwitcher";
 import { EmptyState } from "@/components/shared/EmptyState";
 import { FormDropdownPicker } from "@/components/shared/FormDropdownPicker";
 import { toast } from "sonner";
-import { formatRupiah } from "@/utils/formatCurrency";
 import { cn } from "@/lib/utils";
 import {
   Plus,
   Search,
   X,
-  Pencil,
   Trash2,
   Package,
   Store,
   Tags,
   Filter,
-  RotateCcw,
 } from "lucide-react";
 import { useViewMode } from "@/hooks/useViewMode";
 import { useTableSort } from "@/hooks/useTableSort";
@@ -120,15 +122,26 @@ export const ProductPage: React.FC = () => {
     requestSort,
   } = useTableSort(productsWithMetrics, "name", "asc");
 
-  const categories = getStoredCategories(false, "product");
-  const categoriesList = [
-    { id: "all", label: "All Categories" },
-    ...categories.map((c) => ({ id: c.id, label: c.name })),
-  ];
+  const categories = useMemo(
+    () => getStoredCategories(false, "product"),
+    [],
+  );
+
+  const categoriesList = useMemo(
+    () => [
+      { id: "all", label: "All Categories" },
+      ...categories.map((c) => ({ id: c.id, label: c.name })),
+    ],
+    [categories],
+  );
+
+  const categoriesMap = useMemo(
+    () => new Map(categories.map((c) => [c.id, c.name])),
+    [categories],
+  );
 
   const getCategoryLabel = (catId: string) => {
-    const found = categories.find((c) => c.id === catId);
-    return found ? found.name : catId;
+    return categoriesMap.get(catId) || catId;
   };
 
   const handleCreateOrUpdate = (
@@ -220,7 +233,7 @@ export const ProductPage: React.FC = () => {
             placeholder={
               showDeleted
                 ? "Search deleted products..."
-                : "Search product name or SKU..."
+                : "Search product name..."
             }
             className="pl-9 pr-8 h-9.5 rounded-xl bg-background text-xs font-medium border-border/80 w-full"
           />
@@ -302,142 +315,17 @@ export const ProductPage: React.FC = () => {
           />
         ) : viewMode === "grid" ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3.5 pt-1 pb-6">
-            {displayedProducts.map((p) => {
-              const isPosActive = p.is_active !== false;
-
-              return (
-                <Card
-                  key={p.id}
-                  className="group relative border border-border/60 shadow-2xs rounded-2xl bg-card text-card-foreground transition-all duration-200 hover:border-primary hover:shadow-md overflow-hidden flex flex-col justify-between select-none"
-                >
-                  <CardContent className="p-4 flex flex-col justify-between h-full space-y-3">
-                    <div className="space-y-2.5">
-                      <div className="flex items-start justify-between gap-2">
-                        <div className="min-w-0 flex-1 space-y-0.5">
-                          <h3 className="text-sm font-bold text-foreground line-clamp-2 leading-tight">
-                            {p.name}
-                          </h3>
-                          <span className="text-xs text-muted-foreground block truncate">
-                            {getCategoryLabel(p.category)}
-                          </span>
-                        </div>
-
-                        <span
-                          className={cn(
-                            "w-2 h-2 rounded-full mt-1.5 shrink-0 shadow-2xs",
-                            isPosActive
-                              ? "bg-emerald-500 shadow-emerald-500/50"
-                              : "bg-muted-foreground/40",
-                          )}
-                          title={
-                            isPosActive ? "Active on POS" : "Hidden from POS"
-                          }
-                        />
-                      </div>
-
-                      <div className="space-y-1 pt-1">
-                        <div className="flex items-baseline justify-between">
-                          <span className="text-muted-foreground text-xs font-medium">
-                            Price:
-                          </span>
-                          <span className="text-base font-extrabold text-foreground font-mono">
-                            {formatRupiah(p.price)}
-                          </span>
-                        </div>
-
-                        <div className="flex items-center justify-between text-xs pt-0.5">
-                          <span className="text-muted-foreground font-medium text-[11px]">
-                            Catalog ID:
-                          </span>
-                          <span className="font-mono text-muted-foreground text-[10.5px]">
-                            {p.id}
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="flex items-center justify-between pt-2 border-t border-border/40 mt-auto text-xs gap-1">
-                      <div className="min-w-0 flex-1">
-                        <span className="text-muted-foreground font-medium text-[10px] block truncate">
-                          Status
-                        </span>
-                        <span
-                          className={cn(
-                            "font-bold text-xs block truncate",
-                            p.isDeleted
-                              ? "text-destructive"
-                              : isPosActive
-                                ? "text-emerald-600 dark:text-emerald-400"
-                                : "text-muted-foreground",
-                          )}
-                        >
-                          {p.isDeleted
-                            ? "Trash"
-                            : isPosActive
-                              ? "Menu Ready"
-                              : "Off Menu"}
-                        </span>
-                      </div>
-
-                      <div className="flex items-center gap-1 shrink-0">
-                        {p.isDeleted ? (
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => setDialog({ type: "restore", product: p })}
-                            className="h-8 px-2.5 rounded-lg bg-emerald-500/10 text-emerald-600 border-emerald-500/40 hover:bg-emerald-500/20 hover:text-emerald-700 text-xs font-semibold gap-1 cursor-pointer shadow-2xs"
-                            title="Restore Product"
-                          >
-                            <RotateCcw className="w-3.5 h-3.5" />
-                            <span>Restore</span>
-                          </Button>
-                        ) : (
-                          <>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              onClick={() => handleTogglePosStatus(p)}
-                              className={cn(
-                                "h-8 w-8 rounded-lg transition-colors cursor-pointer",
-                                isPosActive
-                                  ? "text-emerald-600 hover:text-emerald-700 hover:bg-emerald-500/10"
-                                  : "text-muted-foreground hover:text-foreground hover:bg-muted",
-                              )}
-                              title={
-                                isPosActive
-                                  ? "Click to hide from POS Cashier"
-                                  : "Click to activate on POS Cashier"
-                              }
-                            >
-                              <Store className="w-3.5 h-3.5" />
-                            </Button>
-
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              onClick={() => setDialog({ type: "edit", product: p })}
-                              className="h-8 w-8 rounded-lg text-muted-foreground hover:text-primary hover:bg-primary/10 transition-colors cursor-pointer"
-                              title="Edit Product"
-                            >
-                              <Pencil className="w-3.5 h-3.5" />
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              onClick={() => setDialog({ type: "delete", product: p })}
-                              className="h-8 w-8 rounded-lg text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors cursor-pointer"
-                              title="Move to Trash"
-                            >
-                              <Trash2 className="w-3.5 h-3.5" />
-                            </Button>
-                          </>
-                        )}
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              );
-            })}
+            {displayedProducts.map((p) => (
+              <ProductGridCard
+                key={p.id}
+                product={p}
+                categoryLabel={getCategoryLabel(p.category)}
+                onTogglePos={handleTogglePosStatus}
+                onEdit={(product) => setDialog({ type: "edit", product })}
+                onDelete={(product) => setDialog({ type: "delete", product })}
+                onRestore={(product) => setDialog({ type: "restore", product })}
+              />
+            ))}
           </div>
         ) : (
           <div className="space-y-4">
@@ -453,7 +341,7 @@ export const ProductPage: React.FC = () => {
                           sortConfig={sortConfig}
                           onSort={requestSort}
                         />
-                        <th className="pb-2.5 px-3 hidden md:table-cell">
+                        <th className="py-2.5 px-3 hidden md:table-cell">
                           Category
                         </th>
                         <SortableTh
@@ -461,122 +349,36 @@ export const ProductPage: React.FC = () => {
                           sortKey="price"
                           sortConfig={sortConfig}
                           onSort={requestSort}
-                          className="text-right"
+                          align="right"
                         />
                         <SortableTh
                           label="POS Ready"
                           sortKey="posStatus"
                           sortConfig={sortConfig}
                           onSort={requestSort}
-                          className="text-center"
+                          align="center"
                         />
-                        <th className="pb-2.5 px-3 text-right">Actions</th>
+                        <th className="py-2.5 px-3 text-right">Actions</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-border/40 font-medium">
-                      {displayedProducts.map((p) => {
-                        const isPosActive = p.is_active !== false;
-
-                        return (
-                          <tr
-                            key={p.id}
-                            className="hover:bg-muted/30 transition-colors"
-                          >
-                            <td className="py-2.5 px-3">
-                              <span className="font-bold text-foreground block truncate text-xs sm:text-sm">
-                                {p.name}
-                              </span>
-                            </td>
-
-                            <td className="py-2.5 px-3 text-muted-foreground font-medium hidden md:table-cell">
-                              {getCategoryLabel(p.category)}
-                            </td>
-
-                            <td className="py-2.5 px-3 text-right font-mono text-foreground font-semibold whitespace-nowrap">
-                              {formatRupiah(p.price)}
-                            </td>
-
-                            <td className="py-2.5 px-3 text-center whitespace-nowrap">
-                              <span className="inline-flex items-center gap-1.5 text-xs font-semibold whitespace-nowrap">
-                                <span
-                                  className={cn(
-                                    "w-1.5 h-1.5 rounded-full",
-                                    isPosActive
-                                      ? "bg-emerald-500"
-                                      : "bg-muted-foreground/50",
-                                  )}
-                                />
-                                <span
-                                  className={
-                                    isPosActive
-                                      ? "text-emerald-600 dark:text-emerald-400"
-                                      : "text-muted-foreground"
-                                  }
-                                >
-                                  {isPosActive ? "Active" : "Off Menu"}
-                                </span>
-                              </span>
-                            </td>
-
-                            <td className="py-2.5 px-3 text-right whitespace-nowrap">
-                              <div className="flex items-center justify-end gap-1">
-                                {p.isDeleted ? (
-                                  <Button
-                                    variant="outline"
-                                    size="sm"
-                                    onClick={() => setDialog({ type: "restore", product: p })}
-                                    className="h-8 px-2.5 rounded-lg bg-emerald-500/10 text-emerald-600 border-emerald-500/40 hover:bg-emerald-500/20 hover:text-emerald-700 text-xs font-semibold gap-1 cursor-pointer shadow-2xs"
-                                    title="Restore Product"
-                                  >
-                                    <RotateCcw className="w-3.5 h-3.5" />
-                                    <span>Restore</span>
-                                  </Button>
-                                ) : (
-                                  <>
-                                    <Button
-                                      variant="ghost"
-                                      size="icon"
-                                      onClick={() => handleTogglePosStatus(p)}
-                                      className={cn(
-                                        "h-8 w-8 rounded-lg transition-colors cursor-pointer",
-                                        isPosActive
-                                          ? "text-emerald-600 hover:text-emerald-700 hover:bg-emerald-500/10"
-                                          : "text-muted-foreground hover:text-foreground hover:bg-muted",
-                                      )}
-                                      title={
-                                        isPosActive
-                                          ? "Click to hide from POS Cashier"
-                                          : "Click to activate on POS Cashier"
-                                      }
-                                    >
-                                      <Store className="w-3.5 h-3.5" />
-                                    </Button>
-
-                                    <Button
-                                      variant="ghost"
-                                      size="icon"
-                                      onClick={() => setDialog({ type: "edit", product: p })}
-                                      className="h-8 w-8 rounded-lg text-muted-foreground hover:text-primary hover:bg-primary/10 transition-colors cursor-pointer"
-                                      title="Edit Product"
-                                    >
-                                      <Pencil className="w-3.5 h-3.5" />
-                                    </Button>
-                                    <Button
-                                      variant="ghost"
-                                      size="icon"
-                                      onClick={() => setDialog({ type: "delete", product: p })}
-                                      className="h-8 w-8 rounded-lg text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors cursor-pointer"
-                                      title="Move to Trash"
-                                    >
-                                      <Trash2 className="w-3.5 h-3.5" />
-                                    </Button>
-                                  </>
-                                )}
-                              </div>
-                            </td>
-                          </tr>
-                        );
-                      })}
+                      {displayedProducts.map((p) => (
+                        <ProductTableRow
+                          key={p.id}
+                          product={p}
+                          categoryLabel={getCategoryLabel(p.category)}
+                          onTogglePos={handleTogglePosStatus}
+                          onEdit={(product) =>
+                            setDialog({ type: "edit", product })
+                          }
+                          onDelete={(product) =>
+                            setDialog({ type: "delete", product })
+                          }
+                          onRestore={(product) =>
+                            setDialog({ type: "restore", product })
+                          }
+                        />
+                      ))}
                     </tbody>
                   </table>
                 </div>
@@ -584,122 +386,21 @@ export const ProductPage: React.FC = () => {
             </div>
 
             <div className="sm:hidden grid grid-cols-1 gap-3.5 pt-1 pb-6">
-              {displayedProducts.map((p) => {
-                const isPosActive = p.is_active !== false;
-
-                return (
-                  <Card
-                    key={p.id}
-                    className="group relative border border-border/60 shadow-2xs rounded-2xl bg-card text-card-foreground overflow-hidden flex flex-col justify-between select-none"
-                  >
-                    <CardContent className="p-3.5 space-y-2.5">
-                      <div className="flex items-start justify-between gap-2">
-                        <div className="min-w-0 flex-1 space-y-0.5">
-                          <h3 className="text-xs sm:text-sm font-bold text-foreground leading-tight">
-                            {p.name}
-                          </h3>
-                          <span className="text-[10px] text-muted-foreground block truncate">
-                            {getCategoryLabel(p.category)}
-                          </span>
-                        </div>
-                        <span
-                          className={cn(
-                            "w-2 h-2 rounded-full mt-1 shrink-0",
-                            isPosActive
-                              ? "bg-emerald-500 shadow-emerald-500/50"
-                              : "bg-muted-foreground/40",
-                          )}
-                          title={
-                            isPosActive ? "Active on POS" : "Hidden from POS"
-                          }
-                        />
-                      </div>
-
-                      <div className="space-y-1 text-xs">
-                        <div className="flex items-baseline justify-between">
-                          <span className="text-muted-foreground text-xs">
-                            Price:
-                          </span>
-                          <span className="font-bold text-foreground font-mono">
-                            {formatRupiah(p.price)}
-                          </span>
-                        </div>
-
-                        <div className="flex items-center justify-between text-xs">
-                          <span className="text-muted-foreground">Status:</span>
-                          <span
-                            className={cn(
-                              "font-bold text-xs",
-                              p.isDeleted
-                                ? "text-destructive"
-                                : isPosActive
-                                  ? "text-emerald-600 dark:text-emerald-400"
-                                  : "text-muted-foreground",
-                            )}
-                          >
-                            {p.isDeleted
-                              ? "Trash"
-                              : isPosActive
-                                ? "Menu Ready"
-                                : "Off Menu"}
-                          </span>
-                        </div>
-                      </div>
-
-                      <div className="flex items-center justify-end gap-1.5 pt-2 border-t border-border/40">
-                        {p.isDeleted ? (
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => setDialog({ type: "restore", product: p })}
-                            className="w-full text-xs bg-emerald-500/10 text-emerald-600 border-emerald-500/40 hover:bg-emerald-500/20 hover:text-emerald-700 font-semibold gap-1.5 cursor-pointer"
-                          >
-                            <RotateCcw className="w-3.5 h-3.5" />
-                            <span>Restore</span>
-                          </Button>
-                        ) : (
-                          <>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              onClick={() => handleTogglePosStatus(p)}
-                              className={cn(
-                                "h-8 w-8 rounded-lg",
-                                isPosActive
-                                  ? "text-emerald-600 hover:text-emerald-700 hover:bg-emerald-500/10"
-                                  : "text-muted-foreground",
-                              )}
-                              title={
-                                isPosActive
-                                  ? "Hide from POS"
-                                  : "Activate on POS"
-                              }
-                            >
-                              <Store className="w-3.5 h-3.5" />
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              onClick={() => setDialog({ type: "edit", product: p })}
-                              className="h-8 w-8 rounded-lg text-muted-foreground"
-                            >
-                              <Pencil className="w-3.5 h-3.5" />
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              onClick={() => setDialog({ type: "delete", product: p })}
-                              className="h-8 w-8 rounded-lg text-destructive"
-                            >
-                              <Trash2 className="w-3.5 h-3.5" />
-                            </Button>
-                          </>
-                        )}
-                      </div>
-                    </CardContent>
-                  </Card>
-                );
-              })}
+              {displayedProducts.map((p) => (
+                <ProductMobileCard
+                  key={p.id}
+                  product={p}
+                  categoryLabel={getCategoryLabel(p.category)}
+                  onTogglePos={handleTogglePosStatus}
+                  onEdit={(product) => setDialog({ type: "edit", product })}
+                  onDelete={(product) =>
+                    setDialog({ type: "delete", product })
+                  }
+                  onRestore={(product) =>
+                    setDialog({ type: "restore", product })
+                  }
+                />
+              ))}
             </div>
           </div>
         )}

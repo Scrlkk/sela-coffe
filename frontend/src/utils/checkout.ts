@@ -1,4 +1,4 @@
-import type { CartItem } from "@/constants/cashier";
+import type { CartItem } from "@/services/product";
 
 export interface CartTotals {
   subtotal: number;

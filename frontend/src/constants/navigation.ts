@@ -8,8 +8,9 @@ import {
   Warehouse,
   ArrowLeftRight,
   FileSpreadsheet,
-  PackageCheck,
   Wheat,
+  ReceiptText,
+  Banknote,
 } from "lucide-react";
 
 export interface RouteInfo {
@@ -117,11 +118,6 @@ export const menuGroups = [
         path: "/purchases",
         icon: FileSpreadsheet,
       },
-      {
-        label: "Receive Goods",
-        path: "/purchases/receive",
-        icon: PackageCheck,
-      },
     ],
   },
   {
@@ -130,12 +126,12 @@ export const menuGroups = [
       {
         label: "Transactions",
         path: "/transactions",
-        icon: ArrowLeftRight,
+        icon: ReceiptText,
       },
       {
         label: "Cash Sessions",
         path: "/cash-sessions",
-        icon: ShoppingCart,
+        icon: Banknote,
       },
     ],
   },

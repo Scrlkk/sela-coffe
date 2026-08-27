@@ -8,11 +8,15 @@ import {
   restoreUser,
 } from "@/services/user";
 import { UserDialog } from "@/components/user/UserDialog";
+import {
+  UserGridCard,
+  UserTableRow,
+  UserMobileCard,
+} from "@/components/user/UserViewItems";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
 import { StatCard } from "@/components/dashboard/StatCard";
 import { StatGrid } from "@/components/dashboard/StatGrid";
 import { ViewModeSwitcher } from "@/components/shared/ViewModeSwitcher";
@@ -24,19 +28,14 @@ import {
   Plus,
   Search,
   X,
-  Pencil,
   Trash2,
   Users,
   Shield,
-  Phone,
-  RotateCcw,
   UserCheck,
 } from "lucide-react";
-import { formatDate } from "@/utils/formatDate";
 import { useViewMode } from "@/hooks/useViewMode";
 import { useTableSort } from "@/hooks/useTableSort";
 import { SortableTh } from "@/components/shared/SortableTh";
-import { getInitials, formatWhatsAppUrl } from "@/utils/formatString";
 
 type UserDialogState =
   | { type: "create" }
@@ -277,105 +276,13 @@ export const UserPage: React.FC = () => {
         ) : viewMode === "grid" ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3.5 sm:gap-4 pt-1 pb-6">
             {displayedUsers.map((u) => (
-              <Card
+              <UserGridCard
                 key={u.id}
-                className="group relative border border-border/60 shadow-2xs rounded-2xl bg-card text-card-foreground transition-all duration-200 hover:border-primary hover:shadow-md overflow-hidden flex flex-col justify-between select-none"
-              >
-                <CardContent className="p-4 flex flex-col justify-between h-full space-y-3">
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="flex items-center gap-3 min-w-0 flex-1">
-                      <div className="w-10 h-10 rounded-full bg-primary/10 text-primary font-bold text-sm flex items-center justify-center shrink-0 border border-primary/20">
-                        {getInitials(u.name)}
-                      </div>
-                      <div className="min-w-0 flex-1">
-                        <h4 className="font-bold text-foreground text-sm leading-snug truncate">
-                          {u.name}
-                        </h4>
-                        <p className="text-xs text-muted-foreground truncate">
-                          @{u.username}
-                        </p>
-                      </div>
-                    </div>
-                    <Badge
-                      variant="secondary"
-                      className="text-[10px] font-bold uppercase px-2 py-0.5 rounded-lg border-transparent shrink-0"
-                    >
-                      {u.role === "ADMIN" ? "Admin" : "Cashier"}
-                    </Badge>
-                  </div>
-
-                  <div className="space-y-1.5 text-xs text-muted-foreground border-t border-border/40 pt-2.5">
-                    <div className="flex items-center gap-2">
-                      <Phone className="w-3.5 h-3.5 text-primary shrink-0" />
-                      {u.phone ? (
-                        <a
-                          href={formatWhatsAppUrl(u.phone)}
-                          target="_blank"
-                          rel="noreferrer"
-                          className="font-medium text-foreground hover:underline truncate"
-                        >
-                          {u.phone}
-                        </a>
-                      ) : (
-                        <span className="text-muted-foreground/50">-</span>
-                      )}
-                    </div>
-                    <div className="flex items-center gap-1.5 pt-0.5">
-                      <span>Status:</span>
-                      {u.status === "INACTIVE" ? (
-                        <span className="text-[11px] font-bold text-destructive">
-                          Inactive
-                        </span>
-                      ) : (
-                        <span className="text-[11px] font-bold text-emerald-600 dark:text-emerald-400">
-                          Active
-                        </span>
-                      )}
-                    </div>
-                    <div className="flex items-center gap-1.5 pt-0.5">
-                      <span>Created:</span>
-                      <span className="text-[11px] font-medium text-foreground">
-                        {formatDate(u.createdAt)}
-                      </span>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center justify-end gap-1.5 pt-2 border-t border-border/40">
-                    {u.isDeleted ? (
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => setDialog({ type: "restore", user: u })}
-                        className="w-full text-xs bg-emerald-500/10 text-emerald-600 border-emerald-500/40 hover:bg-emerald-500/20 hover:text-emerald-700 font-semibold gap-1.5 cursor-pointer"
-                      >
-                        <RotateCcw className="w-3.5 h-3.5" />
-                        <span>Restore User</span>
-                      </Button>
-                    ) : (
-                      <>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => setDialog({ type: "edit", user: u })}
-                          className="h-8 rounded-lg text-xs font-semibold text-muted-foreground hover:text-primary hover:bg-primary/10 gap-1.5 cursor-pointer flex-1"
-                        >
-                          <Pencil className="w-3.5 h-3.5" />
-                          <span>Edit</span>
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => setDialog({ type: "delete", user: u })}
-                          className="h-8 rounded-lg text-xs font-semibold text-muted-foreground hover:text-destructive hover:bg-destructive/10 gap-1.5 cursor-pointer"
-                        >
-                          <Trash2 className="w-3.5 h-3.5" />
-                          <span>Delete</span>
-                        </Button>
-                      </>
-                    )}
-                  </div>
-                </CardContent>
-              </Card>
+                user={u}
+                onEdit={(user) => setDialog({ type: "edit", user })}
+                onDelete={(user) => setDialog({ type: "delete", user })}
+                onRestore={(user) => setDialog({ type: "restore", user })}
+              />
             ))}
           </div>
         ) : (
@@ -383,7 +290,7 @@ export const UserPage: React.FC = () => {
             <div className="hidden sm:block">
               <Card className="rounded-2xl border border-border/60 bg-card p-3.5 sm:p-4 shadow-xs text-card-foreground transition-all duration-200 w-full flex-col justify-between overflow-hidden mb-6">
                 <div className="overflow-x-auto no-scrollbar">
-                  <table className="w-full text-left text-xs border-collapse">
+                  <table className="w-full table-fixed text-left text-xs border-collapse">
                     <thead>
                       <tr className="border-b border-border/60 text-muted-foreground font-bold uppercase tracking-wider sticky top-0 bg-card z-10">
                         <SortableTh
@@ -391,123 +298,35 @@ export const UserPage: React.FC = () => {
                           sortKey="name"
                           sortConfig={sortConfig}
                           onSort={requestSort}
+                          className="w-[32%] sm:w-[30%] md:w-[28%] lg:w-[24%] xl:w-[22%]"
                         />
                         <SortableTh
                           label="Username"
                           sortKey="username"
                           sortConfig={sortConfig}
                           onSort={requestSort}
+                          className="w-[24%] sm:w-[22%] md:w-[20%] lg:w-[18%] xl:w-[16%]"
                         />
-                        <th className="pb-2.5 px-3">Role</th>
-                        <th className="pb-2.5 px-3">Phone</th>
-                        <th className="pb-2.5 px-3">Status</th>
-                        <th className="pb-2.5 px-3">Created At</th>
-                        <th className="pb-2.5 px-3 text-right">Actions</th>
+                        <th className="py-2.5 px-3 w-[16%] sm:w-[16%] md:w-[16%] lg:w-[14%] xl:w-[12%]">Role</th>
+                        <th className="py-2.5 px-3 hidden lg:table-cell lg:w-[18%] xl:w-[16%] whitespace-nowrap">Phone</th>
+                        <th className="py-2.5 px-3 w-[14%] sm:w-[16%] md:w-[18%] lg:w-[12%] xl:w-[10%]">Status</th>
+                        <th className="py-2.5 px-3 hidden xl:table-cell xl:w-[14%]">Created</th>
+                        <th className="py-2.5 px-3 text-right w-[14%] sm:w-[16%] md:w-[18%] lg:w-[14%] xl:w-[10%] whitespace-nowrap">Actions</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-border/40 font-medium">
                       {displayedUsers.map((u) => (
-                        <tr
+                        <UserTableRow
                           key={u.id}
-                          className="hover:bg-muted/40 transition-colors"
-                        >
-                          <td className="py-3 px-3 font-bold text-foreground">
-                            <div className="flex items-center gap-2.5">
-                              <div className="w-8 h-8 rounded-full bg-primary/10 text-primary font-bold text-xs flex items-center justify-center shrink-0 border border-primary/20">
-                                {getInitials(u.name)}
-                              </div>
-                              <span>{u.name}</span>
-                            </div>
-                          </td>
-
-                          <td className="py-3 px-3 text-muted-foreground font-medium">
-                            @{u.username}
-                          </td>
-
-                          <td className="py-3 px-3 text-foreground font-semibold">
-                            {u.role === "ADMIN" ? "Admin" : "Cashier"}
-                          </td>
-
-                          <td className="py-3 px-3 text-muted-foreground font-semibold">
-                            {u.phone ? (
-                              <div className="flex items-center gap-1.5">
-                                <Phone className="w-3.5 h-3.5 text-primary shrink-0" />
-                                <a
-                                  href={formatWhatsAppUrl(u.phone)}
-                                  target="_blank"
-                                  rel="noreferrer"
-                                  className="hover:underline text-foreground"
-                                >
-                                  {u.phone}
-                                </a>
-                              </div>
-                            ) : (
-                              <span className="text-muted-foreground/50">
-                                -
-                              </span>
-                            )}
-                          </td>
-
-                          <td className="py-3 px-3">
-                            {u.status === "INACTIVE" ? (
-                              <span className="text-[11px] font-bold text-destructive">
-                                Inactive
-                              </span>
-                            ) : (
-                              <span className="text-[11px] font-bold text-emerald-600 dark:text-emerald-400">
-                                Active
-                              </span>
-                            )}
-                          </td>
-
-                          <td className="py-3 px-3 text-muted-foreground font-medium">
-                            {formatDate(u.createdAt)}
-                          </td>
-
-                          <td className="py-3 px-3 text-right">
-                            <div className="flex items-center justify-end gap-1">
-                              {u.isDeleted ? (
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  onClick={() =>
-                                    setDialog({ type: "restore", user: u })
-                                  }
-                                  className="h-8 rounded-lg bg-emerald-500/10 text-emerald-600 border-emerald-500/40 hover:bg-emerald-500/20 hover:text-emerald-700 text-xs font-semibold gap-1 cursor-pointer"
-                                  title="Restore User"
-                                >
-                                  <RotateCcw className="w-3.5 h-3.5" />
-                                  <span>Restore</span>
-                                </Button>
-                              ) : (
-                                <>
-                                  <Button
-                                    variant="ghost"
-                                    size="icon"
-                                    onClick={() =>
-                                      setDialog({ type: "edit", user: u })
-                                    }
-                                    className="h-8 w-8 rounded-lg text-muted-foreground hover:text-primary hover:bg-primary/10 transition-colors cursor-pointer"
-                                    title="Edit User"
-                                  >
-                                    <Pencil className="w-3.5 h-3.5" />
-                                  </Button>
-                                  <Button
-                                    variant="ghost"
-                                    size="icon"
-                                    onClick={() =>
-                                      setDialog({ type: "delete", user: u })
-                                    }
-                                    className="h-8 w-8 rounded-lg text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors cursor-pointer"
-                                    title="Delete User"
-                                  >
-                                    <Trash2 className="w-3.5 h-3.5" />
-                                  </Button>
-                                </>
-                              )}
-                            </div>
-                          </td>
-                        </tr>
+                          user={u}
+                          onEdit={(user) => setDialog({ type: "edit", user })}
+                          onDelete={(user) =>
+                            setDialog({ type: "delete", user })
+                          }
+                          onRestore={(user) =>
+                            setDialog({ type: "restore", user })
+                          }
+                        />
                       ))}
                     </tbody>
                   </table>
@@ -517,109 +336,13 @@ export const UserPage: React.FC = () => {
 
             <div className="grid grid-cols-1 sm:hidden gap-3.5 pt-1 pb-6">
               {filteredUsers.map((u) => (
-                <Card
+                <UserMobileCard
                   key={u.id}
-                  className="group relative border border-border/60 shadow-2xs rounded-2xl bg-card text-card-foreground transition-all duration-200 hover:border-primary hover:shadow-md overflow-hidden flex flex-col justify-between select-none"
-                >
-                  <CardContent className="p-4 space-y-3">
-                    <div className="flex items-start justify-between gap-3">
-                      <div className="flex items-center gap-3 min-w-0 flex-1">
-                        <div className="w-10 h-10 rounded-full bg-primary/10 text-primary font-bold text-sm flex items-center justify-center shrink-0 border border-primary/20">
-                          {getInitials(u.name)}
-                        </div>
-                        <div className="min-w-0 flex-1">
-                          <h4 className="font-bold text-foreground text-sm leading-snug truncate">
-                            {u.name}
-                          </h4>
-                          <p className="text-xs text-muted-foreground truncate">
-                            @{u.username}
-                          </p>
-                        </div>
-                      </div>
-                      <Badge
-                        variant="secondary"
-                        className="text-[10px] font-bold uppercase px-2 py-0.5 rounded-lg border-transparent shrink-0"
-                      >
-                        {u.role === "ADMIN" ? "Admin" : "Cashier"}
-                      </Badge>
-                    </div>
-
-                    <div className="space-y-1.5 text-xs text-muted-foreground border-t border-border/40 pt-2.5">
-                      <div className="flex items-center gap-2">
-                        <Phone className="w-3.5 h-3.5 text-primary shrink-0" />
-                        {u.phone ? (
-                          <a
-                            href={formatWhatsAppUrl(u.phone)}
-                            target="_blank"
-                            rel="noreferrer"
-                            className="font-medium text-foreground hover:underline"
-                          >
-                            {u.phone}
-                          </a>
-                        ) : (
-                          <span className="text-muted-foreground/50">-</span>
-                        )}
-                      </div>
-                      <div className="flex items-center gap-1.5 pt-0.5">
-                        <span>Status:</span>
-                        {u.status === "INACTIVE" ? (
-                          <span className="text-[11px] font-bold text-destructive">
-                            Inactive
-                          </span>
-                        ) : (
-                          <span className="text-[11px] font-bold text-emerald-600 dark:text-emerald-400">
-                            Active
-                          </span>
-                        )}
-                      </div>
-                      <div className="flex items-center gap-1.5 pt-0.5">
-                        <span>Created:</span>
-                        <span className="text-[11px] font-medium text-foreground">
-                          {formatDate(u.createdAt)}
-                        </span>
-                      </div>
-                    </div>
-
-                    <div className="flex items-center justify-end gap-1.5 pt-2 border-t border-border/40">
-                      {u.isDeleted ? (
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() =>
-                            setDialog({ type: "restore", user: u })
-                          }
-                          className="w-full text-xs bg-emerald-500/10 text-emerald-600 border-emerald-500/40 hover:bg-emerald-500/20 hover:text-emerald-700 font-semibold gap-1.5 cursor-pointer"
-                        >
-                          <RotateCcw className="w-3.5 h-3.5" />
-                          <span>Restore User</span>
-                        </Button>
-                      ) : (
-                        <>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() =>
-                              setDialog({ type: "edit", user: u })
-                            }
-                            className="flex-1 text-xs cursor-pointer"
-                          >
-                            <Pencil className="w-3.5 h-3.5 mr-1.5" /> Edit
-                          </Button>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() =>
-                              setDialog({ type: "delete", user: u })
-                            }
-                            className="text-xs text-destructive hover:bg-destructive/10 hover:text-destructive cursor-pointer"
-                          >
-                            <Trash2 className="w-3.5 h-3.5 mr-1.5" /> Delete
-                          </Button>
-                        </>
-                      )}
-                    </div>
-                  </CardContent>
-                </Card>
+                  user={u}
+                  onEdit={(user) => setDialog({ type: "edit", user })}
+                  onDelete={(user) => setDialog({ type: "delete", user })}
+                  onRestore={(user) => setDialog({ type: "restore", user })}
+                />
               ))}
             </div>
           </>

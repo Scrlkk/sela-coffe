@@ -1,8 +1,9 @@
 import { Plus, Minus, Trash2, ShoppingBag } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import type { CartItem } from "@/constants/cashier";
+import type { CartItem } from "@/services/product";
 import { formatRupiah } from "@/utils/formatCurrency";
+import { calculateCartTotals } from "@/utils/checkout";
 
 interface CartPanelProps {
   cart: CartItem[];
@@ -21,12 +22,7 @@ export function CartPanel({
   onClearCart,
   onCheckout,
 }: CartPanelProps) {
-  const subtotal = cart.reduce(
-    (sum, item) => sum + item.product.price * item.quantity,
-    0,
-  );
-  const tax = Math.round(subtotal * 0.1);
-  const total = subtotal + tax;
+  const { subtotal, tax, total } = calculateCartTotals(cart);
 
   return (
     <Card className="border border-border/60 shadow-xs rounded-2xl bg-card text-card-foreground h-full flex flex-col justify-between overflow-hidden py-0">

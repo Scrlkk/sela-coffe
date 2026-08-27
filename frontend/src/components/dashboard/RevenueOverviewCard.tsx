@@ -9,11 +9,17 @@ import {
   YAxis,
 } from "recharts";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { PeriodFilterDropdown } from "@/components/dashboard/PeriodFilterDropdown";
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+} from "@/components/ui/dropdown-menu";
 import { Skeleton } from "@/components/ui/skeleton";
-import { RotateCw } from "lucide-react";
+import { RotateCw, Calendar, ChevronDown, Check } from "lucide-react";
 import { formatRupiah } from "@/utils/formatCurrency";
 import {
+  FILTER_OPTIONS,
   REVENUE_OVERVIEW_DATA,
   type RevenuePoint,
 } from "@/constants/dashboard";
@@ -71,7 +77,30 @@ export const RevenueOverviewCard: React.FC<RevenueOverviewCardProps> = ({
           )}
 
           {onPeriodChange && (
-            <PeriodFilterDropdown value={period} onChange={onPeriodChange} />
+            <DropdownMenu>
+              <DropdownMenuTrigger>
+                <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full border border-border/80 bg-card/60 hover:bg-secondary/60 text-foreground text-[11px] font-semibold shadow-xs transition-colors cursor-pointer select-none">
+                  <Calendar className="w-3 h-3 text-foreground/80" />
+                  <span>{period}</span>
+                  <ChevronDown className="w-3 h-3 text-muted-foreground" />
+                </div>
+              </DropdownMenuTrigger>
+
+              <DropdownMenuContent align="end" className="w-36 rounded-xl p-1">
+                {FILTER_OPTIONS.map((opt) => (
+                  <DropdownMenuItem
+                    key={opt}
+                    onClick={() => onPeriodChange(opt)}
+                    className="flex items-center justify-between py-1.5"
+                  >
+                    <span>{opt}</span>
+                    {period === opt && (
+                      <Check className="w-3 h-3 text-primary shrink-0" />
+                    )}
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
           )}
         </div>
       </CardHeader>

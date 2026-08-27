@@ -1,6 +1,5 @@
-import { RouterProvider } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { router } from "@/app/routes";
+import { AppRouter } from "@/app/routes";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { ThemeProvider } from "@/contexts/ThemeContext";
 import { Toaster } from "@/components/ui/sonner";
@@ -12,7 +11,7 @@ export default function App() {
     <QueryClientProvider client={queryClient}>
       <ThemeProvider>
         <AuthProvider>
-          <RouterProvider router={router} />
+          <AppRouter />
           <Toaster position="top-right" />
         </AuthProvider>
       </ThemeProvider>

@@ -27,7 +27,7 @@ export const SortableTh: React.FC<SortableThProps> = ({
     <th
       onClick={() => onSort(sortKey)}
       className={cn(
-        "pb-2.5 px-3 cursor-pointer select-none group hover:text-foreground transition-colors",
+        "py-2.5 px-3 cursor-pointer select-none group hover:text-foreground transition-colors align-middle",
         align === "right" && "text-right",
         align === "center" && "text-center",
         className,
@@ -35,7 +35,7 @@ export const SortableTh: React.FC<SortableThProps> = ({
     >
       <div
         className={cn(
-          "flex items-center gap-1",
+          "inline-flex items-center gap-1 leading-none",
           align === "right" && "justify-end",
           align === "center" && "justify-center",
         )}

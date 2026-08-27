@@ -8,8 +8,13 @@ import {
   restoreSupplier,
 } from "@/services/supplier";
 import { SupplierDialog } from "@/components/supplier/SupplierDialog";
+import {
+  SupplierGridCard,
+  SupplierTableRow,
+  SupplierMobileCard,
+} from "@/components/supplier/SupplierViewItems";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { StatCard } from "@/components/dashboard/StatCard";
@@ -18,25 +23,10 @@ import { ViewModeSwitcher } from "@/components/shared/ViewModeSwitcher";
 import { EmptyState } from "@/components/shared/EmptyState";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
-import {
-  Plus,
-  Search,
-  X,
-  Pencil,
-  Trash2,
-  Truck,
-  User,
-  Phone,
-  MapPin,
-  RotateCcw,
-  Building2,
-  ExternalLink,
-  Globe,
-} from "lucide-react";
+import { Plus, Search, X, Trash2, Truck, User, Globe } from "lucide-react";
 import { useViewMode } from "@/hooks/useViewMode";
 import { useTableSort } from "@/hooks/useTableSort";
 import { SortableTh } from "@/components/shared/SortableTh";
-import { formatWhatsAppUrl } from "@/utils/formatString";
 
 const getStoreLabel = (url?: string) => {
   if (!url) return null;
@@ -250,108 +240,14 @@ export const SupplierPage: React.FC = () => {
         ) : viewMode === "grid" ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3.5 sm:gap-4 pt-1 pb-6">
             {displayedSuppliers.map((supplier) => (
-              <Card
+              <SupplierGridCard
                 key={supplier.id}
-                className="group relative border border-border/60 shadow-2xs rounded-2xl bg-card text-card-foreground transition-all duration-200 hover:border-primary hover:shadow-md overflow-hidden flex flex-col justify-between select-none"
-              >
-                <CardContent className="p-4 flex flex-col justify-between h-full space-y-3">
-                  <div className="space-y-1.5">
-                    <div className="flex items-start justify-between gap-2">
-                      <div className="flex items-center gap-2.5 min-w-0 flex-1">
-                        <div className="w-8 h-8 rounded-xl bg-primary/10 text-primary flex items-center justify-center shrink-0">
-                          <Truck className="w-4 h-4" />
-                        </div>
-                        <div className="min-w-0 flex-1">
-                          <h4 className="font-bold text-foreground text-sm truncate">
-                            {supplier.name}
-                          </h4>
-                          <span className="text-[11px] text-muted-foreground flex items-center gap-1 truncate">
-                            <User className="w-3 h-3 shrink-0" />
-                            <span className="truncate">
-                              {supplier.contactPerson}
-                            </span>
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="space-y-1.5 text-xs text-muted-foreground border-t border-border/40 pt-2.5">
-                    <div className="flex items-center gap-2">
-                      <Phone className="w-3.5 h-3.5 text-primary shrink-0" />
-                      <a
-                        href={formatWhatsAppUrl(supplier.phone)}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="font-medium text-foreground hover:underline truncate"
-                      >
-                        {supplier.phone}
-                      </a>
-                    </div>
-                    {supplier.link && (
-                      <div className="flex items-center gap-2">
-                        <Globe className="w-3.5 h-3.5 text-primary shrink-0" />
-                        <a
-                          href={
-                            supplier.link.startsWith("http")
-                              ? supplier.link
-                              : `https://${supplier.link}`
-                          }
-                          target="_blank"
-                          rel="noreferrer"
-                          className="font-medium text-primary hover:underline flex items-center gap-1 truncate"
-                        >
-                          <span className="truncate">
-                            {getStoreLabel(supplier.link)}
-                          </span>
-                          <ExternalLink className="w-3 h-3 shrink-0" />
-                        </a>
-                      </div>
-                    )}
-                    {supplier.address && (
-                      <div className="flex items-start gap-2">
-                        <MapPin className="w-3.5 h-3.5 text-muted-foreground shrink-0 mt-0.5" />
-                        <span className="line-clamp-2">{supplier.address}</span>
-                      </div>
-                    )}
-                  </div>
-
-                  <div className="flex items-center justify-end gap-1.5 pt-2 border-t border-border/40">
-                    {supplier.isDeleted ? (
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => setDialog({ type: "restore", supplier })}
-                        className="w-full text-xs bg-emerald-500/10 text-emerald-600 border-emerald-500/40 hover:bg-emerald-500/20 hover:text-emerald-700 font-semibold gap-1.5 cursor-pointer"
-                      >
-                        <RotateCcw className="w-3.5 h-3.5" />
-                        <span>Restore Supplier</span>
-                      </Button>
-                    ) : (
-                      <>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => setDialog({ type: "edit", supplier })}
-                          className="h-8 rounded-lg text-xs font-semibold text-muted-foreground hover:text-primary hover:bg-primary/10 gap-1.5 cursor-pointer flex-1"
-                        >
-                          <Pencil className="w-3.5 h-3.5" />
-                          <span>Edit</span>
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => setDialog({ type: "delete", supplier })}
-                          className="h-8 rounded-lg text-xs font-semibold text-muted-foreground hover:text-destructive hover:bg-destructive/10 gap-1.5 cursor-pointer"
-                        >
-                          <Trash2 className="w-3.5 h-3.5" />
-                          <span>Delete</span>
-                        </Button>
-                      </>
-                    )}
-                  </div>
-                </CardContent>
-              </Card>
+                supplier={supplier}
+                storeLabel={getStoreLabel(supplier.link)}
+                onEdit={(s) => setDialog({ type: "edit", supplier: s })}
+                onDelete={(s) => setDialog({ type: "delete", supplier: s })}
+                onRestore={(s) => setDialog({ type: "restore", supplier: s })}
+              />
             ))}
           </div>
         ) : (
@@ -359,7 +255,7 @@ export const SupplierPage: React.FC = () => {
             <div className="hidden sm:block">
               <Card className="rounded-2xl border border-border/60 bg-card p-3.5 sm:p-4 shadow-xs text-card-foreground transition-all duration-200 w-full flex-col justify-between overflow-hidden mb-6">
                 <div className="overflow-x-auto no-scrollbar">
-                  <table className="w-full text-left text-xs border-collapse">
+                  <table className="w-full table-fixed text-left text-xs border-collapse">
                     <thead>
                       <tr className="border-b border-border/60 text-muted-foreground font-bold uppercase tracking-wider sticky top-0 bg-card z-10">
                         <SortableTh
@@ -367,135 +263,45 @@ export const SupplierPage: React.FC = () => {
                           sortKey="name"
                           sortConfig={sortConfig}
                           onSort={requestSort}
+                          className="w-[36%] sm:w-[32%] md:w-[30%] lg:w-[26%] xl:w-[22%]"
                         />
                         <SortableTh
-                          label="Contact Person"
+                          label="Contact"
                           sortKey="contactPerson"
                           sortConfig={sortConfig}
                           onSort={requestSort}
+                          className="w-[28%] sm:w-[24%] md:w-[22%] lg:w-[20%] xl:w-[16%]"
                         />
-                        <th className="py-2.5 px-3">Phone</th>
-                        <th className="py-2.5 px-3">Store Link</th>
-                        <th className="py-2.5 px-3 hidden xl:table-cell">
+                        <th className="py-2.5 px-3 hidden lg:table-cell lg:w-[20%] xl:w-[18%] whitespace-nowrap">
+                          Phone
+                        </th>
+                        <th className="py-2.5 px-3 w-[26%] sm:w-[32%] md:w-[36%] lg:w-[22%] xl:w-[20%]">
+                          Store
+                        </th>
+                        <th className="py-2.5 px-3 hidden xl:table-cell xl:w-[16%]">
                           Address
                         </th>
-                        <th className="py-2.5 px-3 text-right">Actions</th>
+                        <th className="py-2.5 px-3 text-right w-[10%] sm:w-[12%] md:w-[12%] lg:w-[12%] xl:w-[8%] whitespace-nowrap">
+                          Actions
+                        </th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-border/40 font-medium">
                       {displayedSuppliers.map((supplier) => (
-                        <tr
+                        <SupplierTableRow
                           key={supplier.id}
-                          className="hover:bg-muted/40 transition-colors"
-                        >
-                          <td className="py-2.5 px-3 font-bold text-foreground">
-                            <div className="flex items-center gap-2">
-                              <div className="w-7 h-7 rounded-lg bg-primary/10 text-primary flex items-center justify-center shrink-0">
-                                <Building2 className="w-3.5 h-3.5" />
-                              </div>
-                              <span className="truncate">{supplier.name}</span>
-                            </div>
-                          </td>
-
-                          <td className="py-2.5 px-3 text-muted-foreground font-medium">
-                            <div className="flex items-center gap-1.5">
-                              <User className="w-3.5 h-3.5 text-muted-foreground/70 shrink-0" />
-                              <span>{supplier.contactPerson}</span>
-                            </div>
-                          </td>
-
-                          <td className="py-2.5 px-3 text-muted-foreground font-semibold whitespace-nowrap">
-                            <div className="flex items-center gap-1.5">
-                              <Phone className="w-3.5 h-3.5 text-primary shrink-0" />
-                              <a
-                                href={formatWhatsAppUrl(supplier.phone)}
-                                target="_blank"
-                                rel="noreferrer"
-                                className="hover:underline text-foreground"
-                              >
-                                {supplier.phone}
-                              </a>
-                            </div>
-                          </td>
-
-                          <td className="py-2.5 px-3 max-w-40">
-                            {supplier.link ? (
-                              <a
-                                href={
-                                  supplier.link.startsWith("http")
-                                    ? supplier.link
-                                    : `https://${supplier.link}`
-                                }
-                                target="_blank"
-                                rel="noreferrer"
-                                className="inline-flex items-center gap-1 text-primary hover:underline font-medium truncate max-w-full"
-                              >
-                                <Globe className="w-3.5 h-3.5 shrink-0" />
-                                <span className="truncate">
-                                  {getStoreLabel(supplier.link)}
-                                </span>
-                                <ExternalLink className="w-2.5 h-2.5 shrink-0" />
-                              </a>
-                            ) : (
-                              <span className="text-muted-foreground/40">
-                                -
-                              </span>
-                            )}
-                          </td>
-
-                          <td className="py-2.5 px-3 text-muted-foreground max-w-xs hidden xl:table-cell">
-                            {supplier.address ? (
-                              <div className="flex items-start gap-1.5">
-                                <MapPin className="w-3.5 h-3.5 text-muted-foreground shrink-0 mt-0.5" />
-                                <span className="truncate">
-                                  {supplier.address}
-                                </span>
-                              </div>
-                            ) : (
-                              <span className="text-muted-foreground/50">
-                                -
-                              </span>
-                            )}
-                          </td>
-
-                          <td className="py-2.5 px-3 text-right whitespace-nowrap">
-                            <div className="flex items-center justify-end gap-1">
-                              {supplier.isDeleted ? (
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  onClick={() => setDialog({ type: "restore", supplier })}
-                                  className="h-7.5 px-2 rounded-lg bg-emerald-500/10 text-emerald-600 border-emerald-500/40 hover:bg-emerald-500/20 hover:text-emerald-700 text-xs font-semibold gap-1 cursor-pointer"
-                                  title="Restore Supplier"
-                                >
-                                  <RotateCcw className="w-3.5 h-3.5" />
-                                  <span>Restore</span>
-                                </Button>
-                              ) : (
-                                <>
-                                  <Button
-                                    variant="ghost"
-                                    size="icon"
-                                    onClick={() => setDialog({ type: "edit", supplier })}
-                                    className="h-7.5 w-7.5 rounded-lg text-muted-foreground hover:text-primary hover:bg-primary/10 transition-colors cursor-pointer"
-                                    title="Edit Supplier"
-                                  >
-                                    <Pencil className="w-3.5 h-3.5" />
-                                  </Button>
-                                  <Button
-                                    variant="ghost"
-                                    size="icon"
-                                    onClick={() => setDialog({ type: "delete", supplier })}
-                                    className="h-7.5 w-7.5 rounded-lg text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors cursor-pointer"
-                                    title="Delete Supplier"
-                                  >
-                                    <Trash2 className="w-3.5 h-3.5" />
-                                  </Button>
-                                </>
-                              )}
-                            </div>
-                          </td>
-                        </tr>
+                          supplier={supplier}
+                          storeLabel={getStoreLabel(supplier.link)}
+                          onEdit={(s) =>
+                            setDialog({ type: "edit", supplier: s })
+                          }
+                          onDelete={(s) =>
+                            setDialog({ type: "delete", supplier: s })
+                          }
+                          onRestore={(s) =>
+                            setDialog({ type: "restore", supplier: s })
+                          }
+                        />
                       ))}
                     </tbody>
                   </table>
@@ -505,106 +311,14 @@ export const SupplierPage: React.FC = () => {
 
             <div className="grid grid-cols-1 sm:hidden gap-3.5 pt-1 pb-6">
               {displayedSuppliers.map((supplier) => (
-                <Card
+                <SupplierMobileCard
                   key={supplier.id}
-                  className="group relative border border-border/60 shadow-2xs rounded-2xl bg-card text-card-foreground transition-all duration-200 hover:border-primary hover:shadow-md overflow-hidden flex flex-col justify-between select-none"
-                >
-                  <CardContent className="p-4 space-y-3">
-                    <div className="flex items-start justify-between gap-3">
-                      <div className="flex items-center gap-2.5 min-w-0 flex-1">
-                        <div className="w-8 h-8 rounded-xl bg-primary/10 text-primary flex items-center justify-center shrink-0">
-                          <Truck className="w-4 h-4" />
-                        </div>
-                        <div className="min-w-0 flex-1">
-                          <h4 className="font-bold text-foreground text-sm truncate">
-                            {supplier.name}
-                          </h4>
-                          <span className="text-[11px] text-muted-foreground flex items-center gap-1 truncate">
-                            <User className="w-3 h-3 shrink-0" />
-                            <span className="truncate">
-                              {supplier.contactPerson}
-                            </span>
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="space-y-1.5 text-xs text-muted-foreground border-t border-border/40 pt-2.5">
-                      <div className="flex items-center gap-2">
-                        <Phone className="w-3.5 h-3.5 text-primary shrink-0" />
-                        <a
-                          href={formatWhatsAppUrl(supplier.phone)}
-                          target="_blank"
-                          rel="noreferrer"
-                          className="font-medium text-foreground hover:underline"
-                        >
-                          {supplier.phone}
-                        </a>
-                      </div>
-                      {supplier.link && (
-                        <div className="flex items-center gap-2">
-                          <Globe className="w-3.5 h-3.5 text-primary shrink-0" />
-                          <a
-                            href={
-                              supplier.link.startsWith("http")
-                                ? supplier.link
-                                : `https://${supplier.link}`
-                            }
-                            target="_blank"
-                            rel="noreferrer"
-                            className="font-medium text-primary hover:underline flex items-center gap-1 truncate"
-                          >
-                            <span className="truncate">
-                              {getStoreLabel(supplier.link)}
-                            </span>
-                            <ExternalLink className="w-3 h-3 shrink-0" />
-                          </a>
-                        </div>
-                      )}
-                      {supplier.address && (
-                        <div className="flex items-start gap-2">
-                          <MapPin className="w-3.5 h-3.5 text-muted-foreground shrink-0 mt-0.5" />
-                          <span className="line-clamp-2">
-                            {supplier.address}
-                          </span>
-                        </div>
-                      )}
-                    </div>
-
-                    <div className="flex items-center justify-end gap-2 pt-2 border-t border-border/40">
-                      {supplier.isDeleted ? (
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => setDialog({ type: "restore", supplier })}
-                          className="w-full text-xs bg-emerald-500/10 text-emerald-600 border-emerald-500/40 hover:bg-emerald-500/20 hover:text-emerald-700 font-semibold gap-1.5 cursor-pointer"
-                        >
-                          <RotateCcw className="w-3.5 h-3.5" />
-                          <span>Restore Supplier</span>
-                        </Button>
-                      ) : (
-                        <>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => setDialog({ type: "edit", supplier })}
-                            className="flex-1 text-xs cursor-pointer rounded-xl h-8.5"
-                          >
-                            <Pencil className="w-3.5 h-3.5 mr-1.5" /> Edit
-                          </Button>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => setDialog({ type: "delete", supplier })}
-                            className="text-xs text-destructive hover:bg-destructive/10 hover:text-destructive cursor-pointer rounded-xl h-8.5"
-                          >
-                            <Trash2 className="w-3.5 h-3.5 mr-1" /> Delete
-                          </Button>
-                        </>
-                      )}
-                    </div>
-                  </CardContent>
-                </Card>
+                  supplier={supplier}
+                  storeLabel={getStoreLabel(supplier.link)}
+                  onEdit={(s) => setDialog({ type: "edit", supplier: s })}
+                  onDelete={(s) => setDialog({ type: "delete", supplier: s })}
+                  onRestore={(s) => setDialog({ type: "restore", supplier: s })}
+                />
               ))}
             </div>
           </>

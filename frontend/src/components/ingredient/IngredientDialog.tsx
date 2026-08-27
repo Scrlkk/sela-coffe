@@ -82,7 +82,6 @@ const IngredientDialogForm: React.FC<IngredientFormProps> = ({
 
     onSave({
       name: name.trim(),
-      sku: ingredient?.sku ?? "",
       category,
       unit,
       costPrice: Number(costPrice) || 0,
@@ -222,7 +221,7 @@ const IngredientDialogForm: React.FC<IngredientFormProps> = ({
           />
         </div>
 
-        <DialogFooter className="gap-2 sm:gap-0 pt-2 border-t border-border/40">
+        <DialogFooter className="pt-2 sm:pt-3">
           <Button
             type="button"
             variant="outline"

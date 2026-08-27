@@ -9,17 +9,20 @@ import {
 } from "@/services/ingredient";
 import { getStoredCategories } from "@/services/category";
 import { IngredientDialog } from "@/components/ingredient/IngredientDialog";
+import {
+  IngredientGridCard,
+  IngredientTableRow,
+  IngredientMobileCard,
+} from "@/components/ingredient/IngredientViewItems";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
 import { StatCard } from "@/components/dashboard/StatCard";
 import { StatGrid } from "@/components/dashboard/StatGrid";
 import { ViewModeSwitcher } from "@/components/shared/ViewModeSwitcher";
 import { EmptyState } from "@/components/shared/EmptyState";
 import { FormDropdownPicker } from "@/components/shared/FormDropdownPicker";
-import { formatRupiah } from "@/utils/formatCurrency";
 import { formatLastUpdated } from "@/utils/formatDate";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
@@ -27,12 +30,10 @@ import {
   Plus,
   Search,
   X,
-  Pencil,
   Trash2,
   Wheat,
   Tags,
   Filter,
-  RotateCcw,
   Truck,
 } from "lucide-react";
 import { useViewMode } from "@/hooks/useViewMode";
@@ -80,10 +81,9 @@ export const IngredientPage: React.FC = () => {
     }));
   }, []);
 
-  const categoriesList = [
-    { id: "all", label: "All Categories" },
-    ...categories,
-  ];
+  const categoriesList = useMemo(() => {
+    return [{ id: "all", label: "All Categories" }, ...categories];
+  }, [categories]);
 
   const getCategoryLabel = (catId: string) => {
     const found = categories.find((c) => c.id === catId);
@@ -98,7 +98,6 @@ export const IngredientPage: React.FC = () => {
     return targetList.filter((item) => {
       const matchSearch =
         item.name.toLowerCase().includes(deferredSearch.toLowerCase()) ||
-        item.sku.toLowerCase().includes(deferredSearch.toLowerCase()) ||
         (item.supplierName &&
           item.supplierName
             .toLowerCase()
@@ -187,7 +186,7 @@ export const IngredientPage: React.FC = () => {
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Search raw material name, SKU, or supplier..."
+            placeholder="Search raw material name or supplier..."
             className="pl-9 pr-8 h-9.5 rounded-xl bg-background text-xs font-medium border-border/80 w-full"
           />
           {searchQuery && (
@@ -268,101 +267,19 @@ export const IngredientPage: React.FC = () => {
         ) : viewMode === "grid" ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3.5 pt-1 pb-6">
             {displayedIngredients.map((item) => (
-              <Card
+              <IngredientGridCard
                 key={item.id}
-                className="group relative border border-border/60 shadow-2xs rounded-2xl bg-card text-card-foreground transition-all duration-200 hover:border-primary hover:shadow-md overflow-hidden flex flex-col justify-between select-none"
-              >
-                <CardContent className="p-4 flex flex-col justify-between h-full space-y-3">
-                  <div className="space-y-2.5">
-                    <div className="flex items-start justify-between gap-2">
-                      <div className="min-w-0 flex-1 space-y-0.5">
-                        <h3 className="text-sm font-bold text-foreground line-clamp-2 leading-tight">
-                          {item.name}
-                        </h3>
-                        <span className="text-[10px] font-mono text-muted-foreground uppercase block truncate">
-                          {item.sku}
-                        </span>
-                      </div>
-                      <Badge
-                        variant="secondary"
-                        className="text-[10px] font-semibold px-2 py-0.5 rounded-lg border-0 shrink-0"
-                      >
-                        {getCategoryLabel(item.category)}
-                      </Badge>
-                    </div>
-
-                    <div className="space-y-1.5 text-xs text-muted-foreground border-t border-border/40 pt-2.5">
-                      <div className="flex items-center justify-between">
-                        <span>Cost / Unit:</span>
-                        <span className="font-bold text-foreground">
-                          {formatRupiah(item.costPrice)} / {item.unit}
-                        </span>
-                      </div>
-                      {item.supplierName && (
-                        <div className="flex items-center justify-between gap-2">
-                          <span className="truncate">Supplier:</span>
-                          <span className="font-medium text-foreground truncate max-w-30">
-                            {item.supplierName}
-                          </span>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-
-                  <div className="flex items-center justify-between pt-2 border-t border-border/40 text-xs">
-                    <div className="min-w-0 flex-1">
-                      <span className="text-muted-foreground font-medium text-[10px] block truncate">
-                        Last Updated
-                      </span>
-                      <span className="font-bold text-xs text-foreground block truncate">
-                        {formatLastUpdated(item.updatedAt)}
-                      </span>
-                    </div>
-
-                    <div className="flex items-center gap-1 shrink-0">
-                      {item.isDeleted ? (
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() =>
-                            setDialog({ type: "restore", ingredient: item })
-                          }
-                          className="h-8 px-2.5 rounded-lg bg-emerald-500/10 text-emerald-600 border-emerald-500/40 hover:bg-emerald-500/20 hover:text-emerald-700 text-xs font-semibold gap-1 cursor-pointer shadow-2xs"
-                          title="Restore Ingredient"
-                        >
-                          <RotateCcw className="w-3.5 h-3.5" />
-                          <span>Restore</span>
-                        </Button>
-                      ) : (
-                        <>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() =>
-                              setDialog({ type: "edit", ingredient: item })
-                            }
-                            className="h-8 w-8 rounded-lg text-muted-foreground hover:text-primary hover:bg-primary/10 transition-colors cursor-pointer"
-                            title="Edit Ingredient"
-                          >
-                            <Pencil className="w-3.5 h-3.5" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() =>
-                              setDialog({ type: "delete", ingredient: item })
-                            }
-                            className="h-8 w-8 rounded-lg text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors cursor-pointer"
-                            title="Move to Trash"
-                          >
-                            <Trash2 className="w-3.5 h-3.5" />
-                          </Button>
-                        </>
-                      )}
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
+                ingredient={item}
+                categoryLabel={getCategoryLabel(item.category)}
+                formattedUpdatedAt={formatLastUpdated(item.updatedAt)}
+                onEdit={(ingredient) => setDialog({ type: "edit", ingredient })}
+                onDelete={(ingredient) =>
+                  setDialog({ type: "delete", ingredient })
+                }
+                onRestore={(ingredient) =>
+                  setDialog({ type: "restore", ingredient })
+                }
+              />
             ))}
           </div>
         ) : (
@@ -380,12 +297,6 @@ export const IngredientPage: React.FC = () => {
                           onSort={requestSort}
                         />
                         <SortableTh
-                          label="SKU"
-                          sortKey="sku"
-                          sortConfig={sortConfig}
-                          onSort={requestSort}
-                        />
-                        <SortableTh
                           label="Category"
                           sortKey="category"
                           sortConfig={sortConfig}
@@ -397,7 +308,7 @@ export const IngredientPage: React.FC = () => {
                           sortConfig={sortConfig}
                           onSort={requestSort}
                         />
-                        <th className="pb-2.5 px-3 hidden lg:table-cell">
+                        <th className="py-2.5 px-3 hidden lg:table-cell">
                           Supplier
                         </th>
                         <SortableTh
@@ -407,94 +318,26 @@ export const IngredientPage: React.FC = () => {
                           onSort={requestSort}
                           className="hidden xl:table-cell"
                         />
-                        <th className="pb-2.5 px-3 text-right">Actions</th>
+                        <th className="py-2.5 px-3 text-right">Actions</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-border/40 font-medium">
                       {displayedIngredients.map((item) => (
-                        <tr
+                        <IngredientTableRow
                           key={item.id}
-                          className="hover:bg-muted/40 transition-colors"
-                        >
-                          <td className="py-2.5 px-3 font-bold text-foreground">
-                            {item.name}
-                          </td>
-                          <td className="py-2.5 px-3 font-mono text-muted-foreground uppercase text-[11px]">
-                            {item.sku}
-                          </td>
-                          <td className="py-2.5 px-3">
-                            <Badge
-                              variant="secondary"
-                              className="text-[10px] font-semibold px-2 py-0.5 rounded-lg border-0"
-                            >
-                              {getCategoryLabel(item.category)}
-                            </Badge>
-                          </td>
-                          <td className="py-2.5 px-3 font-bold font-mono">
-                            {formatRupiah(item.costPrice)}{" "}
-                            <span className="text-[10px] text-muted-foreground font-normal">
-                              / {item.unit}
-                            </span>
-                          </td>
-                          <td className="py-2.5 px-3 text-muted-foreground hidden lg:table-cell">
-                            {item.supplierName || "-"}
-                          </td>
-                          <td className="py-2.5 px-3 text-muted-foreground hidden xl:table-cell">
-                            {formatLastUpdated(item.updatedAt)}
-                          </td>
-                          <td className="py-2.5 px-3 text-right whitespace-nowrap">
-                            <div className="flex items-center justify-end gap-1">
-                              {item.isDeleted ? (
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  onClick={() =>
-                                    setDialog({
-                                      type: "restore",
-                                      ingredient: item,
-                                    })
-                                  }
-                                  className="h-8 px-2.5 rounded-lg bg-emerald-500/10 text-emerald-600 border-emerald-500/40 hover:bg-emerald-500/20 hover:text-emerald-700 text-xs font-semibold gap-1 cursor-pointer shadow-2xs"
-                                  title="Restore Ingredient"
-                                >
-                                  <RotateCcw className="w-3.5 h-3.5" />
-                                  <span>Restore</span>
-                                </Button>
-                              ) : (
-                                <>
-                                  <Button
-                                    variant="ghost"
-                                    size="icon"
-                                    onClick={() =>
-                                      setDialog({
-                                        type: "edit",
-                                        ingredient: item,
-                                      })
-                                    }
-                                    className="h-8 w-8 rounded-lg text-muted-foreground hover:text-primary hover:bg-primary/10 transition-colors cursor-pointer"
-                                    title="Edit Ingredient"
-                                  >
-                                    <Pencil className="w-3.5 h-3.5" />
-                                  </Button>
-                                  <Button
-                                    variant="ghost"
-                                    size="icon"
-                                    onClick={() =>
-                                      setDialog({
-                                        type: "delete",
-                                        ingredient: item,
-                                      })
-                                    }
-                                    className="h-8 w-8 rounded-lg text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors cursor-pointer"
-                                    title="Move to Trash"
-                                  >
-                                    <Trash2 className="w-3.5 h-3.5" />
-                                  </Button>
-                                </>
-                              )}
-                            </div>
-                          </td>
-                        </tr>
+                          ingredient={item}
+                          categoryLabel={getCategoryLabel(item.category)}
+                          formattedUpdatedAt={formatLastUpdated(item.updatedAt)}
+                          onEdit={(ingredient) =>
+                            setDialog({ type: "edit", ingredient })
+                          }
+                          onDelete={(ingredient) =>
+                            setDialog({ type: "delete", ingredient })
+                          }
+                          onRestore={(ingredient) =>
+                            setDialog({ type: "restore", ingredient })
+                          }
+                        />
                       ))}
                     </tbody>
                   </table>
@@ -504,95 +347,21 @@ export const IngredientPage: React.FC = () => {
 
             <div className="sm:hidden grid grid-cols-1 gap-3.5 pt-1 pb-6">
               {displayedIngredients.map((item) => (
-                <Card
+                <IngredientMobileCard
                   key={item.id}
-                  className="rounded-2xl border border-border/60 bg-card p-4 shadow-xs space-y-3"
-                >
-                  <CardContent className="p-0 space-y-3">
-                    <div className="flex items-start justify-between gap-2">
-                      <div className="min-w-0 flex-1">
-                        <h4 className="font-bold text-foreground leading-tight truncate">
-                          {item.name}
-                        </h4>
-                        <p className="text-[10px] font-mono text-muted-foreground uppercase mt-0.5">
-                          {item.sku}
-                        </p>
-                      </div>
-                      <Badge
-                        variant="secondary"
-                        className="text-[10px] font-semibold px-2 py-0.5 rounded-lg border-0 shrink-0"
-                      >
-                        {getCategoryLabel(item.category)}
-                      </Badge>
-                    </div>
-
-                    <div className="space-y-1.5 text-xs text-muted-foreground border-t border-border/40 pt-2.5">
-                      <div className="flex items-center justify-between">
-                        <span>Cost / Unit:</span>
-                        <span className="font-bold text-foreground">
-                          {formatRupiah(item.costPrice)} / {item.unit}
-                        </span>
-                      </div>
-                      {item.supplierName && (
-                        <div className="flex items-center justify-between gap-2">
-                          <span>Supplier:</span>
-                          <span className="font-medium text-foreground truncate">
-                            {item.supplierName}
-                          </span>
-                        </div>
-                      )}
-                    </div>
-
-                    <div className="flex items-center justify-between pt-2 border-t border-border/40 text-xs">
-                      <div className="min-w-0 flex-1">
-                        <span className="text-muted-foreground font-medium text-[10px] block truncate">
-                          Last Updated
-                        </span>
-                        <span className="font-bold text-xs text-foreground block truncate">
-                          {formatLastUpdated(item.updatedAt)}
-                        </span>
-                      </div>
-                      <div className="flex items-center gap-1 shrink-0">
-                        {item.isDeleted ? (
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() =>
-                              setDialog({ type: "restore", ingredient: item })
-                            }
-                            className="h-8 px-2.5 rounded-lg bg-emerald-500/10 text-emerald-600 border-emerald-500/40 text-xs font-semibold gap-1"
-                          >
-                            <RotateCcw className="w-3.5 h-3.5" />
-                            <span>Restore</span>
-                          </Button>
-                        ) : (
-                          <>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              onClick={() =>
-                                setDialog({ type: "edit", ingredient: item })
-                              }
-                              className="h-8 w-8 rounded-lg text-muted-foreground"
-                            >
-                              <Pencil className="w-3.5 h-3.5" />
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              onClick={() =>
-                                setDialog({ type: "delete", ingredient: item })
-                              }
-                              className="h-8 w-8 rounded-lg text-destructive"
-                            >
-                              <Trash2 className="w-3.5 h-3.5" />
-                            </Button>
-                          </>
-                        )}
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
+                  ingredient={item}
+                  categoryLabel={getCategoryLabel(item.category)}
+                  formattedUpdatedAt={formatLastUpdated(item.updatedAt)}
+                  onEdit={(ingredient) =>
+                    setDialog({ type: "edit", ingredient })
+                  }
+                  onDelete={(ingredient) =>
+                    setDialog({ type: "delete", ingredient })
+                  }
+                  onRestore={(ingredient) =>
+                    setDialog({ type: "restore", ingredient })
+                  }
+                />
               ))}
             </div>
           </div>

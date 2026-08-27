@@ -117,10 +117,7 @@ const CategoryDialogForm: React.FC<CategoryFormProps> = ({
             htmlFor="cat-desc"
             className="text-xs font-bold text-foreground"
           >
-            Description{" "}
-            <span className="text-muted-foreground font-normal">
-              (Optional)
-            </span>
+            Description (Optional)
           </Label>
           <Input
             id="cat-desc"
@@ -131,7 +128,7 @@ const CategoryDialogForm: React.FC<CategoryFormProps> = ({
           />
         </div>
 
-        <DialogFooter className="gap-2 sm:gap-0 pt-2 border-t border-border/40">
+        <DialogFooter className="pt-2 sm:pt-3">
           <Button
             type="button"
             variant="outline"

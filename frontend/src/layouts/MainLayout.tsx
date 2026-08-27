@@ -14,7 +14,7 @@ export default function MainLayout() {
   const handleToggleCollapse = () => {
     setCollapsed((prev) => {
       const next = !prev;
-      safeStorage.set("sidebar_collapsed", next);
+      safeStorage.setItem("sidebar_collapsed", next);
       return next;
     });
   };

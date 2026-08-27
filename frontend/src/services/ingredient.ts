@@ -13,7 +13,6 @@ export type IngredientCategory =
 export interface IngredientItem {
   id: string;
   name: string;
-  sku: string;
   category: IngredientCategory | string;
   unit: string;
   costPrice: number;

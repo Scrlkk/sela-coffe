@@ -1,17 +1,29 @@
-import { useState, useMemo, useDeferredValue } from "react";
+import { useState, useMemo, useEffect, useDeferredValue } from "react";
 import { toast } from "sonner";
 import { CategoryFilter } from "@/components/cashier/CategoryFilter";
 import { ProductCard } from "@/components/cashier/ProductCard";
 import { CartPanel } from "@/components/cashier/CartPanel";
 import { PaymentModal } from "@/components/cashier/PaymentModal";
-import type { ProductItem, CartItem } from "@/constants/cashier";
-import { getStoredProducts } from "@/services/product";
+import { CashierSessionGateModal } from "@/components/cashier/CashierSessionGateModal";
+import {
+  getStoredProducts,
+  type ProductItem,
+  type CartItem,
+} from "@/services/product";
+import { calculateCartTotals } from "@/utils/checkout";
+import {
+  cashSessionService,
+  type ActiveCashSession,
+} from "@/services/cashSession";
 
 function generateTxnNumber() {
   return `TXN-${Math.floor(1000 + Math.random() * 9000)}`;
 }
 
 export default function CashierPage() {
+  const [activeSession, setActiveSession] = useState<ActiveCashSession | null>(
+    () => cashSessionService.getActiveSession(),
+  );
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [searchQuery, setSearchQuery] = useState<string>("");
   const deferredSearch = useDeferredValue(searchQuery);
@@ -21,7 +33,28 @@ export default function CashierPage() {
   const [activeTxnNumber, setActiveTxnNumber] =
     useState<string>(generateTxnNumber);
 
-  const allProducts = useMemo(() => getStoredProducts(false), []);
+  const [allProducts, setAllProducts] = useState<ProductItem[]>(() =>
+    getStoredProducts(false),
+  );
+
+  useEffect(() => {
+    const sync = () => {
+      setAllProducts(getStoredProducts(false));
+      setActiveSession(cashSessionService.getActiveSession());
+    };
+    window.addEventListener("focus", sync);
+    window.addEventListener("storage", sync);
+    return () => {
+      window.removeEventListener("focus", sync);
+      window.removeEventListener("storage", sync);
+    };
+  }, []);
+
+  const handleOpenRegisterFromGate = (floatAmount: number) => {
+    const session = cashSessionService.openSession(floatAmount);
+    setActiveSession(session);
+    toast.success("Register opened! You can now take orders.");
+  };
 
   const filteredProducts = useMemo(() => {
     return allProducts.filter((product) => {
@@ -35,14 +68,10 @@ export default function CashierPage() {
     });
   }, [allProducts, selectedCategory, deferredSearch]);
 
-  const { subtotal, tax, total } = useMemo(() => {
-    const sub = cart.reduce(
-      (sum, item) => sum + item.product.price * item.quantity,
-      0,
-    );
-    const tx = Math.round(sub * 0.1);
-    return { subtotal: sub, tax: tx, total: sub + tx };
-  }, [cart]);
+  const { subtotal, tax, total } = useMemo(
+    () => calculateCartTotals(cart),
+    [cart],
+  );
 
   const handleAddToCart = (product: ProductItem) => {
     setCart((prev) => {
@@ -113,7 +142,7 @@ export default function CashierPage() {
               </p>
             </div>
           ) : (
-            <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 gap-3.5 pt-1 pb-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-3.5 pt-1 pb-6">
               {filteredProducts.map((product) => {
                 const cartQty =
                   cart.find((item) => item.product.id === product.id)
@@ -152,6 +181,11 @@ export default function CashierPage() {
         total={total}
         onClose={() => setIsModalOpen(false)}
         onNewOrder={handleNewOrder}
+      />
+
+      <CashierSessionGateModal
+        isOpen={!activeSession?.isOpen}
+        onOpenRegister={handleOpenRegisterFromGate}
       />
     </div>
   );

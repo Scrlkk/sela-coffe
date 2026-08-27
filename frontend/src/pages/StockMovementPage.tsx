@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useDeferredValue } from "react";
+import React, { useState, useMemo, useEffect, useDeferredValue } from "react";
 import type { StockLogItem, StockLogType } from "@/services/stock";
 import { getStoredStockLogs } from "@/services/stock";
 import { StatCard } from "@/components/dashboard/StatCard";
@@ -8,7 +8,7 @@ import { EmptyState } from "@/components/shared/EmptyState";
 import { SortableTh } from "@/components/shared/SortableTh";
 import { Pagination } from "@/components/shared/Pagination";
 import { FormDropdownPicker } from "@/components/shared/FormDropdownPicker";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
@@ -21,28 +21,20 @@ import {
   ArrowDownUp,
   Filter,
   Calendar,
-  User,
-  FileText,
 } from "lucide-react";
-import { formatDate, formatDateTime, formatTime } from "@/utils/formatDate";
 import { useViewMode } from "@/hooks/useViewMode";
 import { useTableSort } from "@/hooks/useTableSort";
 import { StockMovementDetailDialog } from "@/components/stock-movement/StockMovementDetailDialog";
-
-type DateRangeFilter =
-  | "ALL"
-  | "TODAY"
-  | "LAST_7_DAYS"
-  | "LAST_30_DAYS"
-  | "THIS_MONTH";
-
-const DATE_RANGE_OPTIONS = [
-  { id: "ALL", label: "All Time" },
-  { id: "TODAY", label: "Today" },
-  { id: "LAST_7_DAYS", label: "Last 7 Days" },
-  { id: "LAST_30_DAYS", label: "Last 30 Days" },
-  { id: "THIS_MONTH", label: "This Month" },
-];
+import {
+  StockMovementGridCard,
+  StockMovementTableRow,
+  StockMovementMobileCard,
+} from "@/components/stock-movement/StockMovementViewItems";
+import {
+  type DateRangeFilter,
+  DATE_RANGE_OPTIONS,
+  isWithinDateRange,
+} from "@/utils/formatDate";
 
 const MOVEMENT_TYPE_OPTIONS = [
   { id: "ALL", label: "All Types" },
@@ -52,9 +44,21 @@ const MOVEMENT_TYPE_OPTIONS = [
 ];
 
 export const StockMovementPage: React.FC = () => {
-  const [logs] = useState<StockLogItem[]>(() => getStoredStockLogs());
+  const [logs, setLogs] = useState<StockLogItem[]>(() => getStoredStockLogs());
   const [searchQuery, setSearchQuery] = useState("");
   const deferredSearch = useDeferredValue(searchQuery);
+
+  useEffect(() => {
+    const sync = () => {
+      setLogs(getStoredStockLogs());
+    };
+    window.addEventListener("focus", sync);
+    window.addEventListener("storage", sync);
+    return () => {
+      window.removeEventListener("focus", sync);
+      window.removeEventListener("storage", sync);
+    };
+  }, []);
 
   const [typeFilter, setTypeFilter] = useState<string>("ALL");
   const [dateFilter, setDateFilter] = useState<DateRangeFilter>("ALL");
@@ -103,43 +107,6 @@ export const StockMovementPage: React.FC = () => {
     };
   }, [logs]);
 
-  const isWithinDateRange = (
-    createdAt: string,
-    range: DateRangeFilter,
-  ): boolean => {
-    if (range === "ALL") return true;
-
-    const logDate = new Date(createdAt);
-    const now = new Date();
-
-    if (range === "TODAY") {
-      return (
-        logDate.getDate() === now.getDate() &&
-        logDate.getMonth() === now.getMonth() &&
-        logDate.getFullYear() === now.getFullYear()
-      );
-    }
-
-    if (range === "LAST_7_DAYS") {
-      const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-      return logDate >= sevenDaysAgo;
-    }
-
-    if (range === "LAST_30_DAYS") {
-      const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
-      return logDate >= thirtyDaysAgo;
-    }
-
-    if (range === "THIS_MONTH") {
-      return (
-        logDate.getMonth() === now.getMonth() &&
-        logDate.getFullYear() === now.getFullYear()
-      );
-    }
-
-    return true;
-  };
-
   const filteredLogs = useMemo(() => {
     const query = deferredSearch.toLowerCase().trim();
 
@@ -178,7 +145,32 @@ export const StockMovementPage: React.FC = () => {
     return sortedLogs.slice(startIndex, startIndex + pageSize);
   }, [sortedLogs, currentPage, pageSize]);
 
-  const renderMovementType = (type: StockLogType) => {
+  const renderMovementType = (type: StockLogType, isTable = false) => {
+    if (isTable) {
+      if (type === "in") {
+        return (
+          <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-emerald-600 dark:text-emerald-400 whitespace-nowrap">
+            <ArrowDownLeft className="w-3.5 h-3.5 shrink-0" />
+            <span>Restock</span>
+          </span>
+        );
+      }
+      if (type === "out") {
+        return (
+          <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-destructive whitespace-nowrap">
+            <ArrowUpRight className="w-3.5 h-3.5 shrink-0" />
+            <span>Usage</span>
+          </span>
+        );
+      }
+      return (
+        <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-muted-foreground whitespace-nowrap">
+          <ArrowDownUp className="w-3.5 h-3.5 shrink-0" />
+          <span>Opname</span>
+        </span>
+      );
+    }
+
     if (type === "in") {
       return (
         <Badge
@@ -203,8 +195,8 @@ export const StockMovementPage: React.FC = () => {
     }
     return (
       <Badge
-        variant="outline"
-        className="rounded-xl text-[10px] sm:text-[11px] font-bold px-2 sm:px-2.5 py-0.5 bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/30 gap-1 shrink-0 shadow-2xs"
+        variant="secondary"
+        className="rounded-xl text-[10px] sm:text-[11px] font-bold px-2 sm:px-2.5 py-0.5 bg-muted text-muted-foreground border border-border/60 gap-1 shrink-0 shadow-2xs"
       >
         <ArrowDownUp className="w-3.5 h-3.5 shrink-0" />
         <span>Opname</span>
@@ -327,7 +319,6 @@ export const StockMovementPage: React.FC = () => {
             }
           />
         ) : viewMode === "grid" ? (
-          /* Grid Card View */
           <div className="space-y-4 pb-6">
             <div
               key={`grid-page-${currentPage}`}
@@ -337,105 +328,12 @@ export const StockMovementPage: React.FC = () => {
               )}
             >
               {paginatedLogs.map((log) => (
-                <Card
+                <StockMovementGridCard
                   key={log.id}
-                  onClick={() => setSelectedLog(log)}
-                  className="group relative border border-border/60 shadow-2xs rounded-2xl bg-card text-card-foreground transition-all duration-200 hover:border-primary hover:shadow-md overflow-hidden flex flex-col justify-between select-none cursor-pointer"
-                >
-                  <CardContent className="p-4 flex flex-col justify-between h-full space-y-3">
-                    <div className="space-y-2.5">
-                      <div className="flex items-start justify-between gap-2">
-                        <div className="min-w-0 flex-1">
-                          <h3 className="text-xs sm:text-sm font-bold text-foreground line-clamp-2 leading-tight">
-                            {log.product_name}
-                          </h3>
-                        </div>
-                        <div className="shrink-0 pt-0.5">
-                          {renderMovementType(log.type)}
-                        </div>
-                      </div>
-
-                      <div className="p-2.5 rounded-xl bg-muted/40 border border-border/60 space-y-2">
-                        <div className="flex items-baseline justify-between">
-                          <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">
-                            Delta Change:
-                          </span>
-                          <div className="flex items-baseline gap-1 font-mono">
-                            <span
-                              className={cn(
-                                "text-sm sm:text-base font-black tracking-tight",
-                                log.type === "in"
-                                  ? "text-emerald-600 dark:text-emerald-400"
-                                  : log.type === "out"
-                                    ? "text-destructive"
-                                    : "text-amber-600 dark:text-amber-400",
-                              )}
-                            >
-                              {log.type === "in"
-                                ? `+${log.quantity.toLocaleString("id-ID")}`
-                                : log.type === "out"
-                                  ? `-${log.quantity.toLocaleString("id-ID")}`
-                                  : `Set ${log.quantity.toLocaleString("id-ID")}`}
-                            </span>
-                            <span className="text-[11px] font-semibold text-muted-foreground">
-                              {log.unit}
-                            </span>
-                          </div>
-                        </div>
-
-                        <div className="flex items-center justify-between pt-1.5 border-t border-border/30 text-xs font-mono">
-                          <span className="text-muted-foreground text-[11px] font-sans">
-                            Balance:
-                          </span>
-                          <div className="flex items-center gap-1.5 text-xs">
-                            <span className="text-muted-foreground/60 line-through text-[11px]">
-                              {log.quantity_before.toLocaleString("id-ID")}
-                            </span>
-                            <span className="text-muted-foreground text-[10px]">
-                              →
-                            </span>
-                            <span className="font-extrabold text-foreground bg-card px-1.5 py-0.5 rounded-md border border-border/60 shadow-2xs text-xs">
-                              {log.quantity_after.toLocaleString("id-ID")}{" "}
-                              {log.unit}
-                            </span>
-                          </div>
-                        </div>
-                      </div>
-
-                      {log.note && (
-                        <div className="flex items-start gap-1.5 text-xs text-muted-foreground min-w-0 pt-0.5">
-                          <FileText className="w-3.5 h-3.5 text-muted-foreground/70 shrink-0 mt-0.5" />
-                          <span
-                            className="text-xs text-muted-foreground line-clamp-1 font-medium flex-1"
-                            title={log.note}
-                          >
-                            {log.note}
-                          </span>
-                        </div>
-                      )}
-                    </div>
-
-                    <div className="flex items-center justify-between pt-2.5 border-t border-border/40 text-xs">
-                      <div className="min-w-0 flex-1">
-                        <span className="text-muted-foreground font-medium text-[10px] block truncate">
-                          Date & Time
-                        </span>
-                        <span className="font-bold text-xs text-foreground block truncate font-mono">
-                          {formatDateTime(log.created_at)}
-                        </span>
-                      </div>
-
-                      <div className="min-w-0 text-right">
-                        <span className="text-muted-foreground font-medium text-[10px] block truncate">
-                          Operator
-                        </span>
-                        <span className="font-bold text-xs text-foreground block truncate">
-                          {log.user_name}
-                        </span>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
+                  log={log}
+                  renderMovementType={renderMovementType}
+                  onSelect={setSelectedLog}
+                />
               ))}
             </div>
 
@@ -461,10 +359,9 @@ export const StockMovementPage: React.FC = () => {
             )}
           </div>
         ) : (
-          /* Table View */
           <div className="pb-6">
             <div className="hidden sm:block">
-              <Card className="rounded-2xl border border-border/60 bg-card p-3.5 sm:p-4 shadow-xs text-card-foreground transition-all duration-200 w-full flex flex-col justify-between overflow-hidden">
+              <Card className="rounded-2xl border border-border/60 bg-card p-3.5 sm:p-4 shadow-xs text-card-foreground transition-all duration-200 w-full flex flex-col justify-between overflow-hidden mb-6">
                 <div className="overflow-x-auto no-scrollbar">
                   <table className="w-full text-left text-xs border-collapse">
                     <thead>
@@ -482,7 +379,7 @@ export const StockMovementPage: React.FC = () => {
                           sortConfig={sortConfig}
                           onSort={requestSort}
                         />
-                        <th className="pb-2.5 px-3 text-center whitespace-nowrap hidden md:table-cell">
+                        <th className="py-2.5 px-3 text-center whitespace-nowrap hidden lg:table-cell">
                           Type
                         </th>
                         <SortableTh
@@ -492,13 +389,13 @@ export const StockMovementPage: React.FC = () => {
                           onSort={requestSort}
                           align="right"
                         />
-                        <th className="pb-2.5 px-3 text-right whitespace-nowrap">
+                        <th className="py-2.5 px-3 text-right whitespace-nowrap">
                           Balance
                         </th>
-                        <th className="pb-2.5 px-3 hidden md:table-cell">
+                        <th className="py-2.5 px-3 hidden xl:table-cell">
                           Note
                         </th>
-                        <th className="pb-2.5 px-3 hidden md:table-cell">
+                        <th className="py-2.5 px-3 hidden md:table-cell">
                           Operator
                         </th>
                       </tr>
@@ -511,101 +408,12 @@ export const StockMovementPage: React.FC = () => {
                       )}
                     >
                       {paginatedLogs.map((log) => (
-                        <tr
+                        <StockMovementTableRow
                           key={log.id}
-                          onClick={() => setSelectedLog(log)}
-                          className="hover:bg-muted/40 transition-colors cursor-pointer"
-                        >
-                          <td className="py-2.5 px-3 whitespace-nowrap">
-                            <div className="flex flex-col leading-tight">
-                              <span className="font-semibold text-foreground text-xs">
-                                {formatDate(log.created_at)}
-                              </span>
-                              <span className="text-[10px] font-mono text-muted-foreground">
-                                {formatTime(log.created_at)}
-                              </span>
-                            </div>
-                          </td>
-
-                          <td className="py-2.5 px-3">
-                            <span className="font-bold text-foreground block truncate text-xs sm:text-sm leading-tight">
-                              {log.product_name}
-                            </span>
-                          </td>
-
-                          <td className="py-2.5 px-3 text-center whitespace-nowrap hidden md:table-cell">
-                            <span
-                              className={cn(
-                                "text-xs font-bold",
-                                log.type === "in"
-                                  ? "text-emerald-600 dark:text-emerald-400"
-                                  : log.type === "out"
-                                    ? "text-destructive"
-                                    : "text-amber-600 dark:text-amber-400",
-                              )}
-                            >
-                              {log.type === "in"
-                                ? "Restock"
-                                : log.type === "out"
-                                  ? "Usage"
-                                  : "Opname"}
-                            </span>
-                          </td>
-
-                          <td className="py-2.5 px-3 text-right font-mono whitespace-nowrap">
-                            <span
-                              className={cn(
-                                "text-xs font-extrabold",
-                                log.type === "in"
-                                  ? "text-emerald-600 dark:text-emerald-400"
-                                  : log.type === "out"
-                                    ? "text-destructive"
-                                    : "text-amber-600 dark:text-amber-400",
-                              )}
-                            >
-                              {log.type === "in"
-                                ? `+${log.quantity.toLocaleString("id-ID")}`
-                                : log.type === "out"
-                                  ? `-${log.quantity.toLocaleString("id-ID")}`
-                                  : `Set ${log.quantity.toLocaleString("id-ID")}`}
-                            </span>{" "}
-                            <span className="text-muted-foreground text-[10px] font-medium">
-                              {log.unit}
-                            </span>
-                          </td>
-
-                          <td className="py-2.5 px-3 text-right font-mono whitespace-nowrap">
-                            <div className="flex items-center justify-end gap-1 text-xs leading-tight">
-                              <span className="text-muted-foreground/60 text-[10px] hidden sm:inline">
-                                {log.quantity_before.toLocaleString("id-ID")} →
-                              </span>
-                              <span className="font-bold text-foreground">
-                                {log.quantity_after.toLocaleString("id-ID")}
-                              </span>
-                              <span className="text-muted-foreground text-[10px]">
-                                {log.unit}
-                              </span>
-                            </div>
-                          </td>
-
-                          <td className="py-2.5 px-3 hidden md:table-cell max-w-28 lg:max-w-36">
-                            <span
-                              className="text-[11px] text-muted-foreground truncate block font-medium"
-                              title={log.note || "-"}
-                            >
-                              {log.note || "-"}
-                            </span>
-                          </td>
-
-                          <td className="py-2.5 px-3 hidden md:table-cell whitespace-nowrap text-muted-foreground text-xs">
-                            <div className="flex items-center gap-1.5">
-                              <User className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
-                              <span className="font-medium text-foreground truncate max-w-28">
-                                {log.user_name}
-                              </span>
-                            </div>
-                          </td>
-                        </tr>
+                          log={log}
+                          renderMovementType={renderMovementType}
+                          onSelect={setSelectedLog}
+                        />
                       ))}
                     </tbody>
                   </table>
@@ -637,121 +445,33 @@ export const StockMovementPage: React.FC = () => {
                 className={cn("grid grid-cols-1 gap-3.5", slideClass)}
               >
                 {paginatedLogs.map((log) => (
-                  <Card
+                  <StockMovementMobileCard
                     key={log.id}
-                    onClick={() => setSelectedLog(log)}
-                    className="group relative border border-border/60 shadow-2xs rounded-2xl bg-card text-card-foreground p-4 space-y-3 cursor-pointer hover:border-primary transition-colors"
-                  >
-                    <div className="space-y-2.5">
-                      <div className="flex items-start justify-between gap-2">
-                        <div className="min-w-0 flex-1">
-                          <h4 className="font-bold text-foreground text-xs sm:text-sm leading-snug truncate">
-                            {log.product_name}
-                          </h4>
-                        </div>
-                        <div className="shrink-0 pt-0.5">
-                          {renderMovementType(log.type)}
-                        </div>
-                      </div>
-
-                      <div className="p-2.5 rounded-xl bg-muted/40 border border-border/60 space-y-2">
-                        <div className="flex items-baseline justify-between">
-                          <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">
-                            Delta Change:
-                          </span>
-                          <div className="flex items-baseline gap-1 font-mono">
-                            <span
-                              className={cn(
-                                "text-sm sm:text-base font-black tracking-tight",
-                                log.type === "in"
-                                  ? "text-emerald-600 dark:text-emerald-400"
-                                  : log.type === "out"
-                                    ? "text-destructive"
-                                    : "text-amber-600 dark:text-amber-400",
-                              )}
-                            >
-                              {log.type === "in"
-                                ? `+${log.quantity.toLocaleString("id-ID")}`
-                                : log.type === "out"
-                                  ? `-${log.quantity.toLocaleString("id-ID")}`
-                                  : `Set ${log.quantity.toLocaleString("id-ID")}`}
-                            </span>
-                            <span className="text-[11px] font-semibold text-muted-foreground">
-                              {log.unit}
-                            </span>
-                          </div>
-                        </div>
-
-                        <div className="flex items-center justify-between pt-1.5 border-t border-border/30 text-xs font-mono">
-                          <span className="text-muted-foreground text-[11px] font-sans">
-                            Balance:
-                          </span>
-                          <div className="flex items-center gap-1.5 text-xs">
-                            <span className="text-muted-foreground/60 line-through text-[11px]">
-                              {log.quantity_before.toLocaleString("id-ID")}
-                            </span>
-                            <span className="text-muted-foreground text-[10px]">
-                              →
-                            </span>
-                            <span className="font-extrabold text-foreground bg-card px-1.5 py-0.5 rounded-md border border-border/60 shadow-2xs text-xs">
-                              {log.quantity_after.toLocaleString("id-ID")}{" "}
-                              {log.unit}
-                            </span>
-                          </div>
-                        </div>
-                      </div>
-
-                      {log.note && (
-                        <div className="flex items-start gap-1.5 text-xs text-muted-foreground min-w-0 pt-0.5">
-                          <FileText className="w-3.5 h-3.5 text-muted-foreground/70 shrink-0 mt-0.5" />
-                          <span
-                            className="text-xs text-muted-foreground line-clamp-1 font-medium flex-1"
-                            title={log.note}
-                          >
-                            {log.note}
-                          </span>
-                        </div>
-                      )}
-                    </div>
-
-                    <div className="flex items-center justify-between pt-2 border-t border-border/40 mt-auto text-xs gap-1">
-                      <div className="min-w-0 flex-1">
-                        <span className="text-muted-foreground font-medium text-[10px] block truncate">
-                          Date & Time
-                        </span>
-                        <span className="font-bold text-xs text-foreground block truncate font-mono">
-                          {formatDateTime(log.created_at)}
-                        </span>
-                      </div>
-                      <div className="min-w-0 text-right">
-                        <span className="text-muted-foreground font-medium text-[10px] block truncate">
-                          Operator
-                        </span>
-                        <span className="font-bold text-xs text-foreground block truncate">
-                          {log.user_name}
-                        </span>
-                      </div>
-                    </div>
-                  </Card>
+                    log={log}
+                    renderMovementType={renderMovementType}
+                    onSelect={setSelectedLog}
+                  />
                 ))}
               </div>
 
               {sortedLogs.length > 0 && (
-                <div className="bg-card/90 backdrop-blur-md rounded-2xl border border-border/70 shadow-xs px-4 py-2.5">
-                  <Pagination
-                    currentPage={currentPage}
-                    totalPages={totalPages}
-                    totalItems={sortedLogs.length}
-                    pageSize={pageSize}
-                    onPageChange={handlePageChange}
-                    onPageSizeChange={(size) => {
-                      setPageSize(size);
-                      handlePageChange(1);
-                    }}
-                    pageSizeOptions={[10, 20, 50]}
-                    itemLabel="movement logs"
-                    className="pt-0 pb-0"
-                  />
+                <div className="flex justify-center pt-2 w-full">
+                  <div className="bg-card/90 backdrop-blur-md rounded-2xl border border-border/70 shadow-xs px-3.5 sm:px-5 py-2.5 w-full sm:w-auto sm:min-w-120 max-w-2xl">
+                    <Pagination
+                      currentPage={currentPage}
+                      totalPages={totalPages}
+                      totalItems={sortedLogs.length}
+                      pageSize={pageSize}
+                      onPageChange={handlePageChange}
+                      onPageSizeChange={(size) => {
+                        setPageSize(size);
+                        handlePageChange(1);
+                      }}
+                      pageSizeOptions={[10, 20, 50]}
+                      itemLabel="movement logs"
+                      className="pt-0 pb-0"
+                    />
+                  </div>
                 </div>
               )}
             </div>

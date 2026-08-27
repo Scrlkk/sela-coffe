@@ -67,7 +67,7 @@ const StockLimitsDialogForm: React.FC<StockLimitsFormProps> = ({
             Stock Alert Thresholds
           </DialogTitle>
           <DialogDescription className="truncate text-xs sm:text-sm text-muted-foreground max-w-50 sm:max-w-xs">
-            {stockItem.product_name} ({stockItem.sku})
+            {stockItem.product_name} ({stockItem.category_name})
           </DialogDescription>
         </div>
       </DialogHeader>
@@ -118,7 +118,7 @@ const StockLimitsDialogForm: React.FC<StockLimitsFormProps> = ({
           </div>
         </div>
 
-        <DialogFooter className="gap-2 sm:gap-0 pt-2 border-t border-border/40">
+        <DialogFooter className="pt-2 sm:pt-3">
           <Button
             type="button"
             variant="outline"

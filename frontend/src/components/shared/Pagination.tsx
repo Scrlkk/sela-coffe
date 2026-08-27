@@ -1,14 +1,11 @@
 import React from "react";
-import { ChevronDown, Check } from "lucide-react";
 import {
-  Pagination as ShadcnPagination,
-  PaginationContent,
-  PaginationEllipsis,
-  PaginationItem,
-  PaginationLink,
-  PaginationNext,
-  PaginationPrevious,
-} from "@/components/ui/pagination";
+  ChevronDown,
+  Check,
+  ChevronLeft,
+  ChevronRight,
+  MoreHorizontal,
+} from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -40,13 +37,28 @@ export const Pagination: React.FC<PaginationProps> = ({
   className,
   itemLabel = "items",
 }) => {
-  
   const pageNumbers = React.useMemo<(number | "...")[]>(() => {
-    if (totalPages <= 5) return Array.from({ length: totalPages }, (_, i) => i + 1);
+    if (totalPages <= 5)
+      return Array.from({ length: totalPages }, (_, i) => i + 1);
     if (currentPage <= 3) return [1, 2, 3, 4, "...", totalPages];
     if (currentPage >= totalPages - 2)
-      return [1, "...", totalPages - 3, totalPages - 2, totalPages - 1, totalPages];
-    return [1, "...", currentPage - 1, currentPage, currentPage + 1, "...", totalPages];
+      return [
+        1,
+        "...",
+        totalPages - 3,
+        totalPages - 2,
+        totalPages - 1,
+        totalPages,
+      ];
+    return [
+      1,
+      "...",
+      currentPage - 1,
+      currentPage,
+      currentPage + 1,
+      "...",
+      totalPages,
+    ];
   }, [currentPage, totalPages]);
 
   if (totalItems === 0) return null;
@@ -61,11 +73,17 @@ export const Pagination: React.FC<PaginationProps> = ({
         className,
       )}
     >
-      
       <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2 text-muted-foreground font-medium order-2 sm:order-1 w-full sm:w-auto">
         <span className="text-[11px] sm:text-[11.5px] whitespace-nowrap">
-          Showing <strong className="text-foreground font-bold font-mono">{startItem}–{endItem}</strong> of{" "}
-          <strong className="text-foreground font-bold font-mono">{totalItems}</strong> {itemLabel}
+          Showing{" "}
+          <strong className="text-foreground font-bold font-mono">
+            {startItem}–{endItem}
+          </strong>{" "}
+          of{" "}
+          <strong className="text-foreground font-bold font-mono">
+            {totalItems}
+          </strong>{" "}
+          {itemLabel}
         </span>
 
         {onPageSizeChange && (
@@ -102,56 +120,77 @@ export const Pagination: React.FC<PaginationProps> = ({
         )}
       </div>
 
-      <ShadcnPagination className="mx-0 w-auto order-1 sm:order-2">
-        <PaginationContent className="bg-muted/40 p-1 rounded-xl border border-border/60 shadow-2xs gap-0.5 flex-nowrap">
-          
-          <PaginationItem>
-            <PaginationPrevious
-              disabled={currentPage === 1}
-              onClick={() => onPageChange(currentPage - 1)}
-              className={cn(
-                "h-7 text-xs font-semibold rounded-lg text-muted-foreground hover:text-foreground hover:bg-card",
-                currentPage === 1 && "opacity-30 pointer-events-none",
-              )}
-            />
-          </PaginationItem>
+      <nav
+        role="navigation"
+        aria-label="pagination"
+        className="mx-0 w-auto order-1 sm:order-2"
+      >
+        <div className="bg-muted/40 p-1 rounded-xl border border-border/60 shadow-2xs gap-0.5 flex items-center">
+          <button
+            type="button"
+            disabled={currentPage === 1}
+            onClick={() => onPageChange(currentPage - 1)}
+            aria-label="Go to previous page"
+            className={cn(
+              "h-7 px-2 text-xs font-semibold rounded-lg text-muted-foreground hover:text-foreground hover:bg-card inline-flex items-center gap-1 cursor-pointer transition-colors",
+              currentPage === 1 && "opacity-30 pointer-events-none",
+            )}
+          >
+            <ChevronLeft className="h-4 w-4 shrink-0" />
+            <span className="hidden sm:inline">Previous</span>
+          </button>
 
           {pageNumbers.map((page, idx) => {
             if (page === "...") {
               return (
-                <PaginationItem key={`ellipsis-${idx}`}>
-                  <PaginationEllipsis className="h-7 w-5" />
-                </PaginationItem>
+                <span
+                  key={`ellipsis-${idx}`}
+                  aria-hidden
+                  className="flex h-7 w-5 items-center justify-center text-muted-foreground"
+                >
+                  <MoreHorizontal className="h-3.5 w-3.5" />
+                </span>
               );
             }
 
             const isCurrent = page === currentPage;
             return (
-              <PaginationItem key={page}>
-                <PaginationLink
-                  isActive={isCurrent}
-                  onClick={() => onPageChange(page)}
-                  className="h-7 min-w-7 px-1.5 text-xs font-bold rounded-lg"
-                >
-                  {page}
-                </PaginationLink>
-              </PaginationItem>
+              <button
+                key={page}
+                type="button"
+                aria-current={isCurrent ? "page" : undefined}
+                onClick={() => onPageChange(page)}
+                className={cn(
+                  "h-7 min-w-7 px-1.5 text-xs font-bold rounded-lg transition-colors cursor-pointer inline-flex items-center justify-center",
+                  isCurrent
+                    ? "bg-card text-foreground shadow-2xs border border-border/80 font-extrabold"
+                    : "text-muted-foreground hover:text-foreground hover:bg-card",
+                )}
+              >
+                {page}
+              </button>
             );
           })}
 
-          <PaginationItem>
-            <PaginationNext
-              disabled={currentPage === totalPages || totalPages === 0}
-              onClick={() => onPageChange(currentPage + 1)}
-              className={cn(
-                "h-7 text-xs font-semibold rounded-lg text-muted-foreground hover:text-foreground hover:bg-card",
-                (currentPage === totalPages || totalPages === 0) &&
-                  "opacity-30 pointer-events-none",
-              )}
-            />
-          </PaginationItem>
-        </PaginationContent>
-      </ShadcnPagination>
+          <button
+            type="button"
+            disabled={currentPage === totalPages || totalPages === 0}
+            onClick={() => onPageChange(currentPage + 1)}
+            aria-label="Go to next page"
+            className={cn(
+              "h-7 px-2 text-xs font-semibold rounded-lg text-muted-foreground hover:text-foreground hover:bg-card inline-flex items-center gap-1 cursor-pointer transition-colors",
+              (currentPage === totalPages || totalPages === 0) &&
+                "opacity-30 pointer-events-none",
+            )}
+          >
+            <span className="hidden sm:inline">Next</span>
+            <ChevronRight className="h-4 w-4 shrink-0" />
+          </button>
+        </div>
+      </nav>
     </div>
   );
 };
+
+export default Pagination;
+

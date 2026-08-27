@@ -4,7 +4,6 @@ export const INITIAL_INGREDIENTS: IngredientItem[] = [
   {
     id: "ing_1",
     name: "Arabica House Blend Beans",
-    sku: "RAW-BNS-001",
     category: "coffee-beans",
     unit: "gram",
     costPrice: 220,
@@ -21,7 +20,6 @@ export const INITIAL_INGREDIENTS: IngredientItem[] = [
   {
     id: "ing_2",
     name: "Fresh Milk Full Cream (Diamond)",
-    sku: "RAW-MLK-002",
     category: "dairy-milk",
     unit: "ml",
     costPrice: 20,
@@ -38,7 +36,6 @@ export const INITIAL_INGREDIENTS: IngredientItem[] = [
   {
     id: "ing_3",
     name: "Oat Milk Barista Edition",
-    sku: "RAW-OAT-003",
     category: "dairy-milk",
     unit: "ml",
     costPrice: 45,
@@ -55,7 +52,6 @@ export const INITIAL_INGREDIENTS: IngredientItem[] = [
   {
     id: "ing_4",
     name: "Vanilla Artisan Syrup (Monin)",
-    sku: "RAW-SYR-004",
     category: "syrup-flavor",
     unit: "ml",
     costPrice: 180,
@@ -72,7 +68,6 @@ export const INITIAL_INGREDIENTS: IngredientItem[] = [
   {
     id: "ing_5",
     name: "Caramel Gourmet Sauce",
-    sku: "RAW-CAR-005",
     category: "syrup-flavor",
     unit: "ml",
     costPrice: 160,
@@ -89,7 +84,6 @@ export const INITIAL_INGREDIENTS: IngredientItem[] = [
   {
     id: "ing_6",
     name: "Uji Matcha Ceremonial Powder",
-    sku: "RAW-MTC-006",
     category: "tea-powder",
     unit: "gram",
     costPrice: 650,
@@ -106,7 +100,6 @@ export const INITIAL_INGREDIENTS: IngredientItem[] = [
   {
     id: "ing_7",
     name: "Dark Cocoa Pure Powder 100%",
-    sku: "RAW-CHO-007",
     category: "tea-powder",
     unit: "gram",
     costPrice: 200,
@@ -123,7 +116,6 @@ export const INITIAL_INGREDIENTS: IngredientItem[] = [
   {
     id: "ing_8",
     name: "Hot Paper Cup 8oz + Lid",
-    sku: "RAW-CUP-008",
     category: "packaging",
     unit: "pcs",
     costPrice: 650,
@@ -140,7 +132,6 @@ export const INITIAL_INGREDIENTS: IngredientItem[] = [
   {
     id: "ing_9",
     name: "Cold Cup PET 16oz + Strawless Lid",
-    sku: "RAW-PET-009",
     category: "packaging",
     unit: "pcs",
     costPrice: 850,
@@ -157,7 +148,6 @@ export const INITIAL_INGREDIENTS: IngredientItem[] = [
   {
     id: "ing_10",
     name: "French Butter Block AOP",
-    sku: "RAW-BTR-010",
     category: "bakery-ingredient",
     unit: "gram",
     costPrice: 140,
@@ -172,3 +162,4 @@ export const INITIAL_INGREDIENTS: IngredientItem[] = [
     updatedAt: new Date().toISOString(),
   },
 ];
+

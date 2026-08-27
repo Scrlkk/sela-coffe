@@ -15,30 +15,24 @@ import { Textarea } from "@/components/ui/textarea";
 import { Truck, Pencil } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-interface SupplierDialogProps {
+export interface SupplierDialogProps {
   isOpen: boolean;
   onClose: () => void;
   supplier: SupplierItem | null;
   onSave: (supplierData: Omit<SupplierItem, "id">) => void;
 }
 
-interface SupplierFormProps {
+const SupplierForm: React.FC<{
   supplier: SupplierItem | null;
   onClose: () => void;
   onSave: (supplierData: Omit<SupplierItem, "id">) => void;
-}
-
-const SupplierDialogForm: React.FC<SupplierFormProps> = ({
-  supplier,
-  onClose,
-  onSave,
-}) => {
+}> = ({ supplier, onClose, onSave }) => {
   const [name, setName] = useState(supplier?.name ?? "");
   const [contactPerson, setContactPerson] = useState(
     supplier?.contactPerson ?? "",
   );
   const [phone, setPhone] = useState(supplier?.phone ?? "");
-  const [link, setLink] = useState(supplier?.link || supplier?.email || "");
+  const [link, setLink] = useState(supplier?.link ?? "");
   const [address, setAddress] = useState(supplier?.address ?? "");
   const [errors, setErrors] = useState<Record<string, string>>({});
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -184,10 +178,7 @@ const SupplierDialogForm: React.FC<SupplierFormProps> = ({
 
         <div className="space-y-1">
           <Label htmlFor="link" className="text-xs font-bold text-foreground">
-            Store / Purchase Link (E-Commerce / Catalog URL){" "}
-            <span className="text-muted-foreground font-normal">
-              (Optional)
-            </span>
+            Store / Purchase Link (E-Commerce / Catalog URL) (Optional)
           </Label>
           <Input
             id="link"
@@ -204,10 +195,7 @@ const SupplierDialogForm: React.FC<SupplierFormProps> = ({
             htmlFor="address"
             className="text-xs font-bold text-foreground"
           >
-            Full Address{" "}
-            <span className="text-muted-foreground font-normal">
-              (Optional)
-            </span>
+            Full Address (Optional)
           </Label>
           <Textarea
             ref={textareaRef}
@@ -220,7 +208,7 @@ const SupplierDialogForm: React.FC<SupplierFormProps> = ({
           />
         </div>
 
-        <DialogFooter className="gap-2 sm:gap-0 pt-2 border-t border-border/40">
+        <DialogFooter className="pt-2 sm:pt-3">
           <Button
             type="button"
             variant="outline"
@@ -251,7 +239,7 @@ export const SupplierDialog: React.FC<SupplierDialogProps> = ({
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <DialogContent className="max-w-lg">
         {isOpen && (
-          <SupplierDialogForm
+          <SupplierForm
             key={supplier ? supplier.id : "new"}
             supplier={supplier}
             onClose={onClose}

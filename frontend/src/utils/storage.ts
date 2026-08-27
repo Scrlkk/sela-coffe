@@ -7,9 +7,12 @@ export const safeStorage = {
     }
   },
 
-  setItem: (key: string, value: string): void => {
+  setItem: (key: string, value: unknown): void => {
     try {
-      localStorage.setItem(key, value);
+      localStorage.setItem(
+        key,
+        typeof value === "string" ? value : String(value),
+      );
     } catch (e) {
       void e;
     }
@@ -33,11 +36,7 @@ export const safeStorage = {
   },
 
   set: (key: string, value: unknown): void => {
-    try {
-      localStorage.setItem(key, String(value));
-    } catch (e) {
-      void e;
-    }
+    safeStorage.setItem(key, value);
   },
 };
 

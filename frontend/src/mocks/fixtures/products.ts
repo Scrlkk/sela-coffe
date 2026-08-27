@@ -1,4 +1,4 @@
-import type { ProductItem } from "@/constants/cashier";
+import type { ProductItem } from "@/services/product";
 
 export const INITIAL_PRODUCTS: ProductItem[] = [
   {

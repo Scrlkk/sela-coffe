@@ -25,20 +25,18 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-interface UserDialogProps {
+export interface UserDialogProps {
   isOpen: boolean;
   onClose: () => void;
   user: UserItem | null;
   onSave: (userData: Omit<UserItem, "id"> & { password?: string }) => void;
 }
 
-interface UserFormProps {
+const UserForm: React.FC<{
   user: UserItem | null;
   onClose: () => void;
   onSave: (userData: Omit<UserItem, "id"> & { password?: string }) => void;
-}
-
-const UserDialogForm: React.FC<UserFormProps> = ({ user, onClose, onSave }) => {
+}> = ({ user, onClose, onSave }) => {
   const [name, setName] = useState(user?.name ?? "");
   const [username, setUsername] = useState(user?.username ?? "");
   const [role, setRole] = useState<"ADMIN" | "CASHIER">(
@@ -165,7 +163,7 @@ const UserDialogForm: React.FC<UserFormProps> = ({ user, onClose, onSave }) => {
               htmlFor="phone"
               className="text-xs font-bold text-foreground"
             >
-              Phone Number
+              Phone Number (Optional)
             </Label>
             <div className="relative">
               <Input
@@ -361,7 +359,7 @@ const UserDialogForm: React.FC<UserFormProps> = ({ user, onClose, onSave }) => {
           )}
         </div>
 
-        <DialogFooter className="gap-2 sm:gap-0 pt-2 border-t border-border/40">
+        <DialogFooter className="pt-2 sm:pt-3">
           <Button
             type="button"
             variant="outline"
@@ -392,7 +390,7 @@ export const UserDialog: React.FC<UserDialogProps> = ({
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <DialogContent className="max-w-lg">
         {isOpen && (
-          <UserDialogForm
+          <UserForm
             key={user ? user.id : "new"}
             user={user}
             onClose={onClose}

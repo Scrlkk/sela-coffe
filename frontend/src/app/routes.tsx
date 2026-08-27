@@ -1,11 +1,18 @@
-/* eslint-disable react-refresh/only-export-components */
 import { lazy, Suspense } from "react";
-import { createBrowserRouter, Navigate } from "react-router-dom";
+import { createBrowserRouter, Navigate, RouterProvider } from "react-router-dom";
 import MainLayout from "@/layouts/MainLayout";
 import { DashboardSkeleton } from "@/components/dashboard/DashboardSkeleton";
 import { CashSessionSkeleton } from "@/components/cash-session/CashSessionSkeleton";
 import { CashierSkeleton } from "@/components/cashier/CashierSkeleton";
 import { ProfileSkeleton } from "@/components/profile/ProfileSkeleton";
+import { ProductSkeleton } from "@/components/product/ProductSkeleton";
+import { IngredientSkeleton } from "@/components/ingredient/IngredientSkeleton";
+import { CategorySkeleton } from "@/components/category/CategorySkeleton";
+import { SupplierSkeleton } from "@/components/supplier/SupplierSkeleton";
+import { UserSkeleton } from "@/components/user/UserSkeleton";
+import { StockSkeleton } from "@/components/stock/StockSkeleton";
+import { StockMovementSkeleton } from "@/components/stock-movement/StockMovementSkeleton";
+import { PurchaseSkeleton } from "@/components/purchase/PurchaseSkeleton";
 import {
   ProtectedRoute,
   PublicRoute,
@@ -13,26 +20,13 @@ import {
 
 const LoginPage = lazy(() => import("@/pages/LoginPage"));
 const ProductPage = lazy(() => import("@/pages/ProductPage"));
-const ProductSkeleton = lazy(
-  () => import("@/components/product/ProductSkeleton"),
-);
 const IngredientPage = lazy(() => import("@/pages/IngredientPage"));
-const IngredientSkeleton = lazy(
-  () => import("@/components/ingredient/IngredientSkeleton"),
-);
 const CategoryPage = lazy(() => import("@/pages/CategoryPage"));
-const CategorySkeleton = lazy(
-  () => import("@/components/category/CategorySkeleton"),
-);
 const SupplierPage = lazy(() => import("@/pages/SupplierPage"));
-const SupplierSkeleton = lazy(
-  () => import("@/components/supplier/SupplierSkeleton"),
-);
 const UserPage = lazy(() => import("@/pages/UserPage"));
-const UserSkeleton = lazy(() => import("@/components/user/UserSkeleton"));
 const StockPage = lazy(() => import("@/pages/StockPage"));
-const StockSkeleton = lazy(() => import("@/components/stock/StockSkeleton"));
 const StockMovementPage = lazy(() => import("@/pages/StockMovementPage"));
+const PurchaseOrderPage = lazy(() => import("@/pages/PurchaseOrderPage"));
 const DashboardPage = lazy(() => import("@/pages/DashboardPage"));
 const ProfilePage = lazy(() => import("@/pages/ProfilePage"));
 const CashSessionPage = lazy(() => import("@/pages/CashSessionPage"));
@@ -42,7 +36,7 @@ const ServerErrorPage = lazy(() => import("@/pages/ServerErrorPage"));
 
 const pageFallback = <DashboardSkeleton />;
 
-export const router = createBrowserRouter([
+const router = createBrowserRouter([
   {
     path: "/",
     element: <Navigate to="/dashboard" replace />,
@@ -132,18 +126,18 @@ export const router = createBrowserRouter([
           {
             path: "/stock-movement",
             element: (
-              <Suspense fallback={<StockSkeleton />}>
+              <Suspense fallback={<StockMovementSkeleton />}>
                 <StockMovementPage />
               </Suspense>
             ),
           },
           {
             path: "/purchases",
-            element: <div />,
-          },
-          {
-            path: "/purchases/receive",
-            element: <div />,
+            element: (
+              <Suspense fallback={<PurchaseSkeleton />}>
+                <PurchaseOrderPage />
+              </Suspense>
+            ),
           },
           {
             path: "/transactions",
@@ -174,3 +168,9 @@ export const router = createBrowserRouter([
     element: <NotFoundPage />,
   },
 ]);
+
+export function AppRouter() {
+  return <RouterProvider router={router} />;
+}
+
+export default AppRouter;

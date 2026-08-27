@@ -8,7 +8,12 @@ import {
 import { getStoredCategories } from "@/services/category";
 import { StockAdjustmentDialog } from "@/components/stock/StockAdjustmentDialog";
 import { StockLimitsDialog } from "@/components/stock/StockLimitsDialog";
-import { Card, CardContent } from "@/components/ui/card";
+import {
+  StockGridCard,
+  StockTableRow,
+  StockMobileCard,
+} from "@/components/stock/StockViewItems";
+import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { StatCard } from "@/components/dashboard/StatCard";
@@ -16,7 +21,7 @@ import { StatGrid } from "@/components/dashboard/StatGrid";
 import { ViewModeSwitcher } from "@/components/shared/ViewModeSwitcher";
 import { EmptyState } from "@/components/shared/EmptyState";
 import { FormDropdownPicker } from "@/components/shared/FormDropdownPicker";
-import { formatRupiah } from "@/utils/formatCurrency";
+import { formatRupiah, formatNumber } from "@/utils/formatCurrency";
 import { formatLastUpdated } from "@/utils/formatDate";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
@@ -28,7 +33,6 @@ import {
   XCircle,
   SlidersHorizontal,
   Filter,
-  Settings2,
   Boxes,
 } from "lucide-react";
 import { useViewMode } from "@/hooks/useViewMode";
@@ -93,7 +97,6 @@ export const StockPage: React.FC = () => {
       const q = deferredSearch.toLowerCase();
       return (
         item.product_name.toLowerCase().includes(q) ||
-        item.sku.toLowerCase().includes(q) ||
         item.category_name.toLowerCase().includes(q)
       );
     });
@@ -143,7 +146,7 @@ export const StockPage: React.FC = () => {
             ? "Stock Reduced"
             : "Stock Adjusted";
       toast.success(
-        `${label} for "${result.stock.product_name}": ${result.stock.quantity.toLocaleString("id-ID")} ${result.stock.unit}`,
+        `${label} for "${result.stock.product_name}": ${formatNumber(result.stock.quantity)} ${result.stock.unit}`,
       );
     }
   };
@@ -247,7 +250,7 @@ export const StockPage: React.FC = () => {
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Search raw material name, SKU, or category..."
+            placeholder="Search raw material name or category..."
             className="pl-9 pr-8 h-9.5 rounded-xl bg-background text-xs font-medium border-border/80 w-full"
           />
           {searchQuery && (
@@ -261,27 +264,31 @@ export const StockPage: React.FC = () => {
           )}
         </div>
 
-        <div className="flex flex-wrap items-center justify-between gap-2.5 sm:gap-3 w-full xl:w-auto min-w-0">
-          <div className="flex flex-wrap sm:flex-nowrap items-center gap-2 sm:gap-2.5 w-full sm:w-auto min-w-0">
-            <div className="flex-1 sm:flex-none min-w-0">
+        {/* Filters, Switchers & Actions */}
+        <div className="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-2.5 sm:gap-3 w-full xl:w-auto min-w-0">
+          {/* Dropdown Filters - Full Width 2-columns on mobile & tablet (< lg) */}
+          <div className="grid grid-cols-2 lg:flex items-center gap-2 sm:gap-2.5 w-full lg:w-auto min-w-0">
+            <div className="w-full lg:w-52 min-w-0">
               <FormDropdownPicker
                 value={selectedCategory}
                 onChange={setSelectedCategory}
                 options={categoriesList}
                 icon={Filter}
-                className="w-full sm:w-52"
+                className="w-full"
               />
             </div>
 
-            <div className="flex-1 sm:flex-none min-w-0 lg:hidden">
+            {/* Status Dropdown on mobile & tablet (< lg) */}
+            <div className="w-full lg:hidden min-w-0">
               <FormDropdownPicker
                 value={statusFilter}
                 onChange={(val) => setStatusFilter(val as StockStatusFilter)}
                 options={statusOptions}
-                className="w-full sm:w-44"
+                className="w-full"
               />
             </div>
 
+            {/* Status Tabs on Desktop (>= lg) */}
             <div className="hidden lg:flex items-center bg-muted/60 p-1 rounded-xl border border-border/50 text-xs h-9.5 shrink-0">
               {(
                 [
@@ -307,7 +314,8 @@ export const StockPage: React.FC = () => {
             </div>
           </div>
 
-          <div className="flex items-center justify-between sm:justify-end gap-2.5 w-full sm:w-auto shrink-0">
+          {/* Action Row: ViewModeSwitcher & Stock Adjustment together on the right */}
+          <div className="flex items-center justify-end gap-2.5 w-full lg:w-auto shrink-0">
             <ViewModeSwitcher
               value={viewMode}
               onChange={handleViewModeChange}
@@ -341,122 +349,20 @@ export const StockPage: React.FC = () => {
           />
         ) : viewMode === "grid" ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3.5 pt-1 pb-6">
-            {displayedStocks.map((item) => {
-              const percentage = Math.min(
-                100,
-                Math.round((item.quantity / (item.max_stock || 100)) * 100),
-              );
-              const isLow =
-                item.quantity > 0 && item.quantity <= item.min_stock;
-              const isOut = item.quantity === 0;
-
-              return (
-                <Card
-                  key={item.id}
-                  className="group relative border border-border/60 shadow-2xs rounded-2xl bg-card text-card-foreground transition-all duration-200 hover:border-primary hover:shadow-md overflow-hidden flex flex-col justify-between select-none"
-                >
-                  <CardContent className="p-4 flex flex-col justify-between h-full space-y-3">
-                    <div className="space-y-2.5">
-                      <div className="flex items-start justify-between gap-2">
-                        <div className="min-w-0 flex-1 space-y-0.5">
-                          <h3 className="text-sm font-bold text-foreground line-clamp-2 leading-tight">
-                            {item.product_name}
-                          </h3>
-                          <span className="text-xs text-muted-foreground block truncate">
-                            {item.category_name}
-                          </span>
-                        </div>
-                        {renderStockBadge(item, false)}
-                      </div>
-
-                      <div className="space-y-1.5 pt-0.5">
-                        <div className="flex items-baseline justify-between text-xs">
-                          <span className="text-muted-foreground font-medium text-xs">
-                            Current Stock:
-                          </span>
-                          <span className="text-base font-extrabold text-foreground font-mono">
-                            {item.quantity.toLocaleString("id-ID")}{" "}
-                            <span className="text-xs font-normal text-muted-foreground">
-                              {item.unit}
-                            </span>
-                          </span>
-                        </div>
-
-                        <div className="space-y-1">
-                          <div className="flex items-center justify-between text-[11px] text-muted-foreground">
-                            <span>
-                              Min: {item.min_stock.toLocaleString("id-ID")}
-                            </span>
-                            <span>
-                              Max: {item.max_stock.toLocaleString("id-ID")}
-                            </span>
-                          </div>
-                          <div className="h-1.5 rounded-full bg-muted overflow-hidden">
-                            <div
-                              className={cn(
-                                "h-full rounded-full transition-all duration-300",
-                                isOut
-                                  ? "bg-destructive"
-                                  : isLow
-                                    ? "bg-amber-500"
-                                    : "bg-emerald-500",
-                              )}
-                              style={{ width: `${Math.max(4, percentage)}%` }}
-                            />
-                          </div>
-                        </div>
-
-                        <div className="flex items-center justify-between text-xs pt-1 border-t border-border/40">
-                          <span className="text-muted-foreground text-[11px]">
-                            Valuation:
-                          </span>
-                          <span className="font-bold text-foreground text-xs font-mono">
-                            {formatRupiah(item.asset_value)}
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="flex items-center justify-between pt-2 border-t border-border/40 mt-auto text-xs gap-1">
-                      <div className="min-w-0 flex-1">
-                        <span className="text-muted-foreground font-medium text-[10px] block truncate">
-                          Last Updated
-                        </span>
-                        <span className="font-bold text-xs text-foreground block truncate">
-                          {formatLastUpdated(item.updated_at)}
-                        </span>
-                      </div>
-
-                      <div className="flex items-center gap-1 shrink-0">
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => {
-                            setDialog({ type: "limits", item });
-                          }}
-                          className="h-8 w-8 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/80 transition-colors cursor-pointer"
-                          title="Set Alert Thresholds"
-                        >
-                          <Settings2 className="w-3.5 h-3.5" />
-                        </Button>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => {
-                            setDialog({ type: "adjust", item });
-                          }}
-                          className="h-8 px-2.5 rounded-lg text-xs font-semibold gap-1 text-primary hover:bg-primary/10 border-primary/40 cursor-pointer shadow-2xs"
-                          title="Adjust Stock"
-                        >
-                          <SlidersHorizontal className="w-3 h-3" />
-                          <span>Adjust</span>
-                        </Button>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              );
-            })}
+            {displayedStocks.map((item) => (
+              <StockGridCard
+                key={item.id}
+                item={item}
+                formattedUpdatedAt={formatLastUpdated(item.updated_at)}
+                renderStockBadge={renderStockBadge}
+                onLimits={(stockItem) =>
+                  setDialog({ type: "limits", item: stockItem })
+                }
+                onAdjust={(stockItem) =>
+                  setDialog({ type: "adjust", item: stockItem })
+                }
+              />
+            ))}
           </div>
         ) : (
           <div className="pb-6">
@@ -472,7 +378,7 @@ export const StockPage: React.FC = () => {
                           sortConfig={sortConfig}
                           onSort={requestSort}
                         />
-                        <th className="pb-2.5 px-3 hidden md:table-cell">
+                        <th className="py-2.5 px-3 hidden md:table-cell">
                           Category
                         </th>
                         <SortableTh
@@ -481,7 +387,7 @@ export const StockPage: React.FC = () => {
                           sortConfig={sortConfig}
                           onSort={requestSort}
                         />
-                        <th className="pb-2.5 px-3 text-center">
+                        <th className="py-2.5 px-3 text-center">
                           Stock Status
                         </th>
                         <SortableTh
@@ -499,77 +405,23 @@ export const StockPage: React.FC = () => {
                           onSort={requestSort}
                           align="right"
                         />
-                        <th className="pb-2.5 px-3 text-right">Actions</th>
+                        <th className="py-2.5 px-3 text-right">Actions</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-border/40 font-medium">
                       {displayedStocks.map((item) => (
-                        <tr
+                        <StockTableRow
                           key={item.id}
-                          className="hover:bg-muted/30 transition-colors"
-                        >
-                          <td className="py-2.5 px-3">
-                            <div className="min-w-0">
-                              <span className="font-bold text-foreground block truncate text-xs sm:text-sm">
-                                {item.product_name}
-                              </span>
-                              <span className="text-[10.5px] font-mono text-muted-foreground uppercase">
-                                {item.sku}
-                              </span>
-                            </div>
-                          </td>
-
-                          <td className="py-2.5 px-3 text-muted-foreground font-medium hidden md:table-cell">
-                            {item.category_name}
-                          </td>
-
-                          <td className="py-2.5 px-3 font-mono font-bold text-foreground whitespace-nowrap">
-                            {item.quantity.toLocaleString("id-ID")}{" "}
-                            <span className="text-[11px] text-muted-foreground font-normal">
-                              {item.unit}
-                            </span>
-                          </td>
-
-                          <td className="py-2.5 px-3 text-center whitespace-nowrap">
-                            {renderStockBadge(item, true)}
-                          </td>
-
-                          <td className="py-2.5 px-3 text-center whitespace-nowrap font-mono text-muted-foreground text-xs hidden lg:table-cell">
-                            {formatLastUpdated(item.updated_at)}
-                          </td>
-
-                          <td className="py-2.5 px-3 text-right font-mono text-foreground font-semibold whitespace-nowrap">
-                            {formatRupiah(item.asset_value)}
-                          </td>
-
-                          <td className="py-2.5 px-3 text-right whitespace-nowrap">
-                            <div className="flex items-center justify-end gap-1">
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                onClick={() => {
-                                  setDialog({ type: "limits", item });
-                                }}
-                                className="h-8 w-8 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/80 transition-colors cursor-pointer"
-                                title="Set Alert Thresholds"
-                              >
-                                <Settings2 className="w-3.5 h-3.5" />
-                              </Button>
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => {
-                                  setDialog({ type: "adjust", item });
-                                }}
-                                className="h-8 px-2.5 rounded-lg text-xs font-semibold gap-1 text-primary hover:bg-primary/10 border-primary/40 cursor-pointer shadow-2xs"
-                                title="Adjust Stock"
-                              >
-                                <SlidersHorizontal className="w-3 h-3" />
-                                <span>Adjust</span>
-                              </Button>
-                            </div>
-                          </td>
-                        </tr>
+                          item={item}
+                          formattedUpdatedAt={formatLastUpdated(item.updated_at)}
+                          renderStockBadge={renderStockBadge}
+                          onLimits={(stockItem) =>
+                            setDialog({ type: "limits", item: stockItem })
+                          }
+                          onAdjust={(stockItem) =>
+                            setDialog({ type: "adjust", item: stockItem })
+                          }
+                        />
                       ))}
                     </tbody>
                   </table>
@@ -579,78 +431,18 @@ export const StockPage: React.FC = () => {
 
             <div className="sm:hidden grid grid-cols-1 gap-3.5 pt-1 pb-6">
               {displayedStocks.map((item) => (
-                <Card
+                <StockMobileCard
                   key={item.id}
-                  className="rounded-2xl border border-border/60 bg-card p-3.5 shadow-xs space-y-2.5"
-                >
-                  <CardContent className="p-0 space-y-2.5">
-                    <div className="flex items-start justify-between gap-2">
-                      <div className="min-w-0 flex-1 space-y-0.5">
-                        <h4 className="font-bold text-foreground text-xs sm:text-sm leading-tight">
-                          {item.product_name}
-                        </h4>
-                        <span className="text-[10px] text-muted-foreground block truncate">
-                          {item.category_name}
-                        </span>
-                      </div>
-                      {renderStockBadge(item, false)}
-                    </div>
-
-                    <div className="space-y-1 text-xs">
-                      <div className="flex items-baseline justify-between">
-                        <span className="text-muted-foreground text-xs">
-                          Current Stock:
-                        </span>
-                        <span className="font-bold text-foreground font-mono text-sm">
-                          {item.quantity.toLocaleString("id-ID")} {item.unit}
-                        </span>
-                      </div>
-
-                      <div className="flex items-center justify-between text-[11px] text-muted-foreground">
-                        <span>
-                          Min Alert: {item.min_stock.toLocaleString("id-ID")}{" "}
-                          {item.unit}
-                        </span>
-                        <span>Valuation: {formatRupiah(item.asset_value)}</span>
-                      </div>
-                    </div>
-
-                    <div className="flex items-center justify-between pt-2 border-t border-border/40 text-xs">
-                      <div className="min-w-0 flex-1">
-                        <span className="text-muted-foreground font-medium text-[10px] block truncate">
-                          Last Updated
-                        </span>
-                        <span className="font-bold text-xs text-foreground block truncate">
-                          {formatLastUpdated(item.updated_at)}
-                        </span>
-                      </div>
-
-                      <div className="flex items-center gap-1.5 shrink-0">
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => {
-                            setDialog({ type: "limits", item });
-                          }}
-                          className="h-8 w-8 rounded-lg text-muted-foreground hover:text-foreground cursor-pointer"
-                        >
-                          <Settings2 className="w-3.5 h-3.5" />
-                        </Button>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => {
-                            setDialog({ type: "adjust", item });
-                          }}
-                          className="h-8 px-2.5 rounded-xl text-xs font-semibold gap-1 text-primary border-primary/40 cursor-pointer"
-                        >
-                          <SlidersHorizontal className="w-3 h-3" />
-                          <span>Adjust</span>
-                        </Button>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
+                  item={item}
+                  formattedUpdatedAt={formatLastUpdated(item.updated_at)}
+                  renderStockBadge={renderStockBadge}
+                  onLimits={(stockItem) =>
+                    setDialog({ type: "limits", item: stockItem })
+                  }
+                  onAdjust={(stockItem) =>
+                    setDialog({ type: "adjust", item: stockItem })
+                  }
+                />
               ))}
             </div>
           </div>
