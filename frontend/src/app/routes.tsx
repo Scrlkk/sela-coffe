@@ -159,6 +159,22 @@ const router = createBrowserRouter([
               </Suspense>
             ),
           },
+          {
+            path: "/reports/sales",
+            element: <div />,
+          },
+          {
+            path: "/reports/best-sellers",
+            element: <div />,
+          },
+          {
+            path: "/reports/inventory",
+            element: <div />,
+          },
+          {
+            path: "/reports/purchases",
+            element: <div />,
+          },
         ],
       },
     ],

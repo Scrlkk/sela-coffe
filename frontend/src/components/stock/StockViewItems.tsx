@@ -162,12 +162,12 @@ export const StockTableRow: React.FC<StockViewProps> = ({
         {renderStockBadge(item, true)}
       </td>
 
-      <td className="py-2.5 px-3 text-center whitespace-nowrap font-mono text-muted-foreground text-xs hidden lg:table-cell">
-        {formattedUpdatedAt}
+      <td className="py-2.5 px-3 text-right font-mono text-foreground font-semibold whitespace-nowrap hidden lg:table-cell">
+        {formatRupiah(item.asset_value)}
       </td>
 
-      <td className="py-2.5 px-3 text-right font-mono text-foreground font-semibold whitespace-nowrap">
-        {formatRupiah(item.asset_value)}
+      <td className="py-2.5 px-3 text-center whitespace-nowrap text-muted-foreground text-xs font-medium hidden xl:table-cell">
+        {formattedUpdatedAt}
       </td>
 
       <td className="py-2.5 px-3 text-right whitespace-nowrap">

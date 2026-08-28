@@ -48,7 +48,7 @@ export const formatTime = (dateStr?: string, locale = "id-ID"): string => {
 };
 
 export const formatLastUpdated = (dateStr?: string): string => {
-  return formatDate(dateStr, "en-GB");
+  return formatDate(dateStr, "id-ID");
 };
 
 export const formatSessionDateTime = (

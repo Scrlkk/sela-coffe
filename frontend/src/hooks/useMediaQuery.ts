@@ -1,8 +1,5 @@
 import { useSyncExternalStore, useCallback } from "react";
 
-/**
- * ponytail: modern standard useSyncExternalStore subscription for matchMedia
- */
 export function useMediaQuery(query: string): boolean {
   const subscribe = useCallback(
     (callback: () => void) => {

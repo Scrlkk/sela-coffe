@@ -210,8 +210,6 @@ export const StockMovementPage: React.FC = () => {
         <StatCard
           title="Total Movements"
           value={`${stats.totalMovements} Events`}
-          badgeText="All Time"
-          badgeVariant="neutral"
           icon={ArrowLeftRight}
         />
         <StatCard
@@ -231,7 +229,7 @@ export const StockMovementPage: React.FC = () => {
         <StatCard
           title="Opname Reconciliations"
           value={`${stats.adjCount} Audits`}
-          badgeText="Audit Check"
+          badgeText="Audit"
           badgeVariant="neutral"
           icon={ArrowDownUp}
         />
@@ -392,11 +390,11 @@ export const StockMovementPage: React.FC = () => {
                         <th className="py-2.5 px-3 text-right whitespace-nowrap">
                           Balance
                         </th>
-                        <th className="py-2.5 px-3 hidden xl:table-cell">
-                          Note
-                        </th>
                         <th className="py-2.5 px-3 hidden md:table-cell">
                           Operator
+                        </th>
+                        <th className="py-2.5 px-3 hidden xl:table-cell">
+                          Note
                         </th>
                       </tr>
                     </thead>

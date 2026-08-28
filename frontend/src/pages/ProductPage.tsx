@@ -122,10 +122,7 @@ export const ProductPage: React.FC = () => {
     requestSort,
   } = useTableSort(productsWithMetrics, "name", "asc");
 
-  const categories = useMemo(
-    () => getStoredCategories(false, "product"),
-    [],
-  );
+  const categories = useMemo(() => getStoredCategories(false, "product"), []);
 
   const categoriesList = useMemo(
     () => [
@@ -192,7 +189,6 @@ export const ProductPage: React.FC = () => {
 
   return (
     <div className="flex-1 flex flex-col min-w-0 space-y-4">
-      
       <StatGrid>
         <StatCard
           title="Total Menu Products"
@@ -223,7 +219,6 @@ export const ProductPage: React.FC = () => {
       </StatGrid>
 
       <div className="flex flex-col xl:flex-row items-stretch xl:items-center justify-between gap-2.5 sm:gap-3 bg-card p-3 sm:p-4 rounded-2xl border border-border/80 shadow-xs min-w-0">
-        
         <div className="relative w-full xl:flex-1 min-w-0">
           <Search className="w-4 h-4 text-muted-foreground absolute left-3 top-1/2 -translate-y-1/2" />
           <Input
@@ -249,7 +244,6 @@ export const ProductPage: React.FC = () => {
         </div>
 
         <div className="flex flex-wrap items-center justify-between gap-2.5 sm:gap-3 w-full xl:w-auto min-w-0">
-          
           <div className="w-full sm:w-auto min-w-0">
             <FormDropdownPicker
               value={selectedCategory}
@@ -340,8 +334,9 @@ export const ProductPage: React.FC = () => {
                           sortKey="name"
                           sortConfig={sortConfig}
                           onSort={requestSort}
+                          className="w-[28%] lg:w-[30%]"
                         />
-                        <th className="py-2.5 px-3 hidden md:table-cell">
+                        <th className="py-2.5 px-3 hidden md:table-cell w-[16%] lg:w-[18%]">
                           Category
                         </th>
                         <SortableTh
@@ -350,6 +345,7 @@ export const ProductPage: React.FC = () => {
                           sortConfig={sortConfig}
                           onSort={requestSort}
                           align="right"
+                          className="w-[20%] lg:w-[18%]"
                         />
                         <SortableTh
                           label="POS Ready"
@@ -357,8 +353,11 @@ export const ProductPage: React.FC = () => {
                           sortConfig={sortConfig}
                           onSort={requestSort}
                           align="center"
+                          className="w-[18%] lg:w-[17%]"
                         />
-                        <th className="py-2.5 px-3 text-right">Actions</th>
+                        <th className="py-2.5 px-3 text-right w-[18%] lg:w-[17%]">
+                          Actions
+                        </th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-border/40 font-medium">
@@ -393,9 +392,7 @@ export const ProductPage: React.FC = () => {
                   categoryLabel={getCategoryLabel(p.category)}
                   onTogglePos={handleTogglePosStatus}
                   onEdit={(product) => setDialog({ type: "edit", product })}
-                  onDelete={(product) =>
-                    setDialog({ type: "delete", product })
-                  }
+                  onDelete={(product) => setDialog({ type: "delete", product })}
                   onRestore={(product) =>
                     setDialog({ type: "restore", product })
                   }
@@ -427,9 +424,7 @@ export const ProductPage: React.FC = () => {
           }
           setDialog(null);
         }}
-        title={
-          dialog?.type === "delete" ? "Move to Trash" : "Restore Product"
-        }
+        title={dialog?.type === "delete" ? "Move to Trash" : "Restore Product"}
         subtitle={
           dialog?.type === "delete" || dialog?.type === "restore"
             ? dialog.product.name
@@ -443,8 +438,11 @@ export const ProductPage: React.FC = () => {
             </span>
           ) : (
             <span>
-              Restore <strong>{dialog?.type === "restore" ? dialog.product.name : ""}</strong> back to active
-              menu catalog?
+              Restore{" "}
+              <strong>
+                {dialog?.type === "restore" ? dialog.product.name : ""}
+              </strong>{" "}
+              back to active menu catalog?
             </span>
           )
         }

@@ -10,22 +10,24 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { FormDropdownPicker } from "@/components/shared/FormDropdownPicker";
+import {
+  FormSearchablePicker,
+  type SearchableOption,
+} from "@/components/shared/FormSearchablePicker";
 import {
   Plus,
   Trash2,
-  FileSpreadsheet,
+  Receipt,
   Truck,
   Package,
-  Calendar,
   X,
-  FileText,
-  DollarSign,
+  ShoppingCart,
 } from "lucide-react";
 import { getStoredSuppliers } from "@/services/supplier";
 import { getStoredIngredients } from "@/services/ingredient";
-import { formatRupiah } from "@/utils/formatCurrency";
+import { formatRupiah, formatNumber } from "@/utils/formatCurrency";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
+import { useAuth } from "@/contexts/AuthContext";
 import type {
   PurchaseOrderItem,
   PurchaseOrderItemLine,
@@ -52,7 +54,7 @@ interface PurchaseOrderFormProps {
   ) => void;
 }
 
-interface DraftLineItem {
+interface AddedItemLine {
   ingredient_id: string;
   ingredient_name: string;
   category_name: string;
@@ -65,83 +67,73 @@ const PurchaseOrderForm: React.FC<PurchaseOrderFormProps> = ({
   onClose,
   onSave,
 }) => {
-  // ponytail: straightforward mock data retrieval
+  const { user } = useAuth();
   const suppliers = getStoredSuppliers(false);
   const rawIngredients = getStoredIngredients(false);
 
-  const [supplierId, setSupplierId] = useState(suppliers[0]?.id || "");
+  const [supplierId, setSupplierId] = useState("");
   const [orderDate, setOrderDate] = useState(() =>
     new Date().toISOString().slice(0, 10),
   );
   const [expectedDate, setExpectedDate] = useState("");
   const [notes, setNotes] = useState("");
 
-  const [items, setItems] = useState<DraftLineItem[]>(() => {
-    if (rawIngredients.length === 0) return [];
-    const first = rawIngredients[0];
-    return [
-      {
-        ingredient_id: first.id,
-        ingredient_name: first.name,
-        category_name: first.category,
-        quantity: 10,
-        unit: first.unit,
-        unit_cost: first.costPrice || 10000,
-      },
-    ];
-  });
+  const [items, setItems] = useState<AddedItemLine[]>([]);
 
-  const handleAddItem = () => {
-    if (rawIngredients.length === 0) return;
-    const existingIds = new Set(items.map((i) => i.ingredient_id));
-    const nextIng =
-      rawIngredients.find((i) => !existingIds.has(i.id)) || rawIngredients[0];
+  const [entryIngredientId, setEntryIngredientId] = useState("");
+  const [entryQty, setEntryQty] = useState<number>(1);
+  const [entryCost, setEntryCost] = useState<number>(0);
 
-    setItems((prev) => [
-      ...prev,
-      {
-        ingredient_id: nextIng.id,
-        ingredient_name: nextIng.name,
-        category_name: nextIng.category,
-        quantity: 1,
-        unit: nextIng.unit,
-        unit_cost: nextIng.costPrice || 10000,
-      },
-    ]);
+  const selectedEntryIng = rawIngredients.find(
+    (i) => i.id === entryIngredientId,
+  );
+
+  const handleSelectEntryIngredient = (ingId: string) => {
+    setEntryIngredientId(ingId);
+    const found = rawIngredients.find((i) => i.id === ingId);
+    if (found) {
+      setEntryCost(found.costPrice || 0);
+      setEntryQty(1);
+    }
+  };
+
+  const handleAddItemToReceipt = () => {
+    if (!selectedEntryIng || entryQty <= 0) return;
+
+    setItems((prev) => {
+      const existingIdx = prev.findIndex(
+        (i) => i.ingredient_id === selectedEntryIng.id,
+      );
+      if (existingIdx >= 0) {
+        const updated = [...prev];
+        updated[existingIdx] = {
+          ...updated[existingIdx],
+          quantity: updated[existingIdx].quantity + entryQty,
+          unit_cost: entryCost || updated[existingIdx].unit_cost,
+        };
+        return updated;
+      }
+
+      return [
+        ...prev,
+        {
+          ingredient_id: selectedEntryIng.id,
+          ingredient_name: selectedEntryIng.name,
+          category_name: selectedEntryIng.category,
+          quantity: entryQty,
+          unit: selectedEntryIng.unit,
+          unit_cost: entryCost,
+        },
+      ];
+    });
+
+    setEntryIngredientId("");
+    setEntryQty(1);
+    setEntryCost(0);
   };
 
   const handleRemoveItem = (index: number) => {
-    if (items.length <= 1) return;
     setItems((prev) => prev.filter((_, idx) => idx !== index));
-  };
-
-  const handleItemChange = (
-    index: number,
-    field: "ingredient_id" | "quantity" | "unit_cost",
-    value: string | number,
-  ) => {
-    setItems((prev) => {
-      const next = [...prev];
-      const target = { ...next[index] };
-
-      if (field === "ingredient_id") {
-        const found = rawIngredients.find((i) => i.id === value);
-        if (found) {
-          target.ingredient_id = found.id;
-          target.ingredient_name = found.name;
-          target.category_name = found.category;
-          target.unit = found.unit;
-          target.unit_cost = found.costPrice || target.unit_cost;
-        }
-      } else if (field === "quantity") {
-        target.quantity = Math.max(1, Number(value) || 1);
-      } else if (field === "unit_cost") {
-        target.unit_cost = Math.max(0, Number(value) || 0);
-      }
-
-      next[index] = target;
-      return next;
-    });
   };
 
   const totalAmount = items.reduce(
@@ -151,7 +143,7 @@ const PurchaseOrderForm: React.FC<PurchaseOrderFormProps> = ({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!supplierId || items.length === 0) return;
+    if (!supplierId || items.length === 0 || totalAmount <= 0) return;
 
     const chosenSupplier = suppliers.find((s) => s.id === supplierId);
     if (!chosenSupplier) return;
@@ -177,269 +169,291 @@ const PurchaseOrderForm: React.FC<PurchaseOrderFormProps> = ({
       items: formattedLines,
       total_amount: totalAmount,
       notes: notes.trim() || undefined,
+      created_by: user?.name || "Admin Sela",
       isDeleted: false,
     });
   };
 
-  const supplierOptions = suppliers.map((s) => ({
+  const supplierOptions: SearchableOption[] = suppliers.map((s) => ({
     id: s.id,
     label: s.name,
+    sublabel: s.contactPerson
+      ? `${s.contactPerson}${s.phone ? ` • ${s.phone}` : ""}`
+      : s.phone || undefined,
+    badge: "Supplier",
   }));
 
-  const ingredientOptions = rawIngredients.map((i) => ({
+  const ingredientOptions: SearchableOption[] = rawIngredients.map((i) => ({
     id: i.id,
-    label: `${i.name} (${i.unit})`,
+    label: i.name,
+    sublabel: `${i.category} • Stock: ${formatNumber(i.currentStock)} ${i.unit}`,
+    badge: i.unit,
   }));
 
   return (
     <form
       onSubmit={handleSubmit}
-      className="flex flex-col flex-1 min-h-0 overflow-hidden bg-background"
+      className="flex flex-col flex-1 min-h-0 overflow-hidden bg-card"
     >
-      {/* Header */}
-      <DrawerHeader className="px-5 sm:px-7 py-3.5 sm:py-4 border-b border-border/80 bg-card/60 backdrop-blur-sm shrink-0">
-        <div className="flex items-center justify-between gap-3">
-          <div className="flex items-center gap-3 min-w-0">
-            <div className="w-10 h-10 rounded-2xl bg-primary/10 text-primary border border-primary/20 flex items-center justify-center shrink-0 shadow-2xs">
-              <FileSpreadsheet className="w-5 h-5" />
+      <DrawerHeader className="px-4 sm:px-5 py-3.5 border-b border-border/60 bg-card shrink-0 text-left">
+        <div className="flex items-center justify-between gap-3 text-left">
+          <div className="flex items-center gap-2.5 min-w-0 text-left">
+            <div className="w-8 h-8 rounded-xl bg-primary/10 text-primary flex items-center justify-center shrink-0">
+              <Receipt className="w-4 h-4" />
             </div>
-            <div className="min-w-0">
-              <DrawerTitle className="text-base sm:text-lg font-bold text-foreground tracking-tight truncate">
+            <div className="space-y-0.5 min-w-0 text-left">
+              <DrawerTitle className="text-base font-bold text-foreground text-left">
                 Create Purchase Order
               </DrawerTitle>
-              <DrawerDescription className="text-xs text-muted-foreground truncate">
-                Procure raw materials & restock inventory
+              <DrawerDescription className="text-xs text-muted-foreground line-clamp-1 text-left">
+                Order and procure raw coffee ingredients & supplies
               </DrawerDescription>
             </div>
           </div>
-          <div className="flex items-center gap-2 shrink-0">
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon"
-              onClick={onClose}
-              className="w-8 h-8 rounded-xl text-muted-foreground hover:text-foreground hover:bg-muted/60 cursor-pointer"
-            >
-              <X className="w-4 h-4" />
-            </Button>
-          </div>
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            onClick={onClose}
+            className="w-7.5 h-7.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/60 cursor-pointer shrink-0"
+          >
+            <X className="w-4 h-4" />
+          </Button>
         </div>
       </DrawerHeader>
 
-      {/* Scrollable Content */}
-      <div className="flex-1 overflow-y-auto no-scrollbar px-5 sm:px-7 py-4 space-y-4">
-        {/* Vendor & Schedule Section */}
-        <div className="bg-card border border-border/80 rounded-2xl p-4 sm:p-4.5 space-y-3.5 shadow-xs">
-          <div className="flex items-center justify-between pb-2 border-b border-border/50">
-            <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-2">
-              <Truck className="w-4 h-4 text-primary" />
+      <div className="flex-1 overflow-y-auto no-scrollbar px-4 sm:px-5 py-3.5 space-y-3.5 bg-card">
+        {" "}
+        <div className="bg-background/50 border border-border/70 rounded-2xl p-3.5 space-y-3 shadow-2xs">
+          <div className="flex items-center justify-between pb-1.5 border-b border-border/40">
+            <span className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
+              <Truck className="w-3.5 h-3.5 text-primary" />
               <span>Vendor & Schedule</span>
             </span>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-            <div className="space-y-1.5">
+          <div className="space-y-2.5">
+            <div className="space-y-1">
               <Label className="text-xs font-bold text-foreground">
                 Supplier / Vendor <span className="text-destructive">*</span>
               </Label>
-              <FormDropdownPicker
+              <FormSearchablePicker
                 value={supplierId}
                 options={supplierOptions}
                 onChange={setSupplierId}
-                placeholder="Select supplier..."
+                placeholder="Choose vendor / supplier..."
+                searchPlaceholder="Type supplier name or phone..."
                 icon={Truck}
-                className="h-9.5 text-xs rounded-xl"
               />
             </div>
 
-            <div className="space-y-1.5">
-              <Label className="text-xs font-bold text-foreground flex items-center gap-1.5">
-                <Calendar className="w-3.5 h-3.5 text-primary" />
-                <span>Order Date</span>{" "}
-                <span className="text-destructive">*</span>
-              </Label>
-              <Input
-                type="date"
-                value={orderDate}
-                onChange={(e) => setOrderDate(e.target.value)}
-                required
-                className="h-9.5 rounded-xl border-border/80 text-xs font-medium text-foreground bg-background shadow-2xs focus:border-primary"
-              />
+            <div className="grid grid-cols-2 gap-2.5">
+              <div className="space-y-1">
+                <Label className="text-xs font-bold text-foreground">
+                  Order Date <span className="text-destructive">*</span>
+                </Label>
+                <Input
+                  type="date"
+                  value={orderDate}
+                  onChange={(e) => setOrderDate(e.target.value)}
+                  required
+                  className="h-9.5 rounded-xl bg-card border-input text-foreground text-xs font-medium"
+                />
+              </div>
+
+              <div className="space-y-1">
+                <Label className="text-xs font-bold text-foreground">
+                  Expected Delivery
+                </Label>
+                <Input
+                  type="date"
+                  value={expectedDate}
+                  onChange={(e) => setExpectedDate(e.target.value)}
+                  className="h-9.5 rounded-xl bg-card border-input text-foreground text-xs font-medium"
+                />
+              </div>
             </div>
 
-            <div className="space-y-1.5">
-              <Label className="text-xs font-bold text-foreground flex items-center gap-1.5">
-                <Calendar className="w-3.5 h-3.5 text-muted-foreground" />
-                <span>Expected Delivery</span>
+            <div className="space-y-1">
+              <Label className="text-xs font-bold text-foreground">
+                Notes / Reference (Optional)
               </Label>
               <Input
-                type="date"
-                value={expectedDate}
-                onChange={(e) => setExpectedDate(e.target.value)}
-                className="h-9.5 rounded-xl border-border/80 text-xs font-medium text-foreground bg-background shadow-2xs focus:border-primary"
-              />
-            </div>
-
-            <div className="space-y-1.5">
-              <Label className="text-xs font-bold text-foreground flex items-center gap-1.5">
-                <FileText className="w-3.5 h-3.5 text-muted-foreground" />
-                <span>Order Notes / Ref</span>
-              </Label>
-              <Input
-                placeholder="e.g. Urgent batch for weekend peak"
+                placeholder="e.g. Urgent batch for weekend peak, regular delivery"
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
-                className="h-9.5 rounded-xl border-border/80 text-xs text-foreground bg-background shadow-2xs placeholder:text-muted-foreground/70 focus:border-primary"
+                className="h-9.5 rounded-xl bg-card border-input text-foreground text-xs font-medium"
               />
             </div>
           </div>
         </div>
-
-        {/* Ordered Materials Section */}
-        <div className="bg-card border border-border/80 rounded-2xl p-4 sm:p-4.5 space-y-3 shadow-xs">
-          <div className="flex items-center justify-between pb-2 border-b border-border/50">
-            <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-2">
-              <Package className="w-4 h-4 text-primary" />
-              <span>Ordered Materials ({items.length})</span>
+        <div className="bg-background/50 border border-border/70 rounded-2xl p-3.5 space-y-3.5 shadow-2xs">
+          <div className="flex items-center justify-between pb-1.5 border-b border-border/40">
+            <span className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
+              <Package className="w-3.5 h-3.5 text-primary" />
+              <span>Ordered Materials</span>
             </span>
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={handleAddItem}
-              className="h-7.5 px-3 rounded-xl text-xs font-bold gap-1.5 cursor-pointer bg-background hover:bg-secondary/70 border-border/80 shadow-2xs text-primary hover:text-primary"
-            >
-              <Plus className="w-3.5 h-3.5" />
-              <span>Add Material</span>
-            </Button>
+            <span className="text-xs font-mono font-bold text-primary">
+              {items.length} in list
+            </span>
           </div>
 
-          <div className="space-y-2.5">
-            {/* Column Headers (Desktop) */}
-            <div className="hidden sm:grid sm:grid-cols-12 gap-2.5 px-3 py-1.5 text-[11px] font-bold text-muted-foreground uppercase tracking-wider bg-muted/30 rounded-xl">
-              <div className="col-span-5">Material / Ingredient</div>
-              <div className="col-span-3 text-center">Quantity</div>
-              <div className="col-span-2 text-right">Unit Cost (Rp)</div>
-              <div className="col-span-2 text-right pr-2">Subtotal</div>
+          <div className="p-3 rounded-xl bg-card border border-border/70 space-y-2.5 shadow-2xs">
+            <div className="space-y-1">
+              <Label className="text-[11px] font-bold text-muted-foreground">
+                Select Raw Material
+              </Label>
+              <FormSearchablePicker
+                value={entryIngredientId}
+                options={ingredientOptions}
+                onChange={handleSelectEntryIngredient}
+                placeholder="Search and select material..."
+                searchPlaceholder="Type material name or category..."
+                icon={Package}
+              />
             </div>
 
-            {items.map((item, idx) => (
-              <div
-                key={idx}
-                className="p-3 sm:p-2.5 rounded-xl bg-background/70 border border-border/70 hover:border-primary/40 transition-colors flex flex-col sm:grid sm:grid-cols-12 gap-2.5 sm:items-center shadow-2xs"
-              >
-                {/* Material Dropdown */}
-                <div className="sm:col-span-5 min-w-0">
-                  <FormDropdownPicker
-                    value={item.ingredient_id}
-                    options={ingredientOptions}
-                    onChange={(val) =>
-                      handleItemChange(idx, "ingredient_id", val)
+            <div className="grid grid-cols-2 gap-2.5">
+              <div className="space-y-1">
+                <Label className="text-[11px] font-bold text-muted-foreground">
+                  Quantity
+                </Label>
+                <div className="relative">
+                  <Input
+                    type="number"
+                    min="1"
+                    disabled={!selectedEntryIng}
+                    value={entryQty}
+                    onChange={(e) =>
+                      setEntryQty(Math.max(1, Number(e.target.value) || 1))
                     }
-                    placeholder="Choose ingredient..."
-                    className="h-9 text-xs rounded-xl"
+                    className="h-9.5 text-xs font-mono font-bold rounded-xl pl-3.5 pr-11 bg-background border-input text-left shadow-2xs disabled:opacity-50"
+                    placeholder="Qty"
                   />
+                  <span className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[10px] text-muted-foreground font-semibold uppercase pointer-events-none select-none">
+                    {selectedEntryIng?.unit || "unit"}
+                  </span>
                 </div>
+              </div>
 
-                {/* Quantity Input */}
-                <div className="sm:col-span-3 flex items-center gap-1.5">
-                  <div className="relative flex-1">
-                    <Input
-                      type="number"
-                      min="1"
-                      value={item.quantity}
-                      onChange={(e) =>
-                        handleItemChange(idx, "quantity", e.target.value)
-                      }
-                      className="h-9 text-xs font-mono font-bold rounded-xl pr-12 bg-background border-border/80 text-center"
-                      placeholder="Qty"
-                    />
-                    <span className="absolute right-2.5 top-2.5 text-[11px] text-muted-foreground font-semibold uppercase">
-                      {item.unit}
-                    </span>
-                  </div>
-                </div>
-
-                {/* Unit Cost */}
-                <div className="sm:col-span-2">
+              <div className="space-y-1">
+                <Label className="text-[11px] font-bold text-muted-foreground">
+                  Cost / Unit
+                </Label>
+                <div className="relative flex items-center">
+                  <span className="absolute left-2.5 text-[10.5px] text-muted-foreground font-medium pointer-events-none select-none">
+                    Rp
+                  </span>
                   <Input
                     type="number"
                     min="0"
                     step="500"
-                    value={item.unit_cost}
+                    disabled={!selectedEntryIng}
+                    value={entryCost}
                     onChange={(e) =>
-                      handleItemChange(idx, "unit_cost", e.target.value)
+                      setEntryCost(Math.max(0, Number(e.target.value) || 0))
                     }
-                    className="h-9 text-xs font-mono font-bold rounded-xl bg-background border-border/80 text-right"
+                    className="h-9.5 pl-8 text-xs font-mono font-bold rounded-xl bg-background border-input text-right shadow-2xs disabled:opacity-50"
                     placeholder="Cost"
                   />
                 </div>
-
-                {/* Subtotal & Delete */}
-                <div className="sm:col-span-2 flex items-center justify-between sm:justify-end gap-2 pt-2 sm:pt-0 border-t border-border/40 sm:border-0">
-                  <div className="sm:hidden text-xs text-muted-foreground font-medium">
-                    Subtotal:
-                  </div>
-                  <span className="font-mono text-xs font-bold text-foreground">
-                    {formatRupiah(item.quantity * item.unit_cost)}
-                  </span>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon"
-                    disabled={items.length <= 1}
-                    onClick={() => handleRemoveItem(idx)}
-                    className="w-7.5 h-7.5 rounded-lg text-muted-foreground hover:text-destructive hover:bg-destructive/10 shrink-0 cursor-pointer disabled:opacity-20"
-                    title="Remove item"
-                  >
-                    <Trash2 className="w-3.5 h-3.5" />
-                  </Button>
-                </div>
               </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Order Valuation Summary Card */}
-        <div className="p-4 rounded-2xl bg-card border border-primary/20 shadow-xs flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-primary/10 text-primary border border-primary/20 flex items-center justify-center shrink-0">
-              <DollarSign className="w-5 h-5" />
             </div>
+
+            <Button
+              type="button"
+              disabled={!selectedEntryIng || entryQty <= 0}
+              onClick={handleAddItemToReceipt}
+              className="w-full h-9.5 rounded-xl bg-primary text-primary-foreground font-bold text-xs sm:text-sm gap-1.5 shadow-xs cursor-pointer hover:bg-primary/90 transition-all disabled:opacity-40"
+            >
+              <Plus className="w-4 h-4" />
+              <span>Add Material to Order</span>
+            </Button>
+          </div>
+
+          <div className="pt-1">
+            {items.length === 0 ? (
+              <div className="py-6 px-4 rounded-2xl bg-card border border-dashed border-border/80 text-center space-y-1">
+                <ShoppingCart className="w-5 h-5 text-muted-foreground/50 mx-auto" />
+                <p className="text-xs font-medium text-muted-foreground">
+                  No materials added yet
+                </p>
+                <p className="text-[11px] text-muted-foreground/60">
+                  Select a material and click Add Material to Order above
+                </p>
+              </div>
+            ) : (
+              <div className="p-3 sm:p-4 rounded-2xl bg-card border border-border/70 divide-y divide-dashed divide-border/60">
+                {items.map((item, idx) => (
+                  <div
+                    key={idx}
+                    className="py-3 first:pt-1 last:pb-1 space-y-1 group"
+                  >
+                    <div className="flex items-baseline justify-between gap-3">
+                      <span className="font-bold text-foreground text-xs sm:text-sm truncate">
+                        {item.ingredient_name}
+                      </span>
+                      <span className="font-mono text-xs sm:text-sm font-extrabold text-foreground shrink-0 text-right">
+                        {formatRupiah(item.quantity * item.unit_cost)}
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between gap-2 text-xs">
+                      <span className="text-[11px] sm:text-xs text-muted-foreground font-mono">
+                        {formatNumber(item.quantity)} {item.unit} × @
+                        {formatRupiah(item.unit_cost)}
+                      </span>
+
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => handleRemoveItem(idx)}
+                        className="w-7 h-7 rounded-lg text-muted-foreground hover:text-destructive hover:bg-destructive/10 shrink-0 cursor-pointer"
+                        title="Remove item"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </Button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          <div className="pt-3 border-t border-border/60 flex items-center justify-between">
             <div>
-              <span className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider block">
+              <span className="text-xs font-bold uppercase tracking-wider text-foreground block">
                 Total Order Valuation
               </span>
-              <span className="text-xs text-muted-foreground">
-                {items.length} materials configured
+              <span className="text-[10.5px] text-muted-foreground">
+                {items.length} material{items.length !== 1 ? "s" : ""} in order
               </span>
             </div>
-          </div>
-          <div className="text-right">
-            <span className="font-mono text-lg sm:text-xl font-black text-primary block tracking-tight">
-              {formatRupiah(totalAmount)}
-            </span>
+            <div className="text-right">
+              <span className="font-mono text-base sm:text-lg font-black text-primary block">
+                {formatRupiah(totalAmount)}
+              </span>
+            </div>
           </div>
         </div>
       </div>
 
-      {/* Footer */}
-      <DrawerFooter className="px-5 sm:px-7 py-3.5 sm:py-4 border-t border-border/80 bg-card/90 backdrop-blur-md shrink-0 flex flex-row items-center justify-end gap-3">
+      <DrawerFooter className="px-4 sm:px-5 py-3 border-t border-border/80 bg-card shrink-0 grid grid-cols-2 gap-2.5 w-full">
         <Button
           type="button"
           variant="outline"
           onClick={onClose}
-          className="h-9.5 px-5 rounded-xl border-border/80 text-xs font-semibold cursor-pointer bg-background hover:bg-secondary/60"
+          className="w-full h-9.5 sm:h-10 rounded-xl border-border/80 text-foreground font-semibold text-xs sm:text-sm cursor-pointer hover:bg-secondary/60"
         >
           Cancel
         </Button>
         <Button
           type="submit"
           disabled={!supplierId || items.length === 0 || totalAmount <= 0}
-          className="h-9.5 px-5 rounded-xl bg-primary text-primary-foreground font-bold text-xs gap-2 shadow-sm hover:opacity-90 cursor-pointer disabled:opacity-50"
+          className="w-full h-9.5 sm:h-10 rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground font-bold text-xs sm:text-sm gap-1.5 shadow-xs cursor-pointer disabled:opacity-50"
         >
           <Plus className="w-4 h-4" />
-          <span>Create Purchase Order</span>
+          <span>Create PO</span>
         </Button>
       </DrawerFooter>
     </form>
@@ -472,8 +486,8 @@ export const PurchaseOrderDrawer: React.FC<PurchaseOrderDrawerProps> = ({
       <DrawerContent
         className={
           isDesktop
-            ? "w-full sm:w-155 lg:w-180 max-w-[100vw] h-full inset-y-0 right-0 rounded-l-3xl border-l border-border/80 bg-background flex flex-col shadow-2xl"
-            : "w-full max-w-2xl mx-auto rounded-t-3xl border-t border-border/80 bg-background max-h-[90vh] flex flex-col shadow-2xl bottom-0"
+            ? "w-full sm:w-130 lg:w-145 max-w-[100vw] h-full inset-y-0 right-0 rounded-l-3xl border-l border-border/80 bg-card flex flex-col shadow-2xl"
+            : "w-full max-w-xl mx-auto rounded-t-3xl border-t border-border/80 bg-card max-h-[90vh] flex flex-col shadow-2xl bottom-0"
         }
       >
         <PurchaseOrderForm
@@ -490,4 +504,3 @@ export const PurchaseOrderDrawer: React.FC<PurchaseOrderDrawerProps> = ({
 };
 
 export default PurchaseOrderDrawer;
-

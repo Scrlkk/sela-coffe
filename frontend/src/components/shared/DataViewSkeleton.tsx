@@ -8,7 +8,12 @@ export interface DataViewSkeletonProps {
   columnsCount?: number;
   rowCount?: number;
   gridCount?: number;
+  filterCount?: number;
+  hasAddButton?: boolean;
+  hasExportButton?: boolean;
+  hasViewSwitcher?: boolean;
   viewMode?: "table" | "grid";
+  storageKey?: string;
   className?: string;
 }
 
@@ -16,10 +21,28 @@ export const DataViewSkeleton: React.FC<DataViewSkeletonProps> = ({
   statsCount = 4,
   columnsCount = 5,
   rowCount = 6,
-  gridCount = 6,
-  viewMode = "table",
+  gridCount = 8,
+  filterCount = 2,
+  hasAddButton = true,
+  hasExportButton = false,
+  hasViewSwitcher = true,
+  viewMode,
+  storageKey,
   className,
 }) => {
+  const resolvedViewMode: "table" | "grid" = React.useMemo(() => {
+    if (viewMode) return viewMode;
+    if (typeof window !== "undefined" && storageKey) {
+      try {
+        const stored = localStorage.getItem(storageKey);
+        if (stored === "grid" || stored === "table") return stored;
+      } catch {
+        // ignore localStorage error
+      }
+    }
+    return "table";
+  }, [viewMode, storageKey]);
+
   return (
     <div
       className={cn(
@@ -60,19 +83,32 @@ export const DataViewSkeleton: React.FC<DataViewSkeletonProps> = ({
 
       <div className="flex flex-col xl:flex-row items-stretch xl:items-center justify-between gap-2.5 sm:gap-3 bg-card p-3 sm:p-4 rounded-2xl border border-border/80 shadow-xs min-w-0">
         <Skeleton className="h-9.5 w-full xl:flex-1 rounded-xl" />
+
         <div className="flex flex-wrap items-center justify-between gap-2.5 sm:gap-3 w-full xl:w-auto">
-          <div className="flex items-center gap-2 sm:gap-2.5 w-full sm:w-auto">
-            <Skeleton className="h-9.5 w-full sm:w-40 rounded-xl" />
-            <Skeleton className="h-9.5 w-full sm:w-40 rounded-xl" />
-          </div>
+          {filterCount > 0 && (
+            <div className="flex items-center gap-2 sm:gap-2.5 w-full sm:w-auto">
+              {Array.from({ length: filterCount }).map((_, i) => (
+                <Skeleton
+                  key={i}
+                  className="h-9.5 w-full sm:w-36 md:w-40 rounded-xl"
+                />
+              ))}
+            </div>
+          )}
+
           <div className="flex items-center gap-2.5 shrink-0">
-            <Skeleton className="h-9.5 w-20 rounded-xl" />
-            <Skeleton className="h-9.5 w-32 rounded-xl" />
+            {hasViewSwitcher && <Skeleton className="h-9.5 w-20 rounded-xl" />}
+            {hasExportButton && (
+              <Skeleton className="h-9.5 w-9.5 rounded-xl hidden sm:block" />
+            )}
+            {hasAddButton && (
+              <Skeleton className="h-9.5 w-28 sm:w-36 rounded-xl" />
+            )}
           </div>
         </div>
       </div>
 
-      {viewMode === "table" ? (
+      {resolvedViewMode === "table" ? (
         <div className="space-y-4 pb-6">
           <div className="hidden sm:block">
             <Card className="rounded-2xl border border-border/60 bg-card p-3.5 sm:p-4 shadow-xs w-full overflow-hidden">
@@ -83,7 +119,13 @@ export const DataViewSkeleton: React.FC<DataViewSkeletonProps> = ({
                       key={i}
                       className={cn(
                         "h-3.5",
-                        i === 0 ? "w-36" : i === 1 ? "w-24" : "w-20",
+                        i === 0
+                          ? "w-36"
+                          : i === columnsCount - 1
+                            ? "w-16"
+                            : i === 1
+                              ? "w-28"
+                              : "w-20",
                       )}
                     />
                   ))}
@@ -94,17 +136,21 @@ export const DataViewSkeleton: React.FC<DataViewSkeletonProps> = ({
                     key={i}
                     className="flex items-center justify-between py-2 border-b border-border/30 last:border-0"
                   >
-                    <div className="flex items-center gap-2.5">
+                    <div className="flex items-center gap-2.5 min-w-36">
                       <Skeleton className="w-8 h-8 rounded-xl shrink-0" />
                       <div className="space-y-1">
-                        <Skeleton className="h-4 w-32" />
-                        <Skeleton className="h-3 w-20" />
+                        <Skeleton className="h-3.5 w-28" />
+                        <Skeleton className="h-3 w-16" />
                       </div>
                     </div>
-                    {Array.from({ length: columnsCount - 2 }).map((_, j) => (
-                      <Skeleton key={j} className="h-3.5 w-20" />
-                    ))}
-                    <div className="flex items-center gap-1.5">
+
+                    {Array.from({ length: Math.max(1, columnsCount - 2) }).map(
+                      (_, j) => (
+                        <Skeleton key={j} className="h-3.5 w-20" />
+                      ),
+                    )}
+
+                    <div className="flex items-center gap-1.5 min-w-16 justify-end">
                       <Skeleton className="w-7 h-7 rounded-lg" />
                       <Skeleton className="w-7 h-7 rounded-lg" />
                     </div>
@@ -146,24 +192,41 @@ export const DataViewSkeleton: React.FC<DataViewSkeletonProps> = ({
           {Array.from({ length: gridCount }).map((_, i) => (
             <Card
               key={i}
-              className="rounded-2xl border border-border/60 bg-card p-4 shadow-xs space-y-3"
+              className="rounded-2xl border border-border/60 bg-card p-4 shadow-xs space-y-3 flex flex-col justify-between"
             >
-              <div className="flex items-start justify-between gap-2">
-                <div className="flex items-center gap-2.5">
-                  <Skeleton className="w-9 h-9 rounded-xl shrink-0" />
-                  <div className="space-y-1">
-                    <Skeleton className="h-4 w-28" />
+              <div className="space-y-2.5">
+                <div className="flex items-start justify-between gap-2">
+                  <div className="min-w-0 flex-1 space-y-1">
+                    <Skeleton className="h-3 w-20" />
+                    <Skeleton className="h-4 w-32" />
+                  </div>
+                  <Skeleton className="h-5 w-16 rounded-lg shrink-0" />
+                </div>
+
+                <div className="p-2.5 rounded-xl bg-muted/40 border border-border/60 space-y-2">
+                  <div className="flex items-center justify-between">
+                    <Skeleton className="h-3 w-24" />
                     <Skeleton className="h-3 w-16" />
                   </div>
+                  <div className="space-y-1.5 py-0.5">
+                    <Skeleton className="h-3.5 w-full" />
+                    <Skeleton className="h-3.5 w-3/4" />
+                  </div>
+                  <div className="flex items-center justify-between pt-1.5 border-t border-border/40">
+                    <Skeleton className="h-3 w-16" />
+                    <Skeleton className="h-4 w-20" />
+                  </div>
                 </div>
-                <Skeleton className="h-5 w-12 rounded-full" />
               </div>
-              <Skeleton className="h-3.5 w-full" />
-              <div className="flex items-center justify-between pt-2 border-t border-border/40">
-                <Skeleton className="h-4 w-20" />
-                <div className="flex items-center gap-1.5">
-                  <Skeleton className="w-7 h-7 rounded-lg" />
-                  <Skeleton className="w-7 h-7 rounded-lg" />
+
+              <div className="flex items-center justify-between pt-2 border-t border-border/40 mt-auto text-xs gap-1">
+                <div className="space-y-0.5">
+                  <Skeleton className="h-2.5 w-14" />
+                  <Skeleton className="h-3.5 w-20" />
+                </div>
+                <div className="flex items-center gap-1 shrink-0">
+                  <Skeleton className="h-7.5 w-7.5 rounded-lg" />
+                  <Skeleton className="h-7.5 w-16 rounded-lg" />
                 </div>
               </div>
             </Card>

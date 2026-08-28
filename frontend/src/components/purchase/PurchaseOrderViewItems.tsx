@@ -1,5 +1,5 @@
 import React from "react";
-import { FileText, FolderOpen } from "lucide-react";
+import { FolderOpen, Trash2, RotateCcw } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -28,18 +28,11 @@ export const PurchaseStatusBadge: React.FC<{
           </span>
         );
       case "CANCELLED":
-        return (
-          <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-rose-600 dark:text-rose-400 whitespace-nowrap">
-            <span className="w-1.5 h-1.5 rounded-full bg-rose-500 shrink-0" />
-            <span>Cancelled</span>
-          </span>
-        );
-      case "DRAFT":
       default:
         return (
-          <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-muted-foreground whitespace-nowrap">
-            <span className="w-1.5 h-1.5 rounded-full bg-muted-foreground shrink-0" />
-            <span>Draft</span>
+          <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-destructive whitespace-nowrap">
+            <span className="w-1.5 h-1.5 rounded-full bg-destructive shrink-0" />
+            <span>Cancelled</span>
           </span>
         );
     }
@@ -65,22 +58,13 @@ export const PurchaseStatusBadge: React.FC<{
         </Badge>
       );
     case "CANCELLED":
-      return (
-        <Badge
-          variant="outline"
-          className="rounded-lg text-[10.5px] font-bold px-2.5 py-0.5 bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-500/20 whitespace-nowrap select-none"
-        >
-          Cancelled
-        </Badge>
-      );
-    case "DRAFT":
     default:
       return (
         <Badge
           variant="outline"
-          className="rounded-lg text-[10.5px] font-bold px-2.5 py-0.5 bg-muted text-muted-foreground border-border/80 whitespace-nowrap select-none"
+          className="rounded-lg text-[10.5px] font-bold px-2.5 py-0.5 bg-destructive/10 text-destructive border-destructive/25 whitespace-nowrap select-none"
         >
-          Draft
+          Cancelled
         </Badge>
       );
   }
@@ -89,11 +73,15 @@ export const PurchaseStatusBadge: React.FC<{
 interface PurchaseOrderViewProps {
   po: PurchaseOrderItem;
   onDetail: (po: PurchaseOrderItem) => void;
+  onDelete?: (po: PurchaseOrderItem) => void;
+  onRestore?: (po: PurchaseOrderItem) => void;
 }
 
 export const PurchaseOrderGridCard: React.FC<PurchaseOrderViewProps> = ({
   po,
   onDetail,
+  onDelete,
+  onRestore,
 }) => {
   return (
     <Card
@@ -102,7 +90,6 @@ export const PurchaseOrderGridCard: React.FC<PurchaseOrderViewProps> = ({
     >
       <CardContent className="p-4 flex flex-col justify-between h-full space-y-3">
         <div className="space-y-2.5">
-          {/* Header */}
           <div className="flex items-start justify-between gap-2">
             <div className="min-w-0 flex-1 space-y-0.5">
               <span className="font-mono text-[11px] font-bold text-primary tracking-tight">
@@ -117,8 +104,7 @@ export const PurchaseOrderGridCard: React.FC<PurchaseOrderViewProps> = ({
             </div>
           </div>
 
-          {/* Option 1: Tag Chips Preview */}
-          <div className="space-y-1.5 min-h-14.5 flex flex-col justify-start">
+          <div className="p-2.5 rounded-xl bg-muted/40 border border-border/60 space-y-2">
             <div className="flex items-center justify-between text-muted-foreground text-[11px]">
               <span className="font-semibold">Materials Configured</span>
               <span className="font-semibold">
@@ -126,38 +112,63 @@ export const PurchaseOrderGridCard: React.FC<PurchaseOrderViewProps> = ({
               </span>
             </div>
 
-            <div className="flex flex-wrap items-center gap-1.5 pt-0.5">
-              {po.items.slice(0, 2).map((item, idx) => (
-                <span
-                  key={idx}
-                  className="inline-flex items-center gap-1 text-[11px] font-medium bg-muted/60 text-foreground px-2 py-0.5 rounded-lg border border-border/50 max-w-full truncate"
-                >
-                  <span className="truncate">{item.ingredient_name}</span>
-                  <span className="font-mono text-muted-foreground shrink-0 text-[10px]">
-                    ({formatNumber(item.quantity)} {item.unit})
+            <div className="space-y-1 min-h-11 flex flex-col justify-center">
+              <div className="flex items-center justify-between gap-1.5 text-xs">
+                <div className="flex items-center gap-1.5 min-w-0 flex-1">
+                  <span className="w-1.5 h-1.5 rounded-full bg-primary/60 shrink-0" />
+                  <span
+                    className="font-medium text-foreground truncate"
+                    title={po.items[0]?.ingredient_name}
+                  >
+                    {po.items[0]?.ingredient_name || "No material"}
                   </span>
-                </span>
-              ))}
-              {po.items.length > 2 && (
-                <span className="inline-flex items-center text-[10.5px] font-bold text-primary bg-primary/10 border border-primary/25 px-1.5 py-0.5 rounded-lg whitespace-nowrap">
-                  +{po.items.length - 2} more
-                </span>
+                </div>
+                {po.items[0] && (
+                  <span className="font-mono text-[10.5px] text-muted-foreground shrink-0">
+                    ({formatNumber(po.items[0].quantity)} {po.items[0].unit})
+                  </span>
+                )}
+              </div>
+
+              {po.items.length > 1 ? (
+                <div className="flex items-center justify-between gap-1.5 text-xs">
+                  <div className="flex items-center gap-1.5 min-w-0 flex-1">
+                    <span className="w-1.5 h-1.5 rounded-full bg-primary/60 shrink-0" />
+                    <span
+                      className="font-medium text-foreground truncate"
+                      title={po.items[1]?.ingredient_name}
+                    >
+                      {po.items[1]?.ingredient_name}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-1 shrink-0">
+                    <span className="font-mono text-[10.5px] text-muted-foreground">
+                      ({formatNumber(po.items[1]?.quantity)} {po.items[1]?.unit})
+                    </span>
+                    {po.items.length > 2 && (
+                      <span className="inline-flex items-center text-[10px] font-bold text-primary bg-primary/10 border border-primary/25 px-1 py-0.2 rounded-md whitespace-nowrap">
+                        +{po.items.length - 2} more
+                      </span>
+                    )}
+                  </div>
+                </div>
+              ) : (
+                <div className="flex items-center text-[11px] text-muted-foreground/35 select-none h-4">
+                  <span className="pl-3">—</span>
+                </div>
               )}
             </div>
-          </div>
 
-          {/* Total Cost - Consistent with Master Data */}
-          <div className="flex items-baseline justify-between pt-1 border-t border-border/40 text-xs">
-            <span className="text-muted-foreground text-xs font-medium">
-              Total Cost:
-            </span>
-            <span className="text-base font-extrabold text-foreground font-mono">
-              {formatRupiah(po.total_amount)}
-            </span>
+            <div className="flex items-baseline justify-between pt-2 border-t border-border/40 text-xs">
+              <span className="text-muted-foreground text-xs font-semibold">
+                Total Cost:
+              </span>
+              <span className="text-sm font-extrabold text-foreground font-mono">
+                {formatRupiah(po.total_amount)}
+              </span>
+            </div>
           </div>
         </div>
-
-        {/* Master Data Style Footer with Open Button */}
         <div className="flex items-center justify-between pt-2 border-t border-border/40 mt-auto text-xs gap-1">
           <div className="min-w-0 flex-1">
             <span className="text-muted-foreground font-medium text-[10px] block truncate">
@@ -169,19 +180,51 @@ export const PurchaseOrderGridCard: React.FC<PurchaseOrderViewProps> = ({
           </div>
 
           <div className="flex items-center gap-1 shrink-0">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={(e) => {
-                e.stopPropagation();
-                onDetail(po);
-              }}
-              className="h-7.5 px-2.5 rounded-lg text-xs font-semibold gap-1.5 text-primary hover:bg-primary/10 border-primary/40 cursor-pointer shadow-2xs transition-all active:scale-95"
-              title="Open Purchase Order Details"
-            >
-              <FolderOpen className="w-3.5 h-3.5" />
-              <span>Open</span>
-            </Button>
+            {po.isDeleted ? (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onRestore?.(po);
+                }}
+                className="h-7.5 px-2.5 rounded-lg bg-emerald-500/10 text-emerald-600 border-emerald-500/40 hover:bg-emerald-500/20 text-xs font-semibold gap-1 cursor-pointer shadow-2xs"
+                title="Restore Purchase Order"
+              >
+                <RotateCcw className="w-3.5 h-3.5" />
+                <span>Restore</span>
+              </Button>
+            ) : (
+              <>
+                {onDelete && (
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onDelete(po);
+                    }}
+                    className="h-7.5 w-7.5 rounded-lg text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors cursor-pointer"
+                    title="Move to Trash"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                  </Button>
+                )}
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onDetail(po);
+                  }}
+                  className="h-7.5 px-2.5 rounded-lg text-xs font-semibold gap-1.5 text-primary hover:bg-primary/10 border-primary/40 cursor-pointer shadow-2xs transition-all active:scale-95"
+                  title="Open Purchase Order Details"
+                >
+                  <FolderOpen className="w-3.5 h-3.5" />
+                  <span>Open</span>
+                </Button>
+              </>
+            )}
           </div>
         </div>
       </CardContent>
@@ -192,6 +235,8 @@ export const PurchaseOrderGridCard: React.FC<PurchaseOrderViewProps> = ({
 export const PurchaseOrderTableRow: React.FC<PurchaseOrderViewProps> = ({
   po,
   onDetail,
+  onDelete,
+  onRestore,
 }) => {
   return (
     <tr
@@ -202,11 +247,16 @@ export const PurchaseOrderTableRow: React.FC<PurchaseOrderViewProps> = ({
         {po.po_number}
       </td>
       <td className="py-2.5 px-3">
-        <span className="font-bold text-foreground truncate block max-w-48">
-          {po.supplier_name}
-        </span>
+        <div className="min-w-0">
+          <span className="font-bold text-foreground block truncate max-w-48">
+            {po.supplier_name}
+          </span>
+          <span className="text-[10.5px] text-muted-foreground block truncate md:hidden">
+            {formatDate(po.order_date)}
+          </span>
+        </div>
       </td>
-      <td className="py-2.5 px-3 text-muted-foreground whitespace-nowrap hidden sm:table-cell">
+      <td className="py-2.5 px-3 text-muted-foreground text-xs font-medium whitespace-nowrap hidden md:table-cell">
         {formatDate(po.order_date)}
       </td>
       <td className="py-2.5 px-3 hidden lg:table-cell">
@@ -224,23 +274,50 @@ export const PurchaseOrderTableRow: React.FC<PurchaseOrderViewProps> = ({
       <td className="py-2.5 px-3 font-mono font-bold text-foreground whitespace-nowrap text-right">
         {formatRupiah(po.total_amount)}
       </td>
-      <td className="py-2.5 px-3 text-center whitespace-nowrap hidden lg:table-cell">
+      <td className="py-2.5 px-3 text-center whitespace-nowrap">
         <PurchaseStatusBadge status={po.status} isTable={true} />
       </td>
       <td
         className="py-2.5 px-3 text-right whitespace-nowrap"
         onClick={(e) => e.stopPropagation()}
       >
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => onDetail(po)}
-          className="h-7.5 px-2.5 rounded-lg text-xs font-semibold gap-1.5 text-primary hover:bg-primary/10 border-primary/40 cursor-pointer shadow-2xs transition-all active:scale-95"
-          title="View Details"
-        >
-          <FileText className="w-3.5 h-3.5" />
-          <span>Detail</span>
-        </Button>
+        <div className="flex items-center justify-end gap-1">
+          {po.isDeleted ? (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => onRestore?.(po)}
+              className="h-7.5 px-2.5 rounded-lg bg-emerald-500/10 text-emerald-600 border-emerald-500/40 hover:bg-emerald-500/20 text-xs font-semibold gap-1 cursor-pointer shadow-2xs"
+              title="Restore Purchase Order"
+            >
+              <RotateCcw className="w-3.5 h-3.5" />
+              <span>Restore</span>
+            </Button>
+          ) : (
+            <>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => onDetail(po)}
+                className="h-7.5 w-7.5 rounded-lg text-muted-foreground hover:text-primary hover:bg-primary/10 transition-colors cursor-pointer"
+                title="View Details"
+              >
+                <FolderOpen className="w-3.5 h-3.5" />
+              </Button>
+              {onDelete && (
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => onDelete(po)}
+                  className="h-7.5 w-7.5 rounded-lg text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors cursor-pointer"
+                  title="Move to Trash"
+                >
+                  <Trash2 className="w-3.5 h-3.5" />
+                </Button>
+              )}
+            </>
+          )}
+        </div>
       </td>
     </tr>
   );
@@ -249,6 +326,8 @@ export const PurchaseOrderTableRow: React.FC<PurchaseOrderViewProps> = ({
 export const PurchaseOrderMobileCard: React.FC<PurchaseOrderViewProps> = ({
   po,
   onDetail,
+  onDelete,
+  onRestore,
 }) => {
   return (
     <Card
@@ -282,22 +361,52 @@ export const PurchaseOrderMobileCard: React.FC<PurchaseOrderViewProps> = ({
 
       <div className="pt-2 border-t border-border/40 flex items-center justify-between text-xs">
         <span className="text-[11px] text-muted-foreground">Tap card for details</span>
-        <Button
-          size="sm"
-          variant="outline"
-          onClick={(e) => {
-            e.stopPropagation();
-            onDetail(po);
-          }}
-          className="h-7 px-2.5 rounded-lg text-xs font-semibold gap-1.5 text-primary hover:bg-primary/10 border-primary/40 cursor-pointer shadow-2xs"
-        >
-          <FolderOpen className="w-3.5 h-3.5" />
-          <span>Open</span>
-        </Button>
+        <div className="flex items-center gap-1">
+          {po.isDeleted ? (
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={(e) => {
+                e.stopPropagation();
+                onRestore?.(po);
+              }}
+              className="h-7 px-2.5 rounded-lg text-xs font-semibold gap-1.5 text-emerald-600 hover:bg-emerald-500/10 border-emerald-500/40 cursor-pointer shadow-2xs"
+            >
+              <RotateCcw className="w-3.5 h-3.5" />
+              <span>Restore</span>
+            </Button>
+          ) : (
+            <>
+              {onDelete && (
+                <Button
+                  size="icon"
+                  variant="ghost"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onDelete(po);
+                  }}
+                  className="h-7 w-7 rounded-lg text-muted-foreground hover:text-destructive hover:bg-destructive/10 cursor-pointer"
+                  title="Move to Trash"
+                >
+                  <Trash2 className="w-3.5 h-3.5" />
+                </Button>
+              )}
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onDetail(po);
+                }}
+                className="h-7 px-2.5 rounded-lg text-xs font-semibold gap-1.5 text-primary hover:bg-primary/10 border-primary/40 cursor-pointer shadow-2xs"
+              >
+                <FolderOpen className="w-3.5 h-3.5" />
+                <span>Open</span>
+              </Button>
+            </>
+          )}
+        </div>
       </div>
     </Card>
   );
 };
-
-
-

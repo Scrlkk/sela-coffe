@@ -11,6 +11,10 @@ import {
   Wheat,
   ReceiptText,
   Banknote,
+  TrendingUp,
+  Flame,
+  Boxes,
+  ShoppingBag,
 } from "lucide-react";
 
 export interface RouteInfo {
@@ -79,6 +83,22 @@ export const ROUTE_META: Record<string, RouteInfo> = {
     title: "Profile Settings",
     description: "Manage your profile information and account security",
   },
+  "/reports/sales": {
+    title: "Sales Report",
+    description: "Detailed sales revenue, transaction trends, and payment summaries",
+  },
+  "/reports/best-sellers": {
+    title: "Best Seller Report",
+    description: "Top performing menu items, high-volume products, and item rankings",
+  },
+  "/reports/inventory": {
+    title: "Inventory Report",
+    description: "Stock valuation, stock turnover, usage rate, and waste tracking",
+  },
+  "/reports/purchases": {
+    title: "Purchase Report",
+    description: "Procurement spending, supplier breakdown, and incoming goods analysis",
+  },
 };
 
 export const menuGroups = [
@@ -132,6 +152,31 @@ export const menuGroups = [
         label: "Cash Sessions",
         path: "/cash-sessions",
         icon: Banknote,
+      },
+    ],
+  },
+  {
+    label: "REPORTS",
+    items: [
+      {
+        label: "Sales",
+        path: "/reports/sales",
+        icon: TrendingUp,
+      },
+      {
+        label: "Best Seller",
+        path: "/reports/best-sellers",
+        icon: Flame,
+      },
+      {
+        label: "Inventory",
+        path: "/reports/inventory",
+        icon: Boxes,
+      },
+      {
+        label: "Purchase",
+        path: "/reports/purchases",
+        icon: ShoppingBag,
       },
     ],
   },

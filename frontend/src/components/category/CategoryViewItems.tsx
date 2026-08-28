@@ -26,65 +26,72 @@ export const CategoryGridCard: React.FC<CategoryViewProps> = ({
   const count = c.itemCount;
   return (
     <Card className="group relative border border-border/60 shadow-2xs rounded-2xl bg-card text-card-foreground transition-all duration-200 hover:border-primary hover:shadow-md overflow-hidden flex flex-col justify-between select-none">
-      <CardContent className="p-3.5 flex flex-col justify-between h-full space-y-2.5">
+      <CardContent className="p-3.5 sm:p-4 flex flex-col justify-between h-full space-y-2.5">
         <div className="space-y-2">
           <div className="flex items-start justify-between gap-2">
             <div className="flex items-center gap-2.5 min-w-0 flex-1">
-              <div className="w-8.5 h-8.5 rounded-xl bg-primary/10 text-primary flex items-center justify-center font-bold text-xs shrink-0">
+              <div className="w-8 h-8 rounded-xl bg-primary/10 text-primary flex items-center justify-center font-bold text-xs shrink-0">
                 {activeTab === "product" ? (
                   <Coffee className="w-4 h-4" />
                 ) : (
                   <Wheat className="w-4 h-4" />
                 )}
               </div>
-              <div className="min-w-0 flex-1">
-                <h3 className="font-bold text-foreground text-xs sm:text-sm leading-snug truncate">
-                  {c.name}
-                </h3>
-                <span className="text-[10.5px] font-medium text-muted-foreground block truncate">
-                  {activeTab === "product"
-                    ? "Product Category"
-                    : "Raw Material"}
+              <h3
+                className="font-bold text-foreground text-sm leading-snug truncate flex-1"
+                title={c.name}
+              >
+                {c.name}
+              </h3>
+            </div>
+          </div>
+
+          <div className="p-2.5 rounded-xl bg-muted/40 border border-border/60 space-y-1.5 text-xs">
+            <div className="flex items-center justify-between text-muted-foreground">
+              <span className="text-[11px] font-medium">Type</span>
+              <span className="font-semibold text-foreground truncate max-w-36">
+                {activeTab === "product" ? "Product Category" : "Raw Material"}
+              </span>
+            </div>
+
+            <div className="flex items-baseline justify-between pt-1 border-t border-border/40">
+              <span className="text-[11px] text-muted-foreground font-medium">
+                Linked Items
+              </span>
+              <div className="flex items-baseline gap-1 text-right">
+                <span className="text-sm font-black text-foreground font-mono">
+                  {count}
+                </span>
+                <span className="text-[10.5px] text-muted-foreground font-medium">
+                  {count === 1 ? "item" : "items"}
                 </span>
               </div>
             </div>
 
-            <Badge
-              variant="secondary"
-              className={cn(
-                "px-2 py-0.5 rounded-lg text-[10px] font-bold shrink-0 border-0",
-                count > 0
-                  ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
-                  : "bg-muted text-muted-foreground",
-              )}
-            >
-              {count > 0 ? `${count} items` : "Empty"}
-            </Badge>
+            {c.description && (
+              <div className="pt-1 border-t border-border/40 text-[11px] text-muted-foreground line-clamp-1">
+                {c.description}
+              </div>
+            )}
           </div>
-
-          <p className="text-xs text-muted-foreground line-clamp-1 leading-relaxed">
-            {c.description || "No description provided."}
-          </p>
         </div>
 
         <div className="flex items-center justify-between pt-2 border-t border-border/40 mt-auto text-xs gap-1">
           <div className="min-w-0 flex-1">
-            <span className="inline-flex items-center gap-1.5 text-[11px] font-semibold">
-              <span
-                className={cn(
-                  "w-1.5 h-1.5 rounded-full",
-                  count > 0 ? "bg-emerald-500" : "bg-muted-foreground/50",
-                )}
-              />
-              <span
-                className={
-                  count > 0
+            <span className="text-muted-foreground font-medium text-[10px] block truncate">
+              Status
+            </span>
+            <span
+              className={cn(
+                "font-bold text-xs block truncate",
+                c.isDeleted
+                  ? "text-destructive"
+                  : count > 0
                     ? "text-emerald-600 dark:text-emerald-400"
-                    : "text-muted-foreground"
-                }
-              >
-                {count > 0 ? "In Use" : "Unused"}
-              </span>
+                    : "text-muted-foreground",
+              )}
+            >
+              {c.isDeleted ? "Trash" : count > 0 ? "In Use" : "Unused"}
             </span>
           </div>
 
@@ -139,7 +146,7 @@ export const CategoryTableRow: React.FC<CategoryViewProps> = ({
   const count = c.itemCount;
   return (
     <tr className="hover:bg-muted/40 transition-colors">
-      <td className="py-2.5 px-3 font-bold text-foreground">
+      <td className="py-2.5 px-3 font-bold text-foreground w-[24%] lg:w-[22%]">
         <div className="flex items-center gap-2 min-w-0">
           <div className="w-7 h-7 rounded-lg bg-primary/10 text-primary flex items-center justify-center shrink-0">
             {activeTab === "product" ? (
@@ -151,13 +158,13 @@ export const CategoryTableRow: React.FC<CategoryViewProps> = ({
           <span className="truncate">{c.name}</span>
         </div>
       </td>
-      <td className="py-2.5 px-3 text-muted-foreground truncate text-xs">
+      <td className="py-2.5 px-3 text-muted-foreground truncate text-xs w-[32%] lg:w-[34%]">
         {c.description || "—"}
       </td>
-      <td className="py-2.5 px-3 text-center font-bold font-mono text-xs whitespace-nowrap">
+      <td className="py-2.5 px-3 text-center font-bold font-mono text-xs whitespace-nowrap w-[14%] lg:w-[14%]">
         {count}
       </td>
-      <td className="py-2.5 px-3 whitespace-nowrap hidden lg:table-cell">
+      <td className="py-2.5 px-3 whitespace-nowrap hidden lg:table-cell w-[15%] lg:w-[15%]">
         <span className="inline-flex items-center gap-1.5 text-xs font-semibold">
           <span
             className={cn(
@@ -176,7 +183,7 @@ export const CategoryTableRow: React.FC<CategoryViewProps> = ({
           </span>
         </span>
       </td>
-      <td className="py-2.5 px-3 text-right whitespace-nowrap">
+      <td className="py-2.5 px-3 text-right whitespace-nowrap w-[15%] lg:w-[15%]">
         <div className="flex items-center justify-end gap-1">
           {c.isDeleted ? (
             <Button

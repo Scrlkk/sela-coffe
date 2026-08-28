@@ -3,6 +3,7 @@ import { Phone, Pencil, Trash2, RotateCcw } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 import { formatWhatsAppUrl, getInitials } from "@/utils/formatString";
 import { formatDate } from "@/utils/formatDate";
 import type { UserItem } from "@/services/user";
@@ -164,18 +165,26 @@ export const UserTableRow: React.FC<UserViewProps> = ({
       </td>
 
       <td className="py-2.5 px-3 whitespace-nowrap">
-        {u.status === "INACTIVE" ? (
-          <span className="text-[11px] font-bold text-destructive">
-            Inactive
+        <span className="inline-flex items-center gap-1.5 text-xs font-semibold whitespace-nowrap">
+          <span
+            className={cn(
+              "w-1.5 h-1.5 rounded-full shrink-0",
+              u.status === "INACTIVE" ? "bg-destructive" : "bg-emerald-500",
+            )}
+          />
+          <span
+            className={
+              u.status === "INACTIVE"
+                ? "text-destructive"
+                : "text-emerald-600 dark:text-emerald-400"
+            }
+          >
+            {u.status === "INACTIVE" ? "Inactive" : "Active"}
           </span>
-        ) : (
-          <span className="text-[11px] font-bold text-emerald-600 dark:text-emerald-400">
-            Active
-          </span>
-        )}
+        </span>
       </td>
 
-      <td className="py-2.5 px-3 text-muted-foreground font-medium whitespace-nowrap hidden xl:table-cell">
+      <td className="py-2.5 px-3 text-muted-foreground text-xs font-medium whitespace-nowrap hidden xl:table-cell">
         {formatDate(u.createdAt)}
       </td>
 

@@ -1,4 +1,4 @@
-export type PurchaseOrderStatus = "DRAFT" | "PENDING" | "RECEIVED" | "CANCELLED";
+export type PurchaseOrderStatus = "PENDING" | "RECEIVED" | "CANCELLED";
 
 export interface PurchaseOrderItemLine {
   ingredient_id: string;
@@ -23,6 +23,7 @@ export interface PurchaseOrderItem {
   items: PurchaseOrderItemLine[];
   total_amount: number;
   notes?: string;
+  created_by?: string;
   isDeleted?: boolean;
   createdAt: string;
   updatedAt: string;
@@ -398,7 +399,7 @@ export const INITIAL_PURCHASE_ORDERS: PurchaseOrderItem[] = [
     supplier_id: "sup_1",
     supplier_name: "PT Sangkar Kopi Utama",
     order_date: "2026-08-27T11:00:00.000Z",
-    status: "DRAFT",
+    status: "PENDING",
     items: [
       {
         ingredient_id: "ing_1",

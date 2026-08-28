@@ -1,7 +1,6 @@
 import React from "react";
 import { Pencil, Trash2, RotateCcw } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { formatRupiah } from "@/utils/formatCurrency";
 import type { IngredientItem } from "@/services/ingredient";
@@ -25,36 +24,51 @@ export const IngredientGridCard: React.FC<IngredientViewProps> = ({
 }) => {
   return (
     <Card className="group relative border border-border/60 shadow-2xs rounded-2xl bg-card text-card-foreground transition-all duration-200 hover:border-primary hover:shadow-md overflow-hidden flex flex-col justify-between select-none">
-      <CardContent className="p-4 flex flex-col justify-between h-full space-y-3">
-        <div className="space-y-2.5">
+      <CardContent className="p-3.5 sm:p-4 flex flex-col justify-between h-full space-y-2.5">
+        <div className="space-y-2">
           <div className="flex items-start justify-between gap-2">
-            <div className="min-w-0 flex-1 space-y-0.5">
-              <h3 className="text-sm font-bold text-foreground line-clamp-2 leading-tight min-h-10">
-                {item.name}
-              </h3>
-              <span className="text-xs text-muted-foreground block truncate">
+            <h3
+              className="text-sm font-bold text-foreground line-clamp-1 leading-snug flex-1"
+              title={item.name}
+            >
+              {item.name}
+            </h3>
+          </div>
+
+          <div className="p-2.5 rounded-xl bg-muted/40 border border-border/60 space-y-1.5 text-xs">
+            <div className="flex items-center justify-between text-muted-foreground">
+              <span className="text-[11px] font-medium">Category</span>
+              <span
+                className="font-semibold text-foreground truncate max-w-36"
+                title={categoryLabel}
+              >
                 {categoryLabel}
               </span>
             </div>
-            <Badge
-              variant="secondary"
-              className="text-[10px] font-semibold px-2 py-0.5 rounded-lg border-0 shrink-0"
-            >
-              {item.unit}
-            </Badge>
-          </div>
 
-          <div className="space-y-1.5 text-xs text-muted-foreground border-t border-border/40 pt-2.5">
-            <div className="flex items-center justify-between">
-              <span>Cost / Unit:</span>
-              <span className="font-bold text-foreground">
-                {formatRupiah(item.costPrice)} / {item.unit}
+            <div className="flex items-baseline justify-between pt-1 border-t border-border/40">
+              <span className="text-[11px] text-muted-foreground font-medium">
+                Cost Price
               </span>
+              <div className="flex items-baseline gap-1 text-right">
+                <span className="text-sm font-black text-foreground font-mono">
+                  {formatRupiah(item.costPrice)}
+                </span>
+                <span className="text-[10.5px] text-muted-foreground font-medium">
+                  / {item.unit}
+                </span>
+              </div>
             </div>
+
             {item.supplierName && (
-              <div className="flex items-center justify-between gap-2">
-                <span className="truncate">Supplier:</span>
-                <span className="font-medium text-foreground truncate max-w-30">
+              <div className="flex items-center justify-between gap-2 pt-1 border-t border-border/40 text-[11px]">
+                <span className="text-muted-foreground font-medium">
+                  Supplier
+                </span>
+                <span
+                  className="font-medium text-foreground truncate max-w-36"
+                  title={item.supplierName}
+                >
                   {item.supplierName}
                 </span>
               </div>
@@ -136,7 +150,7 @@ export const IngredientTableRow: React.FC<IngredientViewProps> = ({
       <td className="py-2.5 px-3 text-muted-foreground hidden lg:table-cell">
         {item.supplierName || "-"}
       </td>
-      <td className="py-2.5 px-3 text-muted-foreground hidden xl:table-cell">
+      <td className="py-2.5 px-3 text-muted-foreground text-xs font-medium whitespace-nowrap hidden xl:table-cell">
         {formattedUpdatedAt}
       </td>
       <td className="py-2.5 px-3 text-right whitespace-nowrap">

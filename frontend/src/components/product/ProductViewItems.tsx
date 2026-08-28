@@ -27,21 +27,16 @@ export const ProductGridCard: React.FC<ProductViewProps> = ({
 
   return (
     <Card className="group relative border border-border/60 shadow-2xs rounded-2xl bg-card text-card-foreground transition-all duration-200 hover:border-primary hover:shadow-md overflow-hidden flex flex-col justify-between select-none">
-      <CardContent className="p-4 flex flex-col justify-between h-full space-y-3">
-        <div className="space-y-2.5">
+      <CardContent className="p-3.5 sm:p-4 flex flex-col justify-between h-full space-y-2.5">
+        <div className="space-y-2">
           <div className="flex items-start justify-between gap-2">
-            <div className="min-w-0 flex-1 space-y-0.5">
-              <h3 className="text-sm font-bold text-foreground line-clamp-2 leading-tight min-h-10">
-                {p.name}
-              </h3>
-              <span className="text-xs text-muted-foreground block truncate">
-                {categoryLabel}
-              </span>
-            </div>
+            <h3 className="text-sm font-bold text-foreground line-clamp-1 leading-snug flex-1">
+              {p.name}
+            </h3>
 
             <span
               className={cn(
-                "w-2 h-2 rounded-full mt-1.5 shrink-0 shadow-2xs",
+                "w-2 h-2 rounded-full mt-1 shrink-0 shadow-2xs",
                 isPosActive
                   ? "bg-emerald-500 shadow-emerald-500/50"
                   : "bg-muted-foreground/40",
@@ -50,12 +45,21 @@ export const ProductGridCard: React.FC<ProductViewProps> = ({
             />
           </div>
 
-          <div className="pt-1">
-            <div className="flex items-baseline justify-between">
-              <span className="text-muted-foreground text-xs font-medium">
-                Price:
+          <div className="p-2.5 rounded-xl bg-muted/40 border border-border/60 space-y-1.5 text-xs">
+            <div className="flex items-center justify-between text-muted-foreground">
+              <span className="text-[11px] font-medium">Category</span>
+              <span
+                className="font-semibold text-foreground truncate max-w-36"
+                title={categoryLabel}
+              >
+                {categoryLabel}
               </span>
-              <span className="text-base font-extrabold text-foreground font-mono">
+            </div>
+            <div className="flex items-baseline justify-between pt-1 border-t border-border/40">
+              <span className="text-[11px] text-muted-foreground font-medium">
+                Price
+              </span>
+              <span className="text-sm font-black text-foreground font-mono">
                 {formatRupiah(p.price)}
               </span>
             </div>
@@ -77,11 +81,7 @@ export const ProductGridCard: React.FC<ProductViewProps> = ({
                     : "text-muted-foreground",
               )}
             >
-              {p.isDeleted
-                ? "Trash"
-                : isPosActive
-                  ? "Menu Ready"
-                  : "Off Menu"}
+              {p.isDeleted ? "Trash" : isPosActive ? "Menu Ready" : "Off Menu"}
             </span>
           </div>
 
@@ -157,25 +157,28 @@ export const ProductTableRow: React.FC<ProductViewProps> = ({
 
   return (
     <tr className="hover:bg-muted/30 transition-colors">
-      <td className="py-2.5 px-3">
-        <span className="font-bold text-foreground block truncate text-xs">
+      <td className="py-2.5 px-3 w-[28%] lg:w-[30%]">
+        <span
+          className="font-bold text-foreground block truncate text-xs"
+          title={p.name}
+        >
           {p.name}
         </span>
       </td>
 
-      <td className="py-2.5 px-3 text-muted-foreground font-medium hidden md:table-cell">
+      <td className="py-2.5 px-3 text-muted-foreground font-medium hidden md:table-cell w-[16%] lg:w-[18%] truncate">
         {categoryLabel}
       </td>
 
-      <td className="py-2.5 px-3 text-right font-mono text-foreground font-semibold whitespace-nowrap">
+      <td className="py-2.5 px-3 text-right font-mono text-foreground font-semibold whitespace-nowrap w-[20%] lg:w-[18%]">
         {formatRupiah(p.price)}
       </td>
 
-      <td className="py-2.5 px-3 text-center whitespace-nowrap">
-        <span className="inline-flex items-center gap-1.5 text-xs font-semibold whitespace-nowrap">
+      <td className="py-2.5 px-3 text-center whitespace-nowrap w-[18%] lg:w-[17%]">
+        <span className="inline-flex items-center justify-center gap-1.5 text-xs font-semibold whitespace-nowrap">
           <span
             className={cn(
-              "w-1.5 h-1.5 rounded-full",
+              "w-1.5 h-1.5 rounded-full shrink-0",
               isPosActive ? "bg-emerald-500" : "bg-muted-foreground/50",
             )}
           />
@@ -191,7 +194,7 @@ export const ProductTableRow: React.FC<ProductViewProps> = ({
         </span>
       </td>
 
-      <td className="py-2.5 px-3 text-right whitespace-nowrap">
+      <td className="py-2.5 px-3 text-right whitespace-nowrap w-[18%] lg:w-[17%]">
         <div className="flex items-center justify-end gap-1">
           {p.isDeleted ? (
             <Button
@@ -304,11 +307,7 @@ export const ProductMobileCard: React.FC<ProductViewProps> = ({
                     : "text-muted-foreground",
               )}
             >
-              {p.isDeleted
-                ? "Trash"
-                : isPosActive
-                  ? "Menu Ready"
-                  : "Off Menu"}
+              {p.isDeleted ? "Trash" : isPosActive ? "Menu Ready" : "Off Menu"}
             </span>
           </div>
         </div>

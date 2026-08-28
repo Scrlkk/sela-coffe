@@ -190,23 +190,20 @@ export const StockPage: React.FC = () => {
 
     if (stock.quantity === 0) {
       return (
-        <span className="inline-flex items-center gap-1.5 text-[10.5px] px-2.5 py-0.5 rounded-full font-bold shrink-0 bg-destructive/10 text-destructive border border-destructive/25 whitespace-nowrap select-none pointer-events-none">
-          <span className="w-1.5 h-1.5 rounded-full bg-destructive shrink-0" />
+        <span className="inline-flex items-center text-[10.5px] px-2 py-0.5 rounded-lg font-bold shrink-0 bg-destructive/10 text-destructive border border-destructive/25 whitespace-nowrap select-none pointer-events-none">
           <span>Out of Stock</span>
         </span>
       );
     }
     if (stock.quantity <= stock.min_stock) {
       return (
-        <span className="inline-flex items-center gap-1.5 text-[10.5px] px-2.5 py-0.5 rounded-full font-bold shrink-0 bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/30 whitespace-nowrap select-none pointer-events-none">
-          <span className="w-1.5 h-1.5 rounded-full bg-amber-500 shrink-0 animate-pulse" />
+        <span className="inline-flex items-center text-[10.5px] px-2 py-0.5 rounded-lg font-bold shrink-0 bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/30 whitespace-nowrap select-none pointer-events-none">
           <span>Low Stock</span>
         </span>
       );
     }
     return (
-      <span className="inline-flex items-center gap-1.5 text-[10.5px] px-2.5 py-0.5 rounded-full font-semibold shrink-0 bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-500/20 whitespace-nowrap select-none pointer-events-none">
-        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0" />
+      <span className="inline-flex items-center text-[10.5px] px-2 py-0.5 rounded-lg font-semibold shrink-0 bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-500/20 whitespace-nowrap select-none pointer-events-none">
         <span>In Stock</span>
       </span>
     );
@@ -264,9 +261,7 @@ export const StockPage: React.FC = () => {
           )}
         </div>
 
-        {/* Filters, Switchers & Actions */}
         <div className="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-2.5 sm:gap-3 w-full xl:w-auto min-w-0">
-          {/* Dropdown Filters - Full Width 2-columns on mobile & tablet (< lg) */}
           <div className="grid grid-cols-2 lg:flex items-center gap-2 sm:gap-2.5 w-full lg:w-auto min-w-0">
             <div className="w-full lg:w-52 min-w-0">
               <FormDropdownPicker
@@ -278,7 +273,6 @@ export const StockPage: React.FC = () => {
               />
             </div>
 
-            {/* Status Dropdown on mobile & tablet (< lg) */}
             <div className="w-full lg:hidden min-w-0">
               <FormDropdownPicker
                 value={statusFilter}
@@ -288,7 +282,6 @@ export const StockPage: React.FC = () => {
               />
             </div>
 
-            {/* Status Tabs on Desktop (>= lg) */}
             <div className="hidden lg:flex items-center bg-muted/60 p-1 rounded-xl border border-border/50 text-xs h-9.5 shrink-0">
               {(
                 [
@@ -314,7 +307,6 @@ export const StockPage: React.FC = () => {
             </div>
           </div>
 
-          {/* Action Row: ViewModeSwitcher & Stock Adjustment together on the right */}
           <div className="flex items-center justify-end gap-2.5 w-full lg:w-auto shrink-0">
             <ViewModeSwitcher
               value={viewMode}
@@ -391,19 +383,20 @@ export const StockPage: React.FC = () => {
                           Stock Status
                         </th>
                         <SortableTh
-                          label="Last Updated"
-                          sortKey="updated_at"
-                          sortConfig={sortConfig}
-                          onSort={requestSort}
-                          align="center"
-                          className="hidden lg:table-cell"
-                        />
-                        <SortableTh
                           label="Asset Value"
                           sortKey="asset_value"
                           sortConfig={sortConfig}
                           onSort={requestSort}
                           align="right"
+                          className="hidden lg:table-cell"
+                        />
+                        <SortableTh
+                          label="Last Updated"
+                          sortKey="updated_at"
+                          sortConfig={sortConfig}
+                          onSort={requestSort}
+                          align="center"
+                          className="hidden xl:table-cell"
                         />
                         <th className="py-2.5 px-3 text-right">Actions</th>
                       </tr>
@@ -413,7 +406,9 @@ export const StockPage: React.FC = () => {
                         <StockTableRow
                           key={item.id}
                           item={item}
-                          formattedUpdatedAt={formatLastUpdated(item.updated_at)}
+                          formattedUpdatedAt={formatLastUpdated(
+                            item.updated_at,
+                          )}
                           renderStockBadge={renderStockBadge}
                           onLimits={(stockItem) =>
                             setDialog({ type: "limits", item: stockItem })

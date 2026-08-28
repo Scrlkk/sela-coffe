@@ -500,9 +500,9 @@ export const CategoryPage: React.FC = () => {
                           sortKey="name"
                           sortConfig={sortConfig}
                           onSort={requestSort}
-                          className="w-[32%] sm:w-[30%] md:w-[28%] lg:w-[26%] xl:w-[24%]"
+                          className="w-[24%] lg:w-[22%]"
                         />
-                        <th className="py-2.5 px-3 w-[36%] sm:w-[38%] md:w-[36%] lg:w-[32%] xl:w-[36%]">
+                        <th className="py-2.5 px-3 w-[32%] lg:w-[34%]">
                           Description
                         </th>
                         <SortableTh
@@ -513,12 +513,12 @@ export const CategoryPage: React.FC = () => {
                           sortConfig={sortConfig}
                           onSort={requestSort}
                           align="center"
-                          className="w-[16%] sm:w-[16%] md:w-[18%] lg:w-[14%] xl:w-[12%] whitespace-nowrap"
+                          className="w-[14%] lg:w-[14%] whitespace-nowrap"
                         />
-                        <th className="py-2.5 px-3 hidden lg:table-cell lg:w-[14%] xl:w-[14%] whitespace-nowrap">
+                        <th className="py-2.5 px-3 hidden lg:table-cell w-[15%] lg:w-[15%] whitespace-nowrap">
                           Status
                         </th>
-                        <th className="py-2.5 px-3 text-right w-[16%] sm:w-[16%] md:w-[18%] lg:w-[14%] xl:w-[14%] whitespace-nowrap">
+                        <th className="py-2.5 px-3 text-right w-[15%] lg:w-[15%] whitespace-nowrap">
                           Actions
                         </th>
                       </tr>

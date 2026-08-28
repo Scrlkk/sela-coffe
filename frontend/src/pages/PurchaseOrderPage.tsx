@@ -14,7 +14,6 @@ import {
   PurchaseOrderMobileCard,
 } from "@/components/purchase/PurchaseOrderViewItems";
 import { PurchaseOrderDrawer } from "@/components/purchase/PurchaseOrderDrawer";
-import { ReceiveGoodsDialog } from "@/components/purchase/ReceiveGoodsDialog";
 import { PurchaseOrderDetailDrawer } from "@/components/purchase/PurchaseOrderDetailDrawer";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { Card } from "@/components/ui/card";
@@ -37,7 +36,6 @@ import {
   FileSpreadsheet,
   PackageCheck,
   Clock,
-  Truck,
   Filter,
 } from "lucide-react";
 import { useViewMode } from "@/hooks/useViewMode";
@@ -46,7 +44,6 @@ import { SortableTh } from "@/components/shared/SortableTh";
 
 type PurchaseDialogState =
   | { type: "create" }
-  | { type: "receive"; po: PurchaseOrderItem }
   | { type: "detail"; po: PurchaseOrderItem }
   | { type: "cancel"; po: PurchaseOrderItem }
   | { type: "delete"; po: PurchaseOrderItem }
@@ -63,7 +60,6 @@ export const PurchaseOrderPage: React.FC = () => {
   const [selectedStatus, setSelectedStatus] = useState<string>("all");
   const [showDeleted, setShowDeleted] = useState(false);
 
-  // Pagination states matching StockMovementPage
   const [currentPage, setCurrentPage] = useState(1);
   const [prevPage, setPrevPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
@@ -89,7 +85,6 @@ export const PurchaseOrderPage: React.FC = () => {
 
   const [dialog, setDialog] = useState<PurchaseDialogState>(null);
 
-  // Sync with storage & window focus
   useEffect(() => {
     const syncData = () => {
       setOrders(getStoredPurchaseOrders(true));
@@ -111,7 +106,6 @@ export const PurchaseOrderPage: React.FC = () => {
     { id: "CANCELLED", label: "Cancelled" },
   ];
 
-  // Stats calculation
   const stats = useMemo(() => {
     const activeOrders = orders.filter((o) => !o.isDeleted);
     const totalPurchases = activeOrders.reduce(
@@ -124,19 +118,16 @@ export const PurchaseOrderPage: React.FC = () => {
     const receivedOrders = activeOrders.filter(
       (o) => o.status === "RECEIVED",
     ).length;
-
-    const uniqueSuppliers = new Set(activeOrders.map((o) => o.supplier_id))
-      .size;
+    const archivedCount = orders.filter((o) => Boolean(o.isDeleted)).length;
 
     return {
       totalPurchases,
       pendingOrders,
       receivedOrders,
-      uniqueSuppliers,
+      archivedCount,
     };
   }, [orders]);
 
-  // Filtered orders
   const filteredOrders = useMemo(() => {
     const targetList = orders.filter((o) =>
       showDeleted ? Boolean(o.isDeleted) : !o.isDeleted,
@@ -172,7 +163,6 @@ export const PurchaseOrderPage: React.FC = () => {
     return sortedOrders.slice(start, start + pageSize);
   }, [sortedOrders, currentPage, pageSize]);
 
-  // Action handlers
   const handleSavePO = (
     poData: Omit<
       PurchaseOrderItem,
@@ -184,14 +174,32 @@ export const PurchaseOrderPage: React.FC = () => {
     toast.success(`Purchase order ${created.po_number} created successfully.`);
   };
 
-  const handleConfirmReceive = (
-    poId: string,
-    receivedItems: { ingredient_id: string; received_quantity: number }[],
-    notes?: string,
-  ) => {
-    const success = receivePurchaseOrder(poId, receivedItems, notes);
+  const handleDetailDrawerCancel = (po: PurchaseOrderItem) => {
+    const ok = cancelPurchaseOrder(po.id);
+    if (ok) {
+      const refreshedList = getStoredPurchaseOrders(true);
+      setOrders(refreshedList);
+      const updatedPo = refreshedList.find((i) => i.id === po.id) || null;
+      if (updatedPo) {
+        setDialog({ type: "detail", po: updatedPo });
+      }
+      toast.success(`Purchase order ${po.po_number} cancelled.`);
+    }
+  };
+
+  const handleDetailDrawerReceive = (po: PurchaseOrderItem) => {
+    const receivedItems = po.items.map((i) => ({
+      ingredient_id: i.ingredient_id,
+      received_quantity: i.quantity,
+    }));
+    const success = receivePurchaseOrder(po.id, receivedItems);
     if (success) {
-      setOrders(getStoredPurchaseOrders(true));
+      const refreshedList = getStoredPurchaseOrders(true);
+      setOrders(refreshedList);
+      const updatedPo = refreshedList.find((i) => i.id === po.id) || null;
+      if (updatedPo) {
+        setDialog({ type: "detail", po: updatedPo });
+      }
       toast.success("Goods received successfully! Stock has been updated.");
     } else {
       toast.error("Failed to receive goods.");
@@ -222,7 +230,6 @@ export const PurchaseOrderPage: React.FC = () => {
 
   return (
     <div className="flex-1 flex flex-col min-w-0 space-y-4">
-      {/* 4 Stat Cards */}
       <StatGrid>
         <StatCard
           title="Total Purchases"
@@ -244,17 +251,15 @@ export const PurchaseOrderPage: React.FC = () => {
           icon={PackageCheck}
         />
         <StatCard
-          title="Suppliers Involved"
-          value={String(stats.uniqueSuppliers)}
-          badgeText="Active Partners"
-          badgeVariant="neutral"
-          icon={Truck}
+          title="Trash / Archived"
+          value={`${stats.archivedCount} Inactive`}
+          badgeText={stats.archivedCount > 0 ? "Trash" : "Clean"}
+          badgeVariant={stats.archivedCount > 0 ? "danger" : "neutral"}
+          icon={Trash2}
         />
       </StatGrid>
 
-      {/* Toolbar: Search, Status Filter, ViewMode & Actions */}
       <div className="flex flex-col xl:flex-row items-stretch xl:items-center justify-between gap-2.5 sm:gap-3 bg-card p-3 sm:p-4 rounded-2xl border border-border/80 shadow-xs min-w-0">
-        {/* Search */}
         <div className="relative w-full xl:flex-1 min-w-0">
           <Search className="w-4 h-4 text-muted-foreground absolute left-3 top-1/2 -translate-y-1/2" />
           <Input
@@ -275,7 +280,6 @@ export const PurchaseOrderPage: React.FC = () => {
           )}
         </div>
 
-        {/* Filters, Switchers & Actions */}
         <div className="flex flex-wrap items-center justify-between gap-2.5 sm:gap-3 w-full xl:w-auto min-w-0">
           <div className="w-full sm:w-auto min-w-0">
             <FormDropdownPicker
@@ -320,7 +324,6 @@ export const PurchaseOrderPage: React.FC = () => {
         </div>
       </div>
 
-      {/* Main Content Area */}
       {sortedOrders.length === 0 ? (
         <EmptyState
           title={showDeleted ? "Trash is empty" : "No purchase orders found"}
@@ -333,7 +336,6 @@ export const PurchaseOrderPage: React.FC = () => {
           }
         />
       ) : viewMode === "grid" ? (
-        /* Grid Cards View */
         <div className="space-y-4 pb-6">
           <div
             className={cn(
@@ -346,6 +348,8 @@ export const PurchaseOrderPage: React.FC = () => {
                 key={po.id}
                 po={po}
                 onDetail={(item) => setDialog({ type: "detail", po: item })}
+                onDelete={(item) => setDialog({ type: "delete", po: item })}
+                onRestore={(item) => setDialog({ type: "restore", po: item })}
               />
             ))}
           </div>
@@ -372,7 +376,6 @@ export const PurchaseOrderPage: React.FC = () => {
           )}
         </div>
       ) : (
-        /* Table View */
         <div className="pb-6 space-y-4">
           <div className="hidden sm:block">
             <Card className="rounded-2xl border border-border/60 bg-card p-3.5 sm:p-4 shadow-xs text-card-foreground transition-all duration-200 w-full flex flex-col justify-between overflow-hidden">
@@ -399,7 +402,7 @@ export const PurchaseOrderPage: React.FC = () => {
                         sortKey="order_date"
                         sortConfig={sortConfig}
                         onSort={requestSort}
-                        className="whitespace-nowrap hidden sm:table-cell py-2.5 px-3"
+                        className="whitespace-nowrap hidden md:table-cell py-2.5 px-3"
                       />
                       <th className="py-2.5 px-3 hidden lg:table-cell">
                         Ordered Materials
@@ -412,7 +415,7 @@ export const PurchaseOrderPage: React.FC = () => {
                         align="right"
                         className="whitespace-nowrap py-2.5 px-3"
                       />
-                      <th className="py-2.5 px-3 text-center whitespace-nowrap hidden lg:table-cell">
+                      <th className="py-2.5 px-3 text-center whitespace-nowrap">
                         Status
                       </th>
                       <th className="py-2.5 px-3 text-right whitespace-nowrap">
@@ -433,6 +436,12 @@ export const PurchaseOrderPage: React.FC = () => {
                         po={po}
                         onDetail={(item) =>
                           setDialog({ type: "detail", po: item })
+                        }
+                        onDelete={(item) =>
+                          setDialog({ type: "delete", po: item })
+                        }
+                        onRestore={(item) =>
+                          setDialog({ type: "restore", po: item })
                         }
                       />
                     ))}
@@ -460,7 +469,6 @@ export const PurchaseOrderPage: React.FC = () => {
             </Card>
           </div>
 
-          {/* Mobile Cards */}
           <div className="block sm:hidden space-y-3">
             <div
               key={`mobile-page-${currentPage}`}
@@ -471,6 +479,8 @@ export const PurchaseOrderPage: React.FC = () => {
                   key={po.id}
                   po={po}
                   onDetail={(item) => setDialog({ type: "detail", po: item })}
+                  onDelete={(item) => setDialog({ type: "delete", po: item })}
+                  onRestore={(item) => setDialog({ type: "restore", po: item })}
                 />
               ))}
             </div>
@@ -499,26 +509,18 @@ export const PurchaseOrderPage: React.FC = () => {
         </div>
       )}
 
-      {/* Modals & Drawers */}
       <PurchaseOrderDrawer
         isOpen={dialog?.type === "create"}
         onClose={() => setDialog(null)}
         onSave={handleSavePO}
       />
 
-      <ReceiveGoodsDialog
-        isOpen={dialog?.type === "receive"}
-        purchaseOrder={dialog?.type === "receive" ? dialog.po : null}
-        onClose={() => setDialog(null)}
-        onConfirmReceive={handleConfirmReceive}
-      />
-
       <PurchaseOrderDetailDrawer
         isOpen={dialog?.type === "detail"}
         purchaseOrder={dialog?.type === "detail" ? dialog.po : null}
         onClose={() => setDialog(null)}
-        onReceive={(po) => setDialog({ type: "receive", po })}
-        onCancel={(po) => setDialog({ type: "cancel", po })}
+        onReceive={handleDetailDrawerReceive}
+        onCancel={handleDetailDrawerCancel}
         onDelete={(po) => setDialog({ type: "delete", po })}
         onRestore={(po) => setDialog({ type: "restore", po })}
       />

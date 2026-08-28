@@ -1,5 +1,5 @@
 import React from "react";
-import { User, FileText } from "lucide-react";
+import { User } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import { formatNumber, formatStockDelta } from "@/utils/formatCurrency";
@@ -25,22 +25,20 @@ export const StockMovementGridCard: React.FC<StockMovementViewProps> = ({
       onClick={() => onSelect(log)}
       className="group relative border border-border/60 shadow-2xs rounded-2xl bg-card text-card-foreground transition-all duration-200 hover:border-primary hover:shadow-md overflow-hidden flex flex-col justify-between select-none cursor-pointer"
     >
-      <CardContent className="p-4 flex flex-col justify-between h-full space-y-3">
-        <div className="space-y-2.5">
+      <CardContent className="p-3.5 sm:p-4 flex flex-col justify-between h-full space-y-2.5">
+        <div className="space-y-2">
           <div className="flex items-start justify-between gap-2">
-            <div className="min-w-0 flex-1">
-              <h3 className="text-xs sm:text-sm font-bold text-foreground line-clamp-2 leading-tight min-h-9 sm:min-h-10">
-                {log.product_name}
-              </h3>
-            </div>
-            <div className="shrink-0">{renderMovementType(log.type)}</div>
+            <h3
+              className="text-sm font-bold text-foreground line-clamp-1 leading-snug flex-1"
+              title={log.product_name}
+            >
+              {log.product_name}
+            </h3>
           </div>
 
-          <div className="p-2.5 rounded-xl bg-muted/40 border border-border/60 space-y-2">
-            <div className="flex items-baseline justify-between">
-              <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">
-                Delta Change:
-              </span>
+          <div className="p-2.5 rounded-xl bg-muted/40 border border-border/60 space-y-1.5 text-xs">
+            <div className="flex items-center justify-between gap-2">
+              <div className="shrink-0">{renderMovementType(log.type)}</div>
               <div className="flex items-baseline gap-1 font-mono">
                 <span
                   className={cn(
@@ -60,9 +58,9 @@ export const StockMovementGridCard: React.FC<StockMovementViewProps> = ({
               </div>
             </div>
 
-            <div className="flex items-center justify-between pt-1.5 border-t border-border/30 text-xs font-mono">
+            <div className="flex items-center justify-between pt-1 border-t border-border/40 text-xs font-mono">
               <span className="text-muted-foreground text-[11px] font-sans">
-                Balance:
+                Balance
               </span>
               <div className="flex items-center gap-1.5 text-xs">
                 <span className="text-muted-foreground/60 line-through text-[11px]">
@@ -74,27 +72,29 @@ export const StockMovementGridCard: React.FC<StockMovementViewProps> = ({
                 </span>
               </div>
             </div>
-          </div>
 
-          {log.note && (
-            <div className="flex items-center gap-1.5 text-xs text-muted-foreground min-w-0 pt-0.5">
-              <FileText className="w-3.5 h-3.5 text-muted-foreground/70 shrink-0" />
-              <span
-                className="text-xs text-muted-foreground line-clamp-1 font-medium flex-1 leading-normal"
-                title={log.note}
-              >
-                {log.note}
-              </span>
-            </div>
-          )}
+            {log.note && (
+              <div className="flex items-center justify-between gap-2 pt-1 border-t border-border/40 text-[11px]">
+                <span className="text-muted-foreground font-medium shrink-0">
+                  Notes
+                </span>
+                <span
+                  className="font-medium text-foreground truncate max-w-44 text-right"
+                  title={log.note}
+                >
+                  {log.note}
+                </span>
+              </div>
+            )}
+          </div>
         </div>
 
-        <div className="flex items-center justify-between pt-2.5 border-t border-border/40 text-xs">
+        <div className="flex items-center justify-between pt-2 border-t border-border/40 mt-auto text-xs gap-1">
           <div className="min-w-0 flex-1">
             <span className="text-muted-foreground font-medium text-[10px] block truncate">
               Date & Time
             </span>
-            <span className="font-bold text-xs text-foreground block truncate font-mono">
+            <span className="font-bold text-xs text-foreground block truncate">
               {formatDateTime(log.created_at)}
             </span>
           </div>
@@ -174,15 +174,6 @@ export const StockMovementTableRow: React.FC<StockMovementViewProps> = ({
         </div>
       </td>
 
-      <td className="py-2.5 px-3 hidden xl:table-cell max-w-28 lg:max-w-36">
-        <span
-          className="text-[11px] text-muted-foreground truncate block font-medium"
-          title={log.note || "-"}
-        >
-          {log.note || "-"}
-        </span>
-      </td>
-
       <td className="py-2.5 px-3 hidden md:table-cell whitespace-nowrap text-muted-foreground text-xs">
         <div className="flex items-center gap-1.5">
           <User className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
@@ -190,6 +181,15 @@ export const StockMovementTableRow: React.FC<StockMovementViewProps> = ({
             {log.user_name}
           </span>
         </div>
+      </td>
+
+      <td className="py-2.5 px-3 hidden xl:table-cell max-w-36">
+        <span
+          className="text-[11px] text-muted-foreground truncate block font-medium"
+          title={log.note || "-"}
+        >
+          {log.note || "—"}
+        </span>
       </td>
     </tr>
   );
@@ -203,23 +203,21 @@ export const StockMovementMobileCard: React.FC<StockMovementViewProps> = ({
   return (
     <Card
       onClick={() => onSelect(log)}
-      className="group relative border border-border/60 shadow-2xs rounded-2xl bg-card text-card-foreground p-4 space-y-3 cursor-pointer hover:border-primary transition-colors"
+      className="group relative border border-border/60 shadow-2xs rounded-2xl bg-card text-card-foreground p-3.5 sm:p-4 space-y-2.5 cursor-pointer hover:border-primary transition-colors"
     >
-      <div className="space-y-2.5">
+      <div className="space-y-2">
         <div className="flex items-start justify-between gap-2">
-          <div className="min-w-0 flex-1">
-            <h4 className="font-bold text-foreground text-xs sm:text-sm leading-snug truncate">
-              {log.product_name}
-            </h4>
-          </div>
-          <div className="shrink-0">{renderMovementType(log.type)}</div>
+          <h4
+            className="font-bold text-foreground text-sm leading-snug truncate flex-1"
+            title={log.product_name}
+          >
+            {log.product_name}
+          </h4>
         </div>
 
-        <div className="p-2.5 rounded-xl bg-muted/40 border border-border/60 space-y-2">
-          <div className="flex items-baseline justify-between">
-            <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">
-              Delta Change:
-            </span>
+        <div className="p-2.5 rounded-xl bg-muted/40 border border-border/60 space-y-1.5 text-xs">
+          <div className="flex items-center justify-between gap-2">
+            <div className="shrink-0">{renderMovementType(log.type)}</div>
             <div className="flex items-baseline gap-1 font-mono">
               <span
                 className={cn(
@@ -239,9 +237,9 @@ export const StockMovementMobileCard: React.FC<StockMovementViewProps> = ({
             </div>
           </div>
 
-          <div className="flex items-center justify-between pt-1.5 border-t border-border/30 text-xs font-mono">
+          <div className="flex items-center justify-between pt-1 border-t border-border/40 text-xs font-mono">
             <span className="text-muted-foreground text-[11px] font-sans">
-              Balance:
+              Balance
             </span>
             <div className="flex items-center gap-1.5 text-xs">
               <span className="text-muted-foreground/60 line-through text-[11px]">
@@ -253,27 +251,29 @@ export const StockMovementMobileCard: React.FC<StockMovementViewProps> = ({
               </span>
             </div>
           </div>
-        </div>
 
-        {log.note && (
-          <div className="flex items-center gap-1.5 text-xs text-muted-foreground min-w-0 pt-0.5">
-            <FileText className="w-3.5 h-3.5 text-muted-foreground/70 shrink-0" />
-            <span
-              className="text-xs text-muted-foreground line-clamp-1 font-medium flex-1 leading-normal"
-              title={log.note}
-            >
-              {log.note}
-            </span>
-          </div>
-        )}
+          {log.note && (
+            <div className="flex items-center justify-between gap-2 pt-1 border-t border-border/40 text-[11px]">
+              <span className="text-muted-foreground font-medium shrink-0">
+                Notes
+              </span>
+              <span
+                className="font-medium text-foreground truncate max-w-44 text-right"
+                title={log.note}
+              >
+                {log.note}
+              </span>
+            </div>
+          )}
+        </div>
       </div>
 
-      <div className="flex items-center justify-between pt-2.5 border-t border-border/40 text-xs">
+      <div className="flex items-center justify-between pt-2 border-t border-border/40 text-xs">
         <div className="min-w-0 flex-1">
           <span className="text-muted-foreground font-medium text-[10px] block truncate">
             Date & Time
           </span>
-          <span className="font-bold text-xs text-foreground block truncate font-mono">
+          <span className="font-bold text-xs text-foreground block truncate">
             {formatDateTime(log.created_at)}
           </span>
         </div>
