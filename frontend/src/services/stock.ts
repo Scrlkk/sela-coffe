@@ -41,6 +41,22 @@ export interface StockLogItem {
 const stockLogsCrud = createStorageCrud<StockLogItem>(
   "sela_stock_logs_v2",
   INITIAL_STOCK_LOGS,
+  {
+    migrate: (items) => {
+      const seen = new Set<string>();
+      return items.map((item, idx) => {
+        if (!item.id || seen.has(item.id)) {
+          const uniqueId = item.id
+            ? `${item.id}_${idx}_${Math.random().toString(36).slice(2, 6)}`
+            : `log_${Date.now()}_${idx}_${Math.random().toString(36).slice(2, 6)}`;
+          seen.add(uniqueId);
+          return { ...item, id: uniqueId };
+        }
+        seen.add(item.id);
+        return item;
+      });
+    },
+  },
 );
 
 const mapIngredientToStock = (
@@ -124,7 +140,7 @@ export const adjustStock = (
   const updatedStock = mapIngredientToStock(updatedIng, categoriesMap);
 
   const log: StockLogItem = {
-    id: `log_${Date.now()}`,
+    id: `log_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
     product_id: updatedIng.id,
     product_name: updatedIng.name,
     unit: updatedIng.unit,

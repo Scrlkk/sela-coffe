@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import type { StockItem, StockLogType } from "@/services/stock";
 import {
   Dialog,
@@ -9,11 +9,9 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+  FormSearchablePicker,
+  type SearchableOption,
+} from "@/components/shared/FormSearchablePicker";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -22,8 +20,6 @@ import {
   ArrowDownLeft,
   ArrowUpRight,
   Package,
-  ChevronDown,
-  Check,
   ArrowDownUp,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -104,19 +100,28 @@ const StockAdjustmentForm: React.FC<{
   }) => void;
 }> = ({ stocks, initialStockItem, onClose, onConfirm }) => {
   const [selectedProductId, setSelectedProductId] = useState<string>(
-    initialStockItem?.product_id || stocks[0]?.product_id || "",
+    initialStockItem?.product_id || "",
   );
   const [adjustmentType, setAdjustmentType] = useState<StockLogType>("in");
   const [quantity, setQuantity] = useState<string>("");
   const [note, setNote] = useState<string>("");
 
+  const stockOptions: SearchableOption[] = useMemo(() => {
+    return stocks.map((item) => ({
+      id: item.product_id,
+      label: item.product_name,
+      sublabel: item.category_name,
+      badge: `${formatNumber(item.quantity)} ${item.unit}`,
+    }));
+  }, [stocks]);
+
   const currentStock =
     stocks.find((s) => s.product_id === selectedProductId) ||
     initialStockItem ||
-    stocks[0];
+    null;
   const currentQty = currentStock?.quantity ?? 0;
   const numQty = Math.max(0, parseInt(quantity, 10) || 0);
-  const isOutOfStock = currentQty === 0;
+  const isOutOfStock = currentStock ? currentQty === 0 : false;
 
   if (isOutOfStock && adjustmentType === "out") {
     setAdjustmentType("in");
@@ -165,16 +170,10 @@ const StockAdjustmentForm: React.FC<{
       </DialogHeader>
 
       <form onSubmit={handleSubmit} className="space-y-3.5 sm:space-y-4 py-2">
-        <div className="space-y-1">
-          <div className="flex items-center justify-between text-xs">
-            <Label className="font-bold text-foreground">Raw Material</Label>
-            <span className="text-[11px] text-muted-foreground font-medium">
-              Current:{" "}
-              <strong className="text-foreground font-bold font-mono">
-                {formatNumber(currentQty)} {currentStock?.unit || "units"}
-              </strong>
-            </span>
-          </div>
+        <div className="space-y-1.5">
+          <Label className="text-xs font-bold text-foreground block">
+            Raw Material
+          </Label>
 
           {initialStockItem ? (
             <div className="p-2.5 rounded-xl border border-border/80 bg-muted/40 flex items-center justify-between gap-2">
@@ -196,72 +195,32 @@ const StockAdjustmentForm: React.FC<{
               </span>
             </div>
           ) : (
-            <DropdownMenu className="w-full">
-              <DropdownMenuTrigger className="w-full">
-                <div className="w-full h-9.5 sm:h-10 px-3 rounded-xl border border-input bg-card text-foreground text-xs sm:text-sm font-semibold flex items-center justify-between cursor-pointer hover:border-primary/60 transition-colors select-none">
-                  <div className="flex items-center gap-2 min-w-0 flex-1">
-                    <Package className="w-4 h-4 text-primary shrink-0" />
-                    <span className="font-bold text-foreground truncate">
-                      {currentStock?.product_name || "Select Raw Material"}
-                    </span>
-                  </div>
-                  <ChevronDown className="w-4 h-4 text-muted-foreground shrink-0 ml-1.5" />
-                </div>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent
-                align="start"
-                className="w-full min-w-full max-w-full max-h-48 overflow-y-auto no-scrollbar p-1 rounded-xl bg-card border border-border/80 shadow-lg z-50 divide-y divide-border/30"
-              >
-                {stocks.map((item) => {
-                  const isSelected = item.product_id === selectedProductId;
-                  return (
-                    <DropdownMenuItem
-                      key={item.product_id}
-                      onClick={() => {
-                        setSelectedProductId(item.product_id);
-                        if (item.quantity === 0 && adjustmentType === "out") {
-                          setAdjustmentType("in");
-                        }
-                      }}
-                      className={cn(
-                        "flex items-center justify-between py-2 px-2.5 rounded-lg cursor-pointer transition-colors text-xs",
-                        isSelected
-                          ? "bg-primary/10 text-primary font-bold"
-                          : "hover:bg-muted/60 text-foreground",
-                      )}
-                    >
-                      <div className="flex flex-col min-w-0 flex-1 pr-2">
-                        <span className="font-bold text-foreground truncate text-xs">
-                          {item.product_name}
-                        </span>
-                        <span className="text-[10.5px] text-muted-foreground truncate">
-                          {item.category_name}
-                        </span>
-                      </div>
-                      <div className="flex items-center gap-2 shrink-0">
-                        <span className="text-[11px] px-2 py-0.5 rounded-md bg-muted/80 text-muted-foreground font-mono font-medium">
-                          {formatNumber(item.quantity)} {item.unit}
-                        </span>
-                        {isSelected && (
-                          <Check className="w-3.5 h-3.5 text-primary shrink-0" />
-                        )}
-                      </div>
-                    </DropdownMenuItem>
-                  );
-                })}
-              </DropdownMenuContent>
-            </DropdownMenu>
+            <FormSearchablePicker
+              options={stockOptions}
+              value={selectedProductId}
+              onChange={(val) => {
+                setSelectedProductId(val);
+                const found = stocks.find((s) => s.product_id === val);
+                if (found && found.quantity === 0 && adjustmentType === "out") {
+                  setAdjustmentType("in");
+                }
+              }}
+              placeholder="Search and select material..."
+              searchPlaceholder="Type material name or category..."
+              icon={Package}
+            />
           )}
         </div>
 
-        <div className="space-y-1">
-          <Label className="text-xs font-bold text-foreground">
+        <div className="space-y-1.5">
+          <Label className="text-xs font-bold text-foreground block">
             Adjustment Type
           </Label>
           <div className="grid grid-cols-3 gap-1.5 p-1 bg-muted/50 rounded-xl border border-border/60">
             {ADJUSTMENT_TYPES.map((type) => {
               const Icon = type.icon;
-              const isOutDisabled = type.id === "out" && isOutOfStock;
+              const isOutDisabled =
+                !selectedProductId || (type.id === "out" && isOutOfStock);
               return (
                 <button
                   key={type.id}
@@ -291,19 +250,17 @@ const StockAdjustmentForm: React.FC<{
           </div>
         </div>
 
-        <div className="space-y-1">
-          <div className="flex items-center justify-between text-[11px]">
-            <Label htmlFor="stock-qty" className="font-bold text-foreground">
-              {adjustmentType === "in"
-                ? "Quantity to Restock (+)"
-                : adjustmentType === "out"
-                  ? "Quantity to Deduct / Usage (-)"
-                  : "Physical Count Quantity"}
-            </Label>
-            <span className="text-muted-foreground font-mono">
-              Unit: {currentStock?.unit}
-            </span>
-          </div>
+        <div className="space-y-1.5">
+          <Label
+            htmlFor="stock-qty"
+            className="text-xs font-bold text-foreground block"
+          >
+            {adjustmentType === "in"
+              ? "Quantity to Restock (+)"
+              : adjustmentType === "out"
+                ? "Quantity to Deduct / Usage (-)"
+                : "Physical Count Quantity"}
+          </Label>
 
           <div className="flex items-center gap-1.5">
             <div className="relative flex-1">
@@ -312,6 +269,7 @@ const StockAdjustmentForm: React.FC<{
                 type="text"
                 inputMode="numeric"
                 pattern="[0-9]*"
+                disabled={!selectedProductId}
                 value={quantity}
                 onKeyDown={(e) => {
                   if (["e", "E", "+", "-", ".", ","].includes(e.key)) {
@@ -337,17 +295,18 @@ const StockAdjustmentForm: React.FC<{
                 }}
                 placeholder="0"
                 required
-                className="h-9.5 sm:h-10 rounded-xl bg-card border-input text-foreground text-sm font-bold pl-3 pr-12 focus-visible:ring-primary"
+                className="h-9.5 sm:h-10 rounded-xl bg-card border-input text-foreground text-sm font-bold pl-3 pr-14 focus-visible:ring-primary shadow-2xs disabled:opacity-50"
               />
               <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-medium text-muted-foreground pointer-events-none">
-                {currentStock?.unit}
+                {currentStock?.unit || "unit"}
               </span>
             </div>
 
             <div className="flex items-center gap-1 shrink-0">
               {[5, 10, 20].map((stepVal) => {
                 const isStepDisabled =
-                  adjustmentType === "out" && stepVal > currentQty;
+                  !selectedProductId ||
+                  (adjustmentType === "out" && stepVal > currentQty);
                 return (
                   <Button
                     key={stepVal}
@@ -374,38 +333,44 @@ const StockAdjustmentForm: React.FC<{
           <span className="text-muted-foreground font-semibold text-[11px]">
             Resulting Balance:
           </span>
-          <div className="flex items-center gap-1.5 font-bold font-mono">
-            <span className="text-muted-foreground/70 line-through text-[11px]">
-              {formatNumber(currentQty)}
+          {selectedProductId && currentStock ? (
+            <div className="flex items-center gap-1.5 font-bold font-mono">
+              <span className="text-muted-foreground/70 line-through text-[11px]">
+                {formatNumber(currentQty)}
+              </span>
+              <span className="text-muted-foreground text-xs">→</span>
+              <span
+                className={cn(
+                  "text-xs sm:text-sm font-extrabold",
+                  difference > 0
+                    ? "text-emerald-600 dark:text-emerald-400"
+                    : difference < 0
+                      ? "text-rose-600 dark:text-rose-400"
+                      : "text-foreground",
+                )}
+              >
+                {formatNumber(newQty)} {currentStock.unit}
+              </span>
+              <span
+                className={cn(
+                  "text-[10.5px] px-1.5 py-0.5 rounded font-semibold",
+                  difference > 0
+                    ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
+                    : difference < 0
+                      ? "bg-rose-500/10 text-rose-600 dark:text-rose-400"
+                      : "bg-muted text-muted-foreground",
+                )}
+              >
+                {difference > 0
+                  ? `+${formatNumber(difference)}`
+                  : formatNumber(difference)}
+              </span>
+            </div>
+          ) : (
+            <span className="text-[11px] text-muted-foreground font-medium">
+              Select raw material above first
             </span>
-            <span className="text-muted-foreground text-xs">→</span>
-            <span
-              className={cn(
-                "text-xs sm:text-sm font-extrabold",
-                difference > 0
-                  ? "text-emerald-600 dark:text-emerald-400"
-                  : difference < 0
-                    ? "text-rose-600 dark:text-rose-400"
-                    : "text-foreground",
-              )}
-            >
-              {formatNumber(newQty)} {currentStock?.unit}
-            </span>
-            <span
-              className={cn(
-                "text-[10.5px] px-1.5 py-0.5 rounded font-semibold",
-                difference > 0
-                  ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
-                  : difference < 0
-                    ? "bg-rose-500/10 text-rose-600 dark:text-rose-400"
-                    : "bg-muted text-muted-foreground",
-              )}
-            >
-              {difference > 0
-                ? `+${formatNumber(difference)}`
-                : formatNumber(difference)}
-            </span>
-          </div>
+          )}
         </div>
 
         <div className="space-y-1.5">

@@ -45,7 +45,7 @@ export const STAT_CARDS: StatCardProps[] = [
 export {
   type RevenuePoint,
   type CategorySale,
-  type TransactionItem,
+  type DashboardTransactionItem,
   type ActivityItem,
   REVENUE_OVERVIEW_DATA,
   SALES_BY_CATEGORY_DATA,

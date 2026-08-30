@@ -388,7 +388,7 @@ export const PurchaseOrderPage: React.FC = () => {
                         sortKey="po_number"
                         sortConfig={sortConfig}
                         onSort={requestSort}
-                        className="whitespace-nowrap py-2.5 px-3"
+                        className="whitespace-nowrap py-2.5 px-3 hidden lg:table-cell"
                       />
                       <SortableTh
                         label="Supplier"
@@ -402,7 +402,7 @@ export const PurchaseOrderPage: React.FC = () => {
                         sortKey="order_date"
                         sortConfig={sortConfig}
                         onSort={requestSort}
-                        className="whitespace-nowrap hidden md:table-cell py-2.5 px-3"
+                        className="whitespace-nowrap py-2.5 px-3"
                       />
                       <th className="py-2.5 px-3 hidden lg:table-cell">
                         Ordered Materials

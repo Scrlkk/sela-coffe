@@ -390,7 +390,7 @@ export const StockMovementPage: React.FC = () => {
                         <th className="py-2.5 px-3 text-right whitespace-nowrap">
                           Balance
                         </th>
-                        <th className="py-2.5 px-3 hidden md:table-cell">
+                        <th className="py-2.5 px-3 hidden lg:table-cell">
                           Operator
                         </th>
                         <th className="py-2.5 px-3 hidden xl:table-cell">

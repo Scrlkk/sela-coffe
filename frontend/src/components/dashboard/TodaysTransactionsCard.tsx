@@ -4,12 +4,12 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Receipt, ChevronRight, RotateCw } from "lucide-react";
 import {
   TODAY_TRANSACTIONS_DATA,
-  type TransactionItem,
+  type DashboardTransactionItem,
 } from "@/constants/dashboard";
 import { cn } from "@/lib/utils";
 
 interface TodaysTransactionsCardProps {
-  data?: TransactionItem[];
+  data?: DashboardTransactionItem[];
   isLoading?: boolean;
   className?: string;
   onViewAll?: () => void;

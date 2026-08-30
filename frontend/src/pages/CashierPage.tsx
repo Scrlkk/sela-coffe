@@ -4,7 +4,7 @@ import { CategoryFilter } from "@/components/cashier/CategoryFilter";
 import { ProductCard } from "@/components/cashier/ProductCard";
 import { CartPanel } from "@/components/cashier/CartPanel";
 import { PaymentModal } from "@/components/cashier/PaymentModal";
-import { CashierSessionGateModal } from "@/components/cashier/CashierSessionGateModal";
+import { CashierClosedState } from "@/components/cashier/CashierClosedState";
 import {
   getStoredProducts,
   type ProductItem,
@@ -120,6 +120,10 @@ export default function CashierPage() {
     toast.success("Ready for new order");
   };
 
+  if (!activeSession?.isOpen) {
+    return <CashierClosedState onOpenRegister={handleOpenRegisterFromGate} />;
+  }
+
   return (
     <div className="h-full flex flex-col xl:flex-row gap-5">
       <div className="flex-1 flex flex-col min-w-0">
@@ -181,11 +185,6 @@ export default function CashierPage() {
         total={total}
         onClose={() => setIsModalOpen(false)}
         onNewOrder={handleNewOrder}
-      />
-
-      <CashierSessionGateModal
-        isOpen={!activeSession?.isOpen}
-        onOpenRegister={handleOpenRegisterFromGate}
       />
     </div>
   );

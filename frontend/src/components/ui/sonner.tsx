@@ -1,12 +1,15 @@
 import { Toaster as Sonner, type ToasterProps } from "sonner";
 import { useTheme } from "@/contexts/ThemeContext";
+import { useMediaQuery } from "@/hooks/useMediaQuery";
 
-export const Toaster = ({ ...props }: ToasterProps) => {
+export const Toaster = ({ position, ...props }: ToasterProps) => {
   const { theme } = useTheme();
+  const isMobile = useMediaQuery("(max-width: 640px)");
 
   return (
     <Sonner
       theme={theme as ToasterProps["theme"]}
+      position={isMobile ? "top-center" : (position ?? "top-right")}
       className="toaster group font-sans"
       toastOptions={{
         style: {
@@ -15,12 +18,10 @@ export const Toaster = ({ ...props }: ToasterProps) => {
           border: "1px solid var(--border)",
           borderRadius: "0.875rem",
           boxShadow: "0 10px 25px -5px rgba(67, 32, 11, 0.18)",
-          maxWidth: "380px",
-          width: "max-content",
         },
         classNames: {
           toast:
-            "font-sans text-xs font-semibold p-3 px-3.5 gap-2.5 max-w-[380px] break-words whitespace-normal leading-relaxed flex items-center",
+            "font-sans text-xs font-semibold p-3 px-3.5 gap-2.5 w-[calc(100vw-2rem)] max-w-[calc(100vw-2rem)] sm:w-auto sm:max-w-[380px] break-words whitespace-normal leading-relaxed flex items-center shadow-lg",
           title: "text-xs font-semibold break-words leading-tight",
           description:
             "text-[11px] font-medium text-muted-foreground break-words leading-normal mt-0.5",

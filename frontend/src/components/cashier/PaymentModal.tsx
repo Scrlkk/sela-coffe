@@ -19,6 +19,8 @@ import { calculatePaymentChange, getCashPresets } from "@/utils/checkout";
 import { cn } from "@/lib/utils";
 
 import { cashSessionService } from "@/services/cashSession";
+import { addTransaction, type PaymentMethod } from "@/services/transaction";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface PaymentModalProps {
   isOpen: boolean;
@@ -41,6 +43,7 @@ export function PaymentModal({
   onClose,
   onNewOrder,
 }: PaymentModalProps) {
+  const { user } = useAuth();
   const [step, setStep] = useState<"select-method" | "processing" | "success">(
     "select-method",
   );
@@ -67,6 +70,35 @@ export function PaymentModal({
     if (!isCashValid) return;
     setStep("processing");
     setTimeout(() => {
+      const activeSession = cashSessionService.getActiveSession();
+      const normalizedMethod = paymentMethod.toLowerCase() as PaymentMethod;
+      const invoiceNumber = orderNumber.startsWith("INV-")
+        ? orderNumber
+        : `INV-${new Date().toISOString().slice(0, 7).replace("-", "")}-${orderNumber.replace(/^[^\d]*/, "") || Math.floor(100 + Math.random() * 900)}`;
+
+      addTransaction({
+        invoice_number: invoiceNumber,
+        session_id: activeSession ? `SES-0${activeSession.openingFloat ? "841" : "840"}` : undefined,
+        cashier_name: user?.name || "Kasir Sela",
+        payment_method: normalizedMethod,
+        status: "paid",
+        items: items.map((i) => ({
+          product_id: i.product.id,
+          product_name: i.product.name,
+          price: i.product.price,
+          quantity: i.quantity,
+          subtotal: i.product.price * i.quantity,
+        })),
+        subtotal,
+        tax,
+        discount: 0,
+        total_amount: total,
+        paid_amount: paymentMethod === "Cash" ? numericCash : total,
+        change_amount: paymentMethod === "Cash" ? changeAmount : 0,
+        notes: `Pembayaran ${paymentMethod}`,
+        isDeleted: false,
+      });
+
       cashSessionService.recordSale(paymentMethod, total);
       setStep("success");
     }, 900);

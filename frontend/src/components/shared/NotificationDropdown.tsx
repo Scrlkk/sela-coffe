@@ -96,12 +96,12 @@ export const NotificationDropdown: React.FC = () => {
     <DropdownMenu>
       <DropdownMenuTrigger>
         <div
-          className="relative p-2 rounded-full text-foreground/80 hover:bg-secondary transition-colors cursor-pointer"
+          className="group relative p-2 rounded-full text-foreground/80 hover:bg-secondary transition-colors cursor-pointer"
           title="Notifications"
         >
           <Bell className="w-5 h-5" />
           {unreadCount > 0 && (
-            <span className="absolute top-1 right-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-destructive px-1 text-[10px] font-bold text-destructive-foreground ring-2 ring-background animate-in zoom-in">
+            <span className="absolute top-1 right-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-destructive px-1 text-[10px] font-extrabold text-white ring-2 ring-card group-hover:ring-secondary transition-all animate-in zoom-in shadow-xs">
               {unreadCount}
             </span>
           )}

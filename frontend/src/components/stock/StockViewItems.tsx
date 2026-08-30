@@ -141,13 +141,13 @@ export const StockTableRow: React.FC<StockViewProps> = ({
           <span className="font-bold text-foreground block truncate text-xs">
             {item.product_name}
           </span>
-          <span className="text-[10.5px] text-muted-foreground block truncate md:hidden">
+          <span className="text-[10.5px] text-muted-foreground block truncate lg:hidden">
             {item.category_name}
           </span>
         </div>
       </td>
 
-      <td className="py-2.5 px-3 text-muted-foreground font-medium hidden md:table-cell">
+      <td className="py-2.5 px-3 text-muted-foreground font-medium hidden lg:table-cell">
         {item.category_name}
       </td>
 

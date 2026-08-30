@@ -17,7 +17,7 @@ import type { SupplierItem } from "@/services/supplier";
 
 interface SupplierViewProps {
   supplier: SupplierItem;
-  storeLabel: string;
+  storeLabel?: string | null;
   onEdit: (supplier: SupplierItem) => void;
   onDelete: (supplier: SupplierItem) => void;
   onRestore: (supplier: SupplierItem) => void;
@@ -81,7 +81,7 @@ export const SupplierGridCard: React.FC<SupplierViewProps> = ({
                 rel="noreferrer"
                 className="font-medium text-primary hover:underline flex items-center gap-1 truncate"
               >
-                <span className="truncate">{storeLabel}</span>
+                <span className="truncate">{storeLabel || "Store Link"}</span>
                 <ExternalLink className="w-3 h-3 shrink-0" />
               </a>
             </div>
@@ -189,7 +189,7 @@ export const SupplierTableRow: React.FC<SupplierViewProps> = ({
             className="inline-flex items-center gap-1 text-primary hover:underline font-medium truncate max-w-full text-xs"
           >
             <Globe className="w-3.5 h-3.5 shrink-0" />
-            <span className="truncate">{storeLabel}</span>
+            <span className="truncate">{storeLabel || "Store Link"}</span>
             <ExternalLink className="w-2.5 h-2.5 shrink-0" />
           </a>
         ) : (
@@ -305,7 +305,7 @@ export const SupplierMobileCard: React.FC<SupplierViewProps> = ({
                 rel="noreferrer"
                 className="font-medium text-primary hover:underline flex items-center gap-1 truncate"
               >
-                <span className="truncate">{storeLabel}</span>
+                <span className="truncate">{storeLabel || "Store Link"}</span>
                 <ExternalLink className="w-3 h-3 shrink-0" />
               </a>
             </div>

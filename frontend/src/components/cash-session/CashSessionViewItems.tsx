@@ -175,7 +175,7 @@ export const CashSessionTableRow: React.FC<CashSessionViewProps> = ({
     <tr className="hover:bg-muted/30 transition-colors group">
       <td
         onClick={() => onSelect(session)}
-        className="py-2 px-2.5 sm:px-3 font-bold text-foreground font-mono text-xs cursor-pointer whitespace-nowrap"
+        className="py-2 px-2.5 sm:px-3 font-bold text-foreground font-mono text-xs cursor-pointer whitespace-nowrap hidden lg:table-cell"
       >
         {session.id}
       </td>
@@ -183,9 +183,14 @@ export const CashSessionTableRow: React.FC<CashSessionViewProps> = ({
         onClick={() => onSelect(session)}
         className="py-2 px-2.5 sm:px-3 cursor-pointer whitespace-nowrap"
       >
-        <div className="flex items-center gap-1.5 text-foreground font-medium text-xs">
-          <User className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
-          <span className="truncate max-w-32">{session.openedBy}</span>
+        <div className="min-w-0">
+          <div className="flex items-center gap-1.5 text-foreground font-semibold text-xs leading-tight">
+            <User className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
+            <span className="truncate max-w-36">{session.openedBy}</span>
+          </div>
+          <span className="text-[10.5px] font-mono font-bold text-primary block truncate lg:hidden mt-0.5">
+            {session.id}
+          </span>
         </div>
       </td>
       <td

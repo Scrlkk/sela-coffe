@@ -12,7 +12,7 @@ export default function App() {
       <ThemeProvider>
         <AuthProvider>
           <AppRouter />
-          <Toaster position="top-right" />
+          <Toaster />
         </AuthProvider>
       </ThemeProvider>
     </QueryClientProvider>

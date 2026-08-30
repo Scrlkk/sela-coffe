@@ -135,9 +135,15 @@ export const StockMovementTableRow: React.FC<StockMovementViewProps> = ({
       </td>
 
       <td className="py-2.5 px-3">
-        <span className="font-bold text-foreground block truncate text-xs leading-tight">
-          {log.product_name}
-        </span>
+        <div className="min-w-0">
+          <span className="font-bold text-foreground block truncate text-xs leading-tight">
+            {log.product_name}
+          </span>
+          <span className="text-[10.5px] text-muted-foreground flex items-center gap-1 truncate lg:hidden mt-0.5 font-medium">
+            <User className="w-3 h-3 text-muted-foreground/80 shrink-0" />
+            <span className="truncate">{log.user_name}</span>
+          </span>
+        </div>
       </td>
 
       <td className="py-2.5 px-3 text-center whitespace-nowrap hidden lg:table-cell">
@@ -174,7 +180,7 @@ export const StockMovementTableRow: React.FC<StockMovementViewProps> = ({
         </div>
       </td>
 
-      <td className="py-2.5 px-3 hidden md:table-cell whitespace-nowrap text-muted-foreground text-xs">
+      <td className="py-2.5 px-3 hidden lg:table-cell whitespace-nowrap text-muted-foreground text-xs">
         <div className="flex items-center gap-1.5">
           <User className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
           <span className="font-medium text-foreground truncate max-w-28">

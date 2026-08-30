@@ -338,7 +338,7 @@ export default function CashSessionPage() {
                           sortKey="id"
                           sortConfig={sortConfig}
                           onSort={requestSort}
-                          className="whitespace-nowrap"
+                          className="whitespace-nowrap hidden lg:table-cell"
                         />
                         <SortableTh
                           label="Opened By"

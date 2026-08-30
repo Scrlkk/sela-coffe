@@ -13,6 +13,7 @@ import { UserSkeleton } from "@/components/user/UserSkeleton";
 import { StockSkeleton } from "@/components/stock/StockSkeleton";
 import { StockMovementSkeleton } from "@/components/stock-movement/StockMovementSkeleton";
 import { PurchaseSkeleton } from "@/components/purchase/PurchaseSkeleton";
+import { TransactionSkeleton } from "@/components/transaction/TransactionSkeleton";
 import {
   ProtectedRoute,
   PublicRoute,
@@ -27,6 +28,7 @@ const UserPage = lazy(() => import("@/pages/UserPage"));
 const StockPage = lazy(() => import("@/pages/StockPage"));
 const StockMovementPage = lazy(() => import("@/pages/StockMovementPage"));
 const PurchaseOrderPage = lazy(() => import("@/pages/PurchaseOrderPage"));
+const TransactionPage = lazy(() => import("@/pages/TransactionPage"));
 const DashboardPage = lazy(() => import("@/pages/DashboardPage"));
 const ProfilePage = lazy(() => import("@/pages/ProfilePage"));
 const CashSessionPage = lazy(() => import("@/pages/CashSessionPage"));
@@ -141,7 +143,11 @@ const router = createBrowserRouter([
           },
           {
             path: "/transactions",
-            element: <div />,
+            element: (
+              <Suspense fallback={<TransactionSkeleton />}>
+                <TransactionPage />
+              </Suspense>
+            ),
           },
           {
             path: "/cash-sessions",

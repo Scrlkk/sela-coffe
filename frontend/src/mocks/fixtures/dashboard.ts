@@ -11,7 +11,7 @@ export interface CategorySale {
   color: string;
 }
 
-export interface TransactionItem {
+export interface DashboardTransactionItem {
   id: string;
   code: string;
   time: string;
@@ -45,7 +45,7 @@ export const SALES_BY_CATEGORY_DATA: CategorySale[] = [
   { category: "Retail", percentage: 15, color: "#b44a3a" },
 ];
 
-export const TODAY_TRANSACTIONS_DATA: TransactionItem[] = [
+export const TODAY_TRANSACTIONS_DATA: DashboardTransactionItem[] = [
   {
     id: "1",
     code: "TXN-2847",

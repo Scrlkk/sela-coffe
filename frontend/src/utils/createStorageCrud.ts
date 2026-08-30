@@ -52,7 +52,7 @@ export function createStorageCrud<
       item.id ||
       (options?.generateId
         ? options.generateId(item as Partial<T>)
-        : `item_${Date.now()}`);
+        : `item_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`);
     const extra = options?.onCreate ? options.onCreate(item as Partial<T>) : {};
     const newItem = {
       ...item,

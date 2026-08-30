@@ -370,7 +370,7 @@ export const StockPage: React.FC = () => {
                           sortConfig={sortConfig}
                           onSort={requestSort}
                         />
-                        <th className="py-2.5 px-3 hidden md:table-cell">
+                        <th className="py-2.5 px-3 hidden lg:table-cell">
                           Category
                         </th>
                         <SortableTh

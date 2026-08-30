@@ -34,10 +34,6 @@ export const safeStorage = {
       return fallback;
     }
   },
-
-  set: (key: string, value: unknown): void => {
-    safeStorage.setItem(key, value);
-  },
 };
 
 export default safeStorage;
