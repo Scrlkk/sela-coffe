@@ -213,21 +213,8 @@ export default function CashSessionPage() {
         </div>
 
         <div className="flex flex-wrap items-center justify-between gap-2.5 sm:gap-3 w-full xl:w-auto min-w-0">
-          <div className="flex flex-wrap sm:flex-nowrap items-center gap-2 sm:gap-2.5 w-full sm:w-auto min-w-0">
-            <div className="flex-1 sm:flex-none min-w-0">
-              <FormDropdownPicker
-                value={statusFilter}
-                onChange={(val) => {
-                  setStatusFilter(val);
-                  handlePageChange(1);
-                }}
-                options={STATUS_OPTIONS}
-                icon={Filter}
-                className="w-full sm:w-40"
-              />
-            </div>
-
-            <div className="flex-1 sm:flex-none min-w-0">
+          <div className="grid grid-cols-2 sm:flex sm:items-center gap-2 sm:gap-2.5 w-full sm:w-auto min-w-0">
+            <div className="w-full sm:w-44 min-w-0">
               <FormDropdownPicker
                 value={dateFilter}
                 onChange={(val) => {
@@ -239,9 +226,22 @@ export default function CashSessionPage() {
                 className="w-full sm:w-44"
               />
             </div>
+
+            <div className="w-full sm:w-40 min-w-0">
+              <FormDropdownPicker
+                value={statusFilter}
+                onChange={(val) => {
+                  setStatusFilter(val);
+                  handlePageChange(1);
+                }}
+                options={STATUS_OPTIONS}
+                icon={Filter}
+                className="w-full sm:w-40"
+              />
+            </div>
           </div>
 
-          <div className="flex items-center justify-end gap-2.5 w-full sm:w-auto shrink-0">
+          <div className="flex items-center justify-between sm:justify-end gap-2.5 w-full sm:w-auto shrink-0">
             <ViewModeSwitcher
               value={viewMode}
               onChange={handleViewModeChange}
@@ -250,7 +250,7 @@ export default function CashSessionPage() {
             {!isOpen ? (
               <Button
                 onClick={() => setIsOpenDialogOpen(true)}
-                className="h-9.5 rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground text-xs font-bold shadow-xs transition-all active:scale-[0.99] cursor-pointer gap-1.5 px-3.5"
+                className="h-9.5 rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground text-xs font-bold shadow-xs transition-all active:scale-[0.99] cursor-pointer gap-1.5 px-3.5 justify-center flex-1 sm:flex-none shrink-0"
               >
                 <Plus className="w-4 h-4" />
                 <span>Open Register</span>
@@ -259,7 +259,7 @@ export default function CashSessionPage() {
               <Button
                 onClick={() => setIsCloseDialogOpen(true)}
                 variant="outline"
-                className="h-9.5 rounded-xl border-border/80 hover:bg-destructive/10 hover:border-destructive/40 hover:text-destructive text-foreground text-xs font-bold shadow-xs transition-all active:scale-[0.99] cursor-pointer gap-1.5 px-3.5"
+                className="h-9.5 rounded-xl border-border/80 hover:bg-destructive/10 hover:border-destructive/40 hover:text-destructive text-foreground text-xs font-bold shadow-xs transition-all active:scale-[0.99] cursor-pointer gap-1.5 px-3.5 justify-center flex-1 sm:flex-none shrink-0"
               >
                 <Lock className="w-4 h-4" />
                 <span>Close Shift</span>

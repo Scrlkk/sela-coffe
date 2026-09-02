@@ -245,7 +245,7 @@ export const TransactionPage: React.FC = () => {
         </div>
 
         <div className="flex flex-wrap items-center justify-between gap-2.5 sm:gap-3 w-full xl:w-auto min-w-0">
-          <div className="flex flex-wrap items-center gap-2 sm:gap-2.5 w-full sm:w-auto min-w-0">
+          <div className="grid grid-cols-2 sm:flex sm:items-center gap-2 sm:gap-2.5 w-full sm:w-auto min-w-0">
             <div className="w-full sm:w-38 min-w-0">
               <FormDropdownPicker
                 value={selectedDateRange}
@@ -277,7 +277,7 @@ export const TransactionPage: React.FC = () => {
               variant="outline"
               onClick={() => setShowDeleted(!showDeleted)}
               className={cn(
-                "h-9.5 rounded-xl text-xs font-semibold gap-1.5 px-3 transition-all cursor-pointer shadow-2xs bg-card justify-center shrink-0",
+                "h-9.5 rounded-xl text-xs font-semibold gap-1.5 px-3 transition-all cursor-pointer shadow-2xs bg-card justify-center flex-1 sm:flex-none shrink-0",
                 showDeleted
                   ? "border-2 border-destructive text-destructive hover:border-destructive hover:bg-card shadow-xs font-bold"
                   : "border border-border/80 text-foreground hover:border-primary/80 hover:bg-card",

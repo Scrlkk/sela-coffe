@@ -20,6 +20,20 @@ export const Sidebar: React.FC<SidebarProps> = ({
 }) => {
   const navigate = useNavigate();
   const location = useLocation();
+  const activeItemRef = React.useRef<HTMLDivElement | null>(null);
+
+  React.useEffect(() => {
+    const timer = setTimeout(() => {
+      if (activeItemRef.current) {
+        activeItemRef.current.scrollIntoView({
+          block: "nearest",
+          inline: "nearest",
+          behavior: "smooth",
+        });
+      }
+    }, 50);
+    return () => clearTimeout(timer);
+  }, [location.pathname, collapsed]);
 
   const handleItemClick = (path: string) => {
     navigate(path);
@@ -110,10 +124,11 @@ export const Sidebar: React.FC<SidebarProps> = ({
               return (
                 <div
                   key={item.path}
+                  ref={isActive ? activeItemRef : undefined}
                   onClick={() => handleItemClick(item.path)}
                   title={isCollapsed ? item.label : undefined}
                   className={cn(
-                    "flex items-center gap-3 py-2.5 rounded-2xl text-sm font-medium transition-all duration-200 cursor-pointer",
+                    "flex items-center gap-3 py-2.5 rounded-2xl text-sm font-medium transition-all duration-200 cursor-pointer scroll-my-12",
                     isCollapsed ? "justify-center px-0" : "px-3",
                     isActive
                       ? "bg-card text-foreground shadow-lg shadow-black/10 font-semibold"

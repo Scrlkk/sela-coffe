@@ -307,7 +307,7 @@ export const StockPage: React.FC = () => {
             </div>
           </div>
 
-          <div className="flex items-center justify-end gap-2.5 w-full lg:w-auto shrink-0">
+          <div className="flex items-center justify-between sm:justify-end gap-2.5 w-full lg:w-auto shrink-0">
             <ViewModeSwitcher
               value={viewMode}
               onChange={handleViewModeChange}
@@ -315,10 +315,10 @@ export const StockPage: React.FC = () => {
 
             <Button
               onClick={() => setDialog({ type: "adjust", item: null })}
-              className="h-9.5 rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground text-xs font-bold gap-1.5 px-4 shadow-xs transition-all active:scale-[0.99] cursor-pointer shrink-0"
+              className="h-9.5 rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground text-xs font-bold gap-1.5 px-4 shadow-xs transition-all active:scale-[0.99] cursor-pointer justify-center flex-1 sm:flex-none shrink-0"
             >
               <SlidersHorizontal className="w-4 h-4" />
-              <span>Stock Adjustment</span>
+              <span>Adjust Stock</span>
             </Button>
           </div>
         </div>

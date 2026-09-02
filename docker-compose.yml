@@ -53,7 +53,7 @@ services:
       - "5173:5173"
     environment:
       - VITE_APP_NAME=${VITE_APP_NAME:-Sela Coffee}
-      - VITE_APP_VERSION=${VITE_APP_VERSION:-v2.1}
+      - VITE_APP_VERSION=${VITE_APP_VERSION:-v1.1}
     command: sh -c "until [ -f /app/node_modules/.bin/vite ] || [ -f /app/frontend/node_modules/.bin/vite ]; do echo 'Waiting for node_modules...'; sleep 1; done && npm run dev:frontend"
     depends_on:
       - backend

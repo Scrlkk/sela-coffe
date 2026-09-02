@@ -58,7 +58,7 @@ export const FormDropdownPicker: React.FC<FormDropdownPickerProps> = ({
       <DropdownMenuContent
         align={align}
         side={side}
-        className="w-full min-w-full max-w-full max-h-56 overflow-y-auto no-scrollbar p-1 rounded-xl bg-card border border-border/80 shadow-md z-50 divide-y divide-border/20"
+        className="w-full min-w-full max-w-full max-h-80 overflow-y-auto p-1 rounded-xl bg-popover text-popover-foreground border border-border/80 shadow-2xl z-50 divide-y divide-border/20"
       >
         {options.map((opt) => {
           const isSelected = value === opt.id;

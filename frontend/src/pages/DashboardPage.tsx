@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import {
@@ -14,7 +14,18 @@ import { RevenueOverviewCard } from "@/components/dashboard/RevenueOverviewCard"
 import { SalesByCategoryCard } from "@/components/dashboard/SalesByCategoryCard";
 import { TodaysTransactionsCard } from "@/components/dashboard/TodaysTransactionsCard";
 import { RecentActivityCard } from "@/components/dashboard/RecentActivityCard";
-import { STAT_CARDS } from "@/constants/dashboard";
+import {
+  STAT_CARDS,
+  FILTER_OPTIONS,
+  REVENUE_OVERVIEW_DATA,
+  SALES_BY_CATEGORY_DATA,
+} from "@/constants/dashboard";
+import {
+  getSalesReportData,
+  getBestSellerReportData,
+  type DateRangeFilter,
+} from "@/services/report";
+import { safeStorage } from "@/utils/storage";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { formatRupiah } from "@/utils/formatCurrency";
@@ -24,9 +35,26 @@ import {
 } from "@/services/cashSession";
 import { CloseSessionDialog } from "@/components/cash-session/CloseSessionDialog";
 
+const DASHBOARD_PERIOD_STORAGE_KEY = "sela_dashboard_revenue_period";
+
+const PERIOD_MAP: Record<string, DateRangeFilter> = {
+  "This Week": "this_week",
+  "Last 7 Days": "last_7_days",
+  "Last Week": "last_7_days",
+  "This Month": "this_month",
+  "Last Month": "last_month",
+  "All Time": "all_time",
+};
+
 export default function DashboardPage() {
   const navigate = useNavigate();
-  const [period, setPeriod] = useState<string>("This Week");
+  const [period, setPeriod] = useState<string>(() => {
+    const saved = safeStorage.getItem(DASHBOARD_PERIOD_STORAGE_KEY);
+    if (saved && (FILTER_OPTIONS as readonly string[]).includes(saved)) {
+      return saved;
+    }
+    return "All Time";
+  });
   const [loadingRev, setLoadingRev] = useState<boolean>(false);
   const [loadingTxn, setLoadingTxn] = useState<boolean>(false);
   const [loadingAct, setLoadingAct] = useState<boolean>(false);
@@ -65,6 +93,46 @@ export default function DashboardPage() {
       toast.error("Failed to close cash session");
     }
   };
+
+  const handlePeriodChange = (newPeriod: string) => {
+    setPeriod(newPeriod);
+    safeStorage.setItem(DASHBOARD_PERIOD_STORAGE_KEY, newPeriod);
+    triggerCardRefresh(setLoadingRev);
+  };
+
+  const mappedFilter: DateRangeFilter = PERIOD_MAP[period] || "all_time";
+
+  const { revenueData, categoryData } = useMemo(() => {
+    try {
+      const salesReport = getSalesReportData(mappedFilter);
+      const bestSellerReport = getBestSellerReportData(mappedFilter);
+
+      const rev =
+        salesReport.revenueTrend && salesReport.revenueTrend.length > 0
+          ? salesReport.revenueTrend.map((t) => ({
+              day: t.label,
+              revenue: t.revenue,
+            }))
+          : REVENUE_OVERVIEW_DATA;
+
+      const cat =
+        bestSellerReport.categorySales &&
+        bestSellerReport.categorySales.length > 0
+          ? bestSellerReport.categorySales.map((c) => ({
+              category: c.category,
+              percentage: c.percentage,
+              color: c.color,
+            }))
+          : SALES_BY_CATEGORY_DATA;
+
+      return { revenueData: rev, categoryData: cat };
+    } catch {
+      return {
+        revenueData: REVENUE_OVERVIEW_DATA,
+        categoryData: SALES_BY_CATEGORY_DATA,
+      };
+    }
+  }, [mappedFilter]);
 
   const isOpen = Boolean(activeSession?.isOpen);
   const expectedDrawerCash =
@@ -134,17 +202,16 @@ export default function DashboardPage() {
 
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 sm:gap-6 items-stretch">
         <RevenueOverviewCard
+          data={revenueData}
           period={period}
-          onPeriodChange={(newPeriod) => {
-            setPeriod(newPeriod);
-            triggerCardRefresh(setLoadingRev);
-          }}
+          onPeriodChange={handlePeriodChange}
           isLoading={loadingRev}
           onRefresh={() => triggerCardRefresh(setLoadingRev)}
           className="lg:col-span-3 h-full max-h-96"
         />
 
         <SalesByCategoryCard
+          data={categoryData}
           period={period}
           isLoading={loadingRev}
           className="lg:col-span-1 h-full max-h-96"

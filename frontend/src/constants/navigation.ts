@@ -37,7 +37,7 @@ export const ROUTE_META: Record<string, RouteInfo> = {
   },
   "/ingredients": {
     title: "Raw Ingredients",
-    description: "Manage coffee beans, milk, syrups, powders, and packaging",
+    description: "Manage raw ingredients and supplies",
   },
   "/categories": {
     title: "Categories",
@@ -85,19 +85,19 @@ export const ROUTE_META: Record<string, RouteInfo> = {
   },
   "/reports/sales": {
     title: "Sales Report",
-    description: "Detailed sales revenue, transaction trends, and payment summaries",
+    description: "Revenue overview and transaction trends",
   },
   "/reports/best-sellers": {
     title: "Best Seller Report",
-    description: "Top performing menu items, high-volume products, and item rankings",
+    description: "Top menu items and sales ranking",
   },
   "/reports/inventory": {
     title: "Inventory Report",
-    description: "Stock valuation, stock turnover, usage rate, and waste tracking",
+    description: "Stock valuation and ingredient health",
   },
   "/reports/purchases": {
     title: "Purchase Report",
-    description: "Procurement spending, supplier breakdown, and incoming goods analysis",
+    description: "Procurement spending and supplier orders",
   },
 };
 

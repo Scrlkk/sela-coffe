@@ -266,19 +266,6 @@ export const StockMovementPage: React.FC = () => {
           <div className="flex flex-wrap sm:flex-nowrap items-center gap-2 sm:gap-2.5 w-full sm:w-auto min-w-0">
             <div className="flex-1 sm:flex-none min-w-0">
               <FormDropdownPicker
-                value={typeFilter}
-                onChange={(val) => {
-                  setTypeFilter(val);
-                  setCurrentPage(1);
-                }}
-                options={MOVEMENT_TYPE_OPTIONS}
-                icon={Filter}
-                className="w-full sm:w-52"
-              />
-            </div>
-
-            <div className="flex-1 sm:flex-none min-w-0">
-              <FormDropdownPicker
                 value={dateFilter}
                 onChange={(val) => {
                   setDateFilter(val as DateRangeFilter);
@@ -287,6 +274,19 @@ export const StockMovementPage: React.FC = () => {
                 options={DATE_RANGE_OPTIONS}
                 icon={Calendar}
                 className="w-full sm:w-48"
+              />
+            </div>
+
+            <div className="flex-1 sm:flex-none min-w-0">
+              <FormDropdownPicker
+                value={typeFilter}
+                onChange={(val) => {
+                  setTypeFilter(val);
+                  setCurrentPage(1);
+                }}
+                options={MOVEMENT_TYPE_OPTIONS}
+                icon={Filter}
+                className="w-full sm:w-52"
               />
             </div>
           </div>

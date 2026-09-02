@@ -1,11 +1,5 @@
 import React from "react";
-import {
-  User,
-  Clock,
-  Store,
-  SlidersHorizontal,
-  Banknote,
-} from "lucide-react";
+import { User, Clock, Store, SlidersHorizontal } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -103,10 +97,7 @@ export const CashSessionGridCard: React.FC<CashSessionViewProps> = ({
             </div>
 
             <div className="flex justify-between items-center font-sans">
-              <span className="text-muted-foreground flex items-center gap-1">
-                <Banknote className="w-3 h-3 text-emerald-600 dark:text-emerald-400" />
-                <span>Cash Sales:</span>
-              </span>
+              <span className="text-muted-foreground">Cash Sales:</span>
               <span className="font-bold text-emerald-600 dark:text-emerald-400 font-mono">
                 +{formatRupiah(session.cashSales)}
               </span>

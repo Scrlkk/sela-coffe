@@ -264,7 +264,7 @@ export const ProductPage: React.FC = () => {
               variant="outline"
               onClick={() => setShowDeleted(!showDeleted)}
               className={cn(
-                "h-9.5 rounded-xl text-xs font-semibold gap-1.5 px-3 transition-all cursor-pointer shadow-2xs bg-card justify-center shrink-0",
+                "h-9.5 rounded-xl text-xs font-semibold gap-1.5 px-3 transition-all cursor-pointer shadow-2xs bg-card justify-center flex-1 sm:flex-none shrink-0",
                 showDeleted
                   ? "border-2 border-destructive text-destructive hover:border-destructive hover:bg-card shadow-xs font-bold"
                   : "border border-border/80 text-foreground hover:border-primary/80 hover:bg-card",
@@ -280,7 +280,7 @@ export const ProductPage: React.FC = () => {
             {!showDeleted && (
               <Button
                 onClick={() => setDialog({ type: "create" })}
-                className="h-9.5 rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground text-xs font-bold gap-1.5 px-4 shadow-xs transition-all active:scale-[0.99] cursor-pointer justify-center shrink-0"
+                className="h-9.5 rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground text-xs font-bold gap-1.5 px-4 shadow-xs transition-all active:scale-[0.99] cursor-pointer justify-center flex-1 sm:flex-none shrink-0"
               >
                 <Plus className="w-4 h-4" />
                 <span>Add Product</span>

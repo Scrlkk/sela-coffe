@@ -183,35 +183,33 @@ export const SupplierPage: React.FC = () => {
           )}
         </div>
 
-        <div className="flex flex-wrap items-center justify-between sm:justify-end gap-2 w-full xl:w-auto min-w-0">
-          <div className="flex items-center gap-2 shrink-0">
-            <ViewModeSwitcher
-              value={viewMode}
-              onChange={handleViewModeChange}
-            />
+        <div className="flex items-center justify-between sm:justify-end gap-2.5 w-full sm:w-auto shrink-0">
+          <ViewModeSwitcher
+            value={viewMode}
+            onChange={handleViewModeChange}
+          />
 
-            <Button
-              variant="outline"
-              onClick={() => setShowDeleted(!showDeleted)}
-              className={cn(
-                "h-9.5 rounded-xl text-xs font-semibold gap-1.5 px-3 transition-all cursor-pointer shadow-2xs bg-card",
-                showDeleted
-                  ? "border-2 border-destructive text-destructive hover:border-destructive hover:bg-card shadow-xs font-bold"
-                  : "border border-border/80 text-foreground hover:border-primary/80 hover:bg-card",
-              )}
-            >
-              <Trash2 className="w-3.5 h-3.5" />
-              <span>{showDeleted ? "Active Suppliers" : "Trash"}</span>
-              {stats.totalDeleted > 0 && !showDeleted && (
-                <span className="w-2 h-2 rounded-full bg-destructive animate-pulse" />
-              )}
-            </Button>
-          </div>
+          <Button
+            variant="outline"
+            onClick={() => setShowDeleted(!showDeleted)}
+            className={cn(
+              "h-9.5 rounded-xl text-xs font-semibold gap-1.5 px-3 transition-all cursor-pointer shadow-2xs bg-card justify-center flex-1 sm:flex-none shrink-0",
+              showDeleted
+                ? "border-2 border-destructive text-destructive hover:border-destructive hover:bg-card shadow-xs font-bold"
+                : "border border-border/80 text-foreground hover:border-primary/80 hover:bg-card",
+            )}
+          >
+            <Trash2 className="w-3.5 h-3.5" />
+            <span>{showDeleted ? "Active Suppliers" : "Trash"}</span>
+            {stats.totalDeleted > 0 && !showDeleted && (
+              <span className="w-2 h-2 rounded-full bg-destructive animate-pulse" />
+            )}
+          </Button>
 
           {!showDeleted && (
             <Button
               onClick={() => setDialog({ type: "create" })}
-              className="h-9.5 rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground text-xs font-bold gap-1.5 px-4 shadow-xs transition-all active:scale-[0.99] cursor-pointer shrink-0"
+              className="h-9.5 rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground text-xs font-bold gap-1.5 px-4 shadow-xs transition-all active:scale-[0.99] cursor-pointer justify-center flex-1 sm:flex-none shrink-0"
             >
               <Plus className="w-4 h-4" />
               <span>Add Supplier</span>

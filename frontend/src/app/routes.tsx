@@ -14,6 +14,7 @@ import { StockSkeleton } from "@/components/stock/StockSkeleton";
 import { StockMovementSkeleton } from "@/components/stock-movement/StockMovementSkeleton";
 import { PurchaseSkeleton } from "@/components/purchase/PurchaseSkeleton";
 import { TransactionSkeleton } from "@/components/transaction/TransactionSkeleton";
+import { ReportSkeleton } from "@/components/reports/ReportSkeleton";
 import {
   ProtectedRoute,
   PublicRoute,
@@ -33,6 +34,16 @@ const DashboardPage = lazy(() => import("@/pages/DashboardPage"));
 const ProfilePage = lazy(() => import("@/pages/ProfilePage"));
 const CashSessionPage = lazy(() => import("@/pages/CashSessionPage"));
 const CashierPage = lazy(() => import("@/pages/CashierPage"));
+const SalesReportPage = lazy(() => import("@/pages/reports/SalesReportPage"));
+const BestSellerReportPage = lazy(
+  () => import("@/pages/reports/BestSellerReportPage"),
+);
+const InventoryReportPage = lazy(
+  () => import("@/pages/reports/InventoryReportPage"),
+);
+const PurchaseReportPage = lazy(
+  () => import("@/pages/reports/PurchaseReportPage"),
+);
 const NotFoundPage = lazy(() => import("@/pages/NotFoundPage"));
 const ServerErrorPage = lazy(() => import("@/pages/ServerErrorPage"));
 
@@ -167,19 +178,35 @@ const router = createBrowserRouter([
           },
           {
             path: "/reports/sales",
-            element: <div />,
+            element: (
+              <Suspense fallback={<ReportSkeleton />}>
+                <SalesReportPage />
+              </Suspense>
+            ),
           },
           {
             path: "/reports/best-sellers",
-            element: <div />,
+            element: (
+              <Suspense fallback={<ReportSkeleton />}>
+                <BestSellerReportPage />
+              </Suspense>
+            ),
           },
           {
             path: "/reports/inventory",
-            element: <div />,
+            element: (
+              <Suspense fallback={<ReportSkeleton />}>
+                <InventoryReportPage />
+              </Suspense>
+            ),
           },
           {
             path: "/reports/purchases",
-            element: <div />,
+            element: (
+              <Suspense fallback={<ReportSkeleton />}>
+                <PurchaseReportPage />
+              </Suspense>
+            ),
           },
         ],
       },

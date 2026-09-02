@@ -4,9 +4,10 @@ import { formatRupiah } from "@/utils/formatCurrency";
 
 export const FILTER_OPTIONS = [
   "This Week",
-  "Last Week",
+  "Last 7 Days",
   "This Month",
   "Last Month",
+  "All Time",
 ] as const;
 
 export type FilterPeriod = (typeof FILTER_OPTIONS)[number];
